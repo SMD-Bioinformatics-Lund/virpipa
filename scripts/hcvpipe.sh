@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #SBATCH --output=R-%x.%j.out
 #SBATCH --error=R-%x.%j.err
-#SBATCH --time=00:30:00
+#SBATCH --time=01:00:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=high
+#SBATCH --partition=grace-normal
 
 ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
 
@@ -17,7 +17,9 @@ refdir='/fs1/jonas/hcv/refgenomes'
 genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
 # genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
 
-sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.01.sif sentieon"
+# sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.01.sif sentieon"
+#sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202503--7e7ce56c0d0199c5.sif"
+sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.03.sif sentieon"
 samt="apptainer exec -B /fs1,/local ${containerdir}/samtools_1.21.sif samtools"
 bgz="apptainer exec -B /fs1,/local ${containerdir}/samtools_1.21.sif bgzip"
 bcft="apptainer exec -B /fs1,/local ${containerdir}/bcftools_1.21.sif bcftools"
@@ -27,6 +29,7 @@ spadesbin="apptainer exec -B /fs1,/local ${containerdir}/spades_3.15.5.sif spade
 hostilebin="apptainer exec -B /fs1,/local ${containerdir}/hostile_1.1.0.sif hostile"
 freebayes="apptainer exec -B /fs1,/local ${containerdir}/freebayes_1.3.8.sif freebayes"
 blastn="apptainer exec -B /fs1,/local ${containerdir}/blast_2.16.0.sif blastn"
+pyplot="apptainer exec -B /fs1,/local ${containerdir}/pyplot.sif python ${scripts}/kderug.py"
 
 export LC_NUMERIC=en_US.UTF-8    # otherwise datamash recognizes , as decimal separator
 export HOSTILE_CACHE_DIR=/fs1/resources/ref/micro/hostile
@@ -50,9 +53,10 @@ function showhelp() {
 	echo '                              if only forward is given, reverse will be inferred'
 	echo '                              but you probably want to change this'
 	echo 'Optional arguments:'
-	echo '   -s <n>, --subsample <n>    Subsample reads. [default 500 000]'
+	echo '   -s <i>, --subsample <n>    Subsample reads. [default 500 000]'
 	echo '   -o <s>, --outdir <s>       Sets the root dir for output folders'
 	echo '   -r <s>, --reference <s>    Use this reference'
+	echo '   -c <i>, --cpus <i>         Number of CPUs to use. [default 16]'
 	echo '   -H, --hostile              Do NOT remove human reads with hostile'
 	echo '   -n, --dry-run              Dry run'
 	echo '   -f, --force                Force rerun'
@@ -69,7 +73,7 @@ if [[ -z "$1" ]]; then
 fi
 
 
-readopts=$(getopt -o hnfs:Ho:r: --long help,dryrun,force,subsample:,hostile,outdir:,reference: -n 'error' -- "$@")
+readopts=$(getopt -o hnfc:s:Ho:r: --long help,dryrun,force,cpus,subsample:,hostile,outdir:,reference: -n 'error' -- "$@")
 #echo $readopts
 eval set -- "$readopts"
 pc=''
@@ -86,6 +90,9 @@ while true ; do
 			esac ;;
 		-o|--outdir)
 			outdirroot="$2"
+			shift 2;;
+		-c|--cpus)
+			cpus="$2"
 			shift 2;;
 		-r|--reference)
 			genome_files=( "$2" )
@@ -276,6 +283,10 @@ else
 	r2=$r2org
 fi
 
+# ugly hack since I stupidly used global r1 and r2
+r1nosub=$r1
+r2nosub=$r2
+
 
 # non-optional subsampling to 250k reads for finding correct subtype
 subsample $r1 $r2 250000 tmp
@@ -299,6 +310,10 @@ for genome_file in "${genome_files[@]}" ; do
 	fi
 done
 
+# ugly restoration of non-subsampled reads
+r1=$r1nosub
+r2=$r2nosub
+
 # optional subsampling
 if [[ ! $subsamplereads == '' ]] ; then
 	subsample $r1 $r2 ${subsamplereads} fastq
@@ -318,7 +333,7 @@ $pc cp ${outdir}/vcf/${id}-${subtype}.vcf.gz* ${outdir}/results
 
 # de novo assembly (possibly on subsampled reads)
 if [[ ! -f ${outdir}/spades/${id}.spades ]] ; then
-	$pc $spadesbin -1 $r1 -2 $r2 --rnaviral -o ${outdir}/spades --threads 16
+	$pc $spadesbin -1 $r1 -2 $r2 --rnaviral -o ${outdir}/spades --threads ${cpus}
 	$pc cp ${outdir}/spades/contigs.fasta ${outdir}/spades/${id}.spades
 fi
 
@@ -358,8 +373,9 @@ $sent bwa index ${outdir}/mummer/${id}-denovocons-randbase.fasta
 $pc umimap "${outdir}/mummer/${id}-denovocons-randbase.fasta" "denovocons-randbase"
 # $pc umimap "${outdir}/mummer/${id}-denovocons.fasta" "denovocons-iter1"
 # maybe do this with ploidy 1 instead of 2 to not have ambiguous calls? Plus one with IUPAC codes for say 10%?
-$freebayes --ploidy 1 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.1 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase.vcf
-$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.1 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf
+# 250417 change the min-alternative-cutoff to 15% since this seems to be the global consensus
+$freebayes --ploidy 1 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.15 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase.vcf
+$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.15 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf
 # index the vcf
 $bgz -f -i ${outdir}/vcf/${id}-freebayes-randbase.vcf
 $bcft index ${outdir}/vcf/${id}-freebayes-randbase.vcf.gz
@@ -380,7 +396,7 @@ $sent bwa index ${outdir}/fasta/${id}-freebayes.fasta
 $pc umimap "${outdir}/fasta/${id}-freebayes.fasta" "freebayes"
 
 # create various tracks for igv
-for minfrac in 0.05 0.1 0.2 0.3 0.4; do
+for minfrac in 0.01 0.05 0.1 0.15 0.2 0.3 0.4; do
 	$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction ${minfrac} --min-mapping-quality 60 -f ${outdir}/fasta/${id}-freebayes.fasta ${outdir}/bam/${id}-freebayes.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf
 	$bgz -f -i ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf
 	$bcft index ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf.gz
@@ -397,7 +413,7 @@ $pc cp ${outdir}/fasta/${id}-freebayes.fasta.fai ${outdir}/results/
 
 
 # create report files with stats and quality FIXME! freebayes part
-ln -s ${outdir}/vcf/${id}-freebayes-m0.1.vcf.gz.stats ${outdir}/vcf/${id}-freebayes.vcf.gz.stats
+ln -s ${outdir}/vcf/${id}-freebayes-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-freebayes.vcf.gz.stats
 for report in ${id}-${subtype} ${id}-freebayes ; do
 	createreport ${outdir}/vcf/${report}.vcf.gz.stats > ${outdir}/results/${report}.report.tsv
 	echo '# COVERAGE' >> ${outdir}/results/${report}.report.tsv
@@ -412,3 +428,27 @@ for fasta in ${outdir}/results/${id}-freebayes.fasta  ${outdir}/spades/${id}.spa
 t\ts. end\tevalue\tbit score\n" > ${fasta}.blast
     $blastn -query $fasta -db ${refdir}/hcvglue/hcvgluerefs -outfmt 6 >> ${fasta}.blast
 done
+
+# plot kde + rug of vcf data with 1% cutoff
+cd ${outdir}/results/
+$pc zcat ${outdir}/vcf/${id}-freebayes-m0.1.vcf | \
+	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
+	sed 's/.*\t//' | \
+	cut -d':' -f2,4 | \
+	tr ':' '\t' | \
+	awk '{print $2/$1}' > ${outdir}/tmp/${id}.mixin
+$pc $pyplot ${outdir}/tmp/${id}.mixin
+cd -
+
+# log genome coverage at 1x 10x 100x 1000x
+printf "id\t1x\t10x\t100x\t1000x\n${id}\t" > ${outdir}/results/${id}-coverage.tsv
+
+$samt depth -r ${id}:100-9600 ${outdir}/results/${id}-freebayes.cram | \
+awk 'BEGIN { total=9501; cov1=0; cov10=0; cov100=0; cov1000=0 }
+     { if ($3 >= 1) cov1++; if ($3 >= 10) cov10++; if ($3 >= 100) cov100++; if ($3 >= 1000) cov1000++ }
+     END {
+         printf "%.2f\t", (cov1/total)*100;
+         printf "%.2f\t", (cov10/total)*100;
+         printf "%.2f\t", (cov100/total)*100;
+         printf "%.2f\n", (cov1000/total)*100;
+     }' >> ${outdir}/results/${id}-coverage.tsv
