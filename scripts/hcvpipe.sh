@@ -348,7 +348,8 @@ $pc cd fastasplit
 $pc awk '/^>/ {OUT=substr($0,2) ".fa"}; OUT {print >OUT}' ${outdir}/spades/${id}.spades
 $pc cd -
 $pc $mum nucmer -p ${id} ${outdir}/fasta/${id}-${subtype}.fasta ${outdir}/spades/${id}.spades
-$pc $mum show-tiling ${id}.delta | sed -n '2,$p' | cut -f7,8 > ${outdir}/tmp/${id}.tiling
+$pc $mum delta-filter -q ${outdir}/tmp/${id}.delta > ${outdir}/tmp/${id}.delta-filter
+$pc $mum show-tiling ${outdir}/tmp/${id}.delta-filter | sed -n '2,$p' | cut -f7,8 > ${outdir}/tmp/${id}.tiling
 while read -r direction contig ; do
 	if [[ $direction == '-' ]] ; then
 		seqtk seq -r fastasplit/${contig}.fa >> 4mafft.fa
