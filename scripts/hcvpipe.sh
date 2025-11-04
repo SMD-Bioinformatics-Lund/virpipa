@@ -11,9 +11,11 @@ ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
 # define defaults
 cpus=16
 type=r11b2L25
-scripts="/fs1/jonas/hcv/scripts"
+#scripts="/fs1/jonas/hcv/scripts"
+scripts=$(dirname $0)
 containerdir='/fs1/resources/containers'
-refdir='/fs1/jonas/hcv/refgenomes'
+#refdir='/fs1/jonas/hcv/refgenomes'
+refdir="${scripts}/../refgenomes"
 genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
 # genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
 
@@ -431,7 +433,7 @@ done
 
 # plot kde + rug of vcf data with 1% cutoff
 cd ${outdir}/results/
-$pc zcat ${outdir}/vcf/${id}-freebayes-m0.1.vcf | \
+$pc zcat ${outdir}/vcf/${id}-freebayes-m0.01.vcf | \
 	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
 	sed 's/.*\t//' | \
 	cut -d':' -f2,4 | \
