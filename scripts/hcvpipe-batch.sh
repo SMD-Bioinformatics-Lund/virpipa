@@ -16,7 +16,7 @@ cd $logdir
 for sample in ${fulldir}/*R1*gz ; do
 	jobname=$(basename $sample)
 	jobname=${jobname%%_*}
-	sbatch -J HCV-${jobname} /fs1/jonas/hcv/scripts/hcvpipe.sh -f -s $subsample -o ${outdir}/${runname} $sample
+	sbatch -J HCV-${jobname} $(dirname $0)/hcvpipe.sh -f -s $subsample -o ${outdir}/${runname} $sample
 done
 
 cd - > /dev/null
