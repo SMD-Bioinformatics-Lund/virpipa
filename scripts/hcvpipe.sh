@@ -338,34 +338,55 @@ if [[ ! -f ${outdir}/spades/${id}.spades ]] ; then
 fi
 
 
-# mapping back to the best hit - mainly for compensating for gaps in the mapping to the ref
-$pc cd ${outdir}/tmp
-$pc cp ${outdir}/results/${id}-${subtype}.fasta 4mafft.fa
-$pc sed -i "s/>${id}-${subtype}/>${id}/" 4mafft.fa
+# Align contigs with the best ref genome using mummer
+$pc mkdir ${outdir}/mummer
+$pc cd ${outdir}/mummer
+$pc $mum nucmer --maxmatch -p ${id} ${refdir}/${subtype}.fa ${outdir}/spades/${id}.spades
+$pc $mum delta-filter -q ${outdir}/tmp/${id}.delta > ${id}.delta-filter
+$pc $mum show-tiling ${outdir}/tmp/${id}.delta-filter > ${id}.tiling
 
-mkdir fastasplit
-$pc cd fastasplit
-$pc awk '/^>/ {OUT=substr($0,2) ".fa"}; OUT {print >OUT}' ${outdir}/spades/${id}.spades
+# python script for extracting consensus from contgs while filling in gaps from the best reference
+$pc python $scripts/build_hybrid_reference.py ${refdir}/${subtype}.fa ${outdir}/spades/${id}.spades ${outdir}/mummer/${id}.tiling ${id} 2> ${outdir}/mummer/${id}-hybrid-ref.log
+
+$pc $samt faidx ${outdir}/mummer/${id}.hybrid.fasta
+$pc $sent bwa index "${outdir}/mummer/${id}.hybrid.fasta"
 $pc cd -
-$pc $mum nucmer -p ${id} ${outdir}/fasta/${id}-${subtype}.fasta ${outdir}/spades/${id}.spades
-$pc $mum delta-filter -q ${outdir}/tmp/${id}.delta > ${outdir}/tmp/${id}.delta-filter
-$pc $mum show-tiling ${outdir}/tmp/${id}.delta-filter | sed -n '2,$p' | cut -f7,8 > ${outdir}/tmp/${id}.tiling
-while read -r direction contig ; do
-	if [[ $direction == '-' ]] ; then
-		seqtk seq -r fastasplit/${contig}.fa >> 4mafft.fa
-	else
-		cat fastasplit/${contig}.fa >> 4mafft.fa
-	fi
-done < ${outdir}/tmp/${id}.tiling
-# align contigs and do not use iupac
-$pc $mafftbin 4mafft.fa > ${id}.mafft 
-python $scripts/consensus_fasta.py ${id}.mafft 2> ${outdir}/mummer/${id}-denovocons.out > ${outdir}/mummer/${id}-denovocons.fasta
-python $scripts/consensus_fasta.py ${id}.mafft gapped 2> /dev/null > ${outdir}/mummer/${id}-denovocons-gapped.fasta
-$pc $samt faidx ${outdir}/mummer/${id}-denovocons-gapped.fasta
-$pc $sent bwa index "${outdir}/mummer/${id}-denovocons-gapped.fasta"
-$pc $samt faidx ${outdir}/mummer/${id}-denovocons.fasta
-$pc $sent bwa index "${outdir}/mummer/${id}-denovocons.fasta"
-$pc cd -
+
+# polishing
+
+
+
+exit
+
+# # mapping back to the best hit - mainly for compensating for gaps in the mapping to the ref
+# $pc cd ${outdir}/tmp
+# $pc cp ${outdir}/results/${id}-${subtype}.fasta 4mafft.fa
+# $pc sed -i "s/>${id}-${subtype}/>${id}/" 4mafft.fa
+
+# mkdir fastasplit
+# $pc cd fastasplit
+# $pc awk '/^>/ {OUT=substr($0,2) ".fa"}; OUT {print >OUT}' ${outdir}/spades/${id}.spades
+# $pc cd -
+# $pc $mum nucmer --maxmatch -p ${id} ${outdir}/fasta/${id}-${subtype}.fasta ${outdir}/spades/${id}.spades
+# $pc $mum delta-filter -q ${outdir}/tmp/${id}.delta > ${outdir}/tmp/${id}.delta-filter
+# $pc $mum show-tiling ${outdir}/tmp/${id}.delta-filter | sed -n '2,$p' | cut -f7,8 > ${outdir}/tmp/${id}.tiling
+# while read -r direction contig ; do
+# 	if [[ $direction == '-' ]] ; then
+# 		seqtk seq -r fastasplit/${contig}.fa >> 4mafft.fa
+# 	else
+# 		cat fastasplit/${contig}.fa >> 4mafft.fa
+# 	fi
+# done < ${outdir}/tmp/${id}.tiling
+# # align contigs and do not use iupac
+# $pc $mafftbin 4mafft.fa > ${id}.mafft 
+# python $scripts/consensus_fasta.py ${id}.mafft 2> ${outdir}/mummer/${id}-denovocons.out > ${outdir}/mummer/${id}-denovocons.fasta
+# python $scripts/consensus_fasta.py ${id}.mafft gapped 2> /dev/null > ${outdir}/mummer/${id}-denovocons-gapped.fasta
+
+# $pc $samt faidx ${outdir}/mummer/${id}-denovocons-gapped.fasta
+# $pc $sent bwa index "${outdir}/mummer/${id}-denovocons-gapped.fasta"
+# $pc $samt faidx ${outdir}/mummer/${id}-denovocons.fasta
+# $pc $sent bwa index "${outdir}/mummer/${id}-denovocons.fasta"
+# $pc cd -
 
 # convert IUPC to random nuc in order to work with freebayes
 seqtk randbase ${outdir}/mummer/${id}-denovocons.fasta > ${outdir}/mummer/${id}-denovocons-randbase.fasta
