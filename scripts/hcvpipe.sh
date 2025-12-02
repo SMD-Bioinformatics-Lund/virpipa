@@ -237,6 +237,8 @@ function umimapnoopt() { # create bam files while first making a consensus using
 	echo bamfile $bamfile
 	echo localref $localref
 
+	[[ ! -f ${localref}.bwt ]] && $sent bwa index $localref
+
 	# consensus from UMI
 
 	$sent umi extract -d 3M2S+T,3M2S+T $r1 $r2 \
@@ -270,6 +272,24 @@ function umimapnoopt() { # create bam files while first making a consensus using
 	$samt stats ${filterbam} > ${filterbam}.stats
 }
 
+function bam2fasta() { # gets a fasta file from bam with bcftools
+    local localbam="$1"
+    local localref="$2"
+    local shortrefname="$3"
+	local ambiguity_af="${4:-1}"
+    local idref="${id}-${shortrefname}"
+	echo BAM2FASTA
+	echo $bcft mpileup -Ou  -f ${localref} -d 1000000 -a AD,DP  ${localbam} pipe $bcft call -Oz -m -A --ploidy 1 -o ${outdir}/vcf/${idref}.vcf
+	echo $bcft index ${outdir}/vcf/${idref}.vcf.gz
+	$bcft mpileup -Ob  -f ${localref} -d 1000000 -a AD,DP -o ${outdir}/bcf/${idref}.bcf ${localbam}
+	$bcft call -Oz -m -A --ploidy 1 -o ${outdir}/vcf/${idref}.vcf.gz ${outdir}/bcf/${idref}.bcf
+	$bcft index ${outdir}/vcf/${idref}.vcf.gz
+	zcat ${outdir}/vcf/${idref}.vcf.gz > ${outdir}/vcf/${idref}.vcf
+	awk -v MIN_AF=${ambiguity_af} -v MIN_DP=7 -f ${scripts}/vcf_to_iupac.awk ${outdir}/vcf/${idref}.vcf ${localref} > ${outdir}/fasta/${idref}.fasta
+    sed -i "s/>.*/>${idref}/" ${outdir}/fasta/${idref}.fasta
+    $bcft stats ${outdir}/vcf/${idref}.vcf.gz > ${outdir}/vcf/${idref}.vcf.gz.stats
+}
+
 function bam2fasta-old() { # gets a fasta file from bam with bcftools
 	local localbam="$1"
 	local localref="$2"
@@ -285,7 +305,7 @@ function bam2fasta-old() { # gets a fasta file from bam with bcftools
 	$bcft stats ${outdir}/vcf/${idref}.vcf.gz > ${outdir}/vcf/${idref}.vcf.gz.stats
 }
 
-function bam2fasta() {
+function bam2fasta-nogood() {
     local localbam="$1"
     local localref="$2"
     local shortrefname="$3"
@@ -537,89 +557,39 @@ echo BEFORE mapping to best pilon
 $pc umimapnoopt "${outdir}/pilon/${id}.fasta" "pilon"
 echo AFTER mapping to best pilon
 
-# # mapping back to the best hit - mainly for compensating for gaps in the mapping to the ref
-# $pc cd ${outdir}/tmp
-# $pc cp ${outdir}/results/${id}-${subtype}.fasta 4mafft.fa
-# $pc sed -i "s/>${id}-${subtype}/>${id}/" 4mafft.fa
-
-# mkdir fastasplit
-# $pc cd fastasplit
-# $pc awk '/^>/ {OUT=substr($0,2) ".fa"}; OUT {print >OUT}' ${outdir}/spades/${id}.spades
-# $pc cd -
-# $pc $mum nucmer --maxmatch -p ${id} ${outdir}/fasta/${id}-${subtype}.fasta ${outdir}/spades/${id}.spades
-# $pc $mum delta-filter -q ${outdir}/tmp/${id}.delta > ${outdir}/tmp/${id}.delta-filter
-# $pc $mum show-tiling ${outdir}/tmp/${id}.delta-filter | sed -n '2,$p' | cut -f7,8 > ${outdir}/tmp/${id}.tiling
-# while read -r direction contig ; do
-# 	if [[ $direction == '-' ]] ; then
-# 		seqtk seq -r fastasplit/${contig}.fa >> 4mafft.fa
-# 	else
-# 		cat fastasplit/${contig}.fa >> 4mafft.fa
-# 	fi
-# done < ${outdir}/tmp/${id}.tiling
-# # align contigs and do not use iupac
-# $pc $mafftbin 4mafft.fa > ${id}.mafft 
-# python $scripts/consensus_fasta.py ${id}.mafft 2> ${outdir}/mummer/${id}-denovocons.out > ${outdir}/mummer/${id}-denovocons.fasta
-# python $scripts/consensus_fasta.py ${id}.mafft gapped 2> /dev/null > ${outdir}/mummer/${id}-denovocons-gapped.fasta
-
-# $pc $samt faidx ${outdir}/mummer/${id}-denovocons-gapped.fasta
-# $pc $sent bwa index "${outdir}/mummer/${id}-denovocons-gapped.fasta"
-# $pc $samt faidx ${outdir}/mummer/${id}-denovocons.fasta
-# $pc $sent bwa index "${outdir}/mummer/${id}-denovocons.fasta"
-# $pc cd -
-
-# convert IUPC to random nuc in order to work with freebayes
-#seqtk randbase ${outdir}/mummer/${id}-denovocons.fasta > ${outdir}/mummer/${id}-denovocons-randbase.fasta
-#$sent bwa index ${outdir}/mummer/${id}-denovocons-randbase.fasta
-# map to new fasta starting from the gapped fasta from aligned de novo contigs. This is to generate a new fasta template
-# $pc umimap "${outdir}/mummer/${id}-denovocons-randbase.fasta" "denovocons-randbase"
-# $pc umimap "${outdir}/mummer/${id}-denovocons.fasta" "denovocons-iter1"
-# maybe do this with ploidy 1 instead of 2 to not have ambiguous calls? Plus one with IUPAC codes for say 10%?
-# 250417 change the min-alternative-cutoff to 15% since this seems to be the global consensus
-#$freebayes --ploidy 1 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.15 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase.vcf
-#$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction 0.15 --min-mapping-quality 60 -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/bam/${id}-denovocons-randbase.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf
-# index the vcf
-#$bgz -f -i ${outdir}/vcf/${id}-freebayes-randbase.vcf
-#$bcft index ${outdir}/vcf/${id}-freebayes-randbase.vcf.gz
-#$bgz -f -i ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf
-#$bcft index ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf.gz
-# get the new fasta based on freebayes calling
-#$samt index ${outdir}/mummer/${id}-denovocons-randbase.fasta
-#$bcft consensus -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/vcf/${id}-freebayes-randbase.vcf.gz > ${outdir}/fasta/${id}-freebayes.fasta
-#$bcft consensus -f ${outdir}/mummer/${id}-denovocons-randbase.fasta ${outdir}/vcf/${id}-freebayes-randbase-iupac.vcf.gz > ${outdir}/fasta/${id}-freebayes-iupac.fasta
+# for some reason there are still erronous bases in the pilon fasta where the majority call is not used, just render a new file with maOrity calls?
+# this is indeed a hack and should be cleaned up
+$pc bam2fasta  "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam" "${outdir}/pilon/${id}.fasta" "1.0-iupac" "1.0"
+$pc mv ${outdir}/pilon/${id}.fasta ${outdir}/pilon/${id}.fasta.org
+$pc cp ${outdir}/fasta/${id}-1.0-iupac.fasta ${outdir}/pilon/${id}.fasta
+$pc sed -i "s/>.*/>${id}/" ${outdir}/pilon/${id}.fasta
+$pc $samt faidx ${outdir}/pilon/${id}.fasta
+$pc $sent bwa index ${outdir}/pilon/${id}.fasta
 
 
-# # dirty copy to results and create report FIXME
-# #cp ${outdir}/fasta/${id}-freebayes-iupac.fasta ${outdir}/results/
-# #awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper($i)]++}END{for(i in w) print i,w[i]}' ${outdir}/results/${id}-freebayes-iupac.fasta | sort -nr -k2 > ${outdir}/results/${id}-freebayes-iupac.fastanucfreq.tsv
-# cp ${outdir}/pilon/${id}.fasta ${outdir}/results/
-# cp ${outdir}/pilon/${id}-pilon-iupac.fasta ${outdir}/results/
-# awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper($i)]++}END{for(i in w) print i,w[i]}' ${outdir}/results/${id}-pilon-iupac.fasta | sort -nr -k2 > ${outdir}/results/${id}-pilon-iupac.fastanucfreq.tsv
+# create vcf tracks for the non-iupac pilon fasta 
 
-# and then map once more to the file without IUPAC and vcf call and that will give you files to use
-#$samt faidx ${outdir}/fasta/${id}-freebayes.fasta
-#$sent bwa index ${outdir}/fasta/${id}-freebayes.fasta
-#$pc umimap "${outdir}/fasta/${id}-freebayes.fasta" "freebayes"
+$bcft mpileup -Ob  -f "${outdir}/pilon/${id}.fasta" -d 1000000 -a AD,DP -o ${outdir}/bcf/${id}-pilon.bcf "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam"
+$bcft call -m -A --ploidy 1 -Oz -o ${outdir}/vcf/${id}-pilon.vcf.gz ${outdir}/bcf/${id}-pilon.bcf
+$bcft index ${outdir}/vcf/${id}-pilon.vcf.gz
 
-# create various tracks for igv
-# for minfrac in 0.01 0.05 0.1 0.15 0.2 0.3 0.4; do
-# 	$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction ${minfrac} --min-mapping-quality 60 -f ${outdir}/fasta/${id}-freebayes.fasta ${outdir}/bam/${id}-freebayes.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf
-# 	$bgz -f -i ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf
-# 	$bcft index ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf.gz
-# 	$bcft stats ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf.gz > ${outdir}/vcf/${id}-freebayes-m${minfrac}.vcf.gz.stats
-# done
-
-# create vcf tracks for the non-iupac pilon fasta
 for minfrac in 0.01 0.05 0.1 0.15 0.2 0.3 0.4; do
-	$freebayes --ploidy 2 --min-coverage 3 --min-base-quality 20 --min-alternate-fraction ${minfrac} --min-mapping-quality 60 -f ${outdir}/pilon/${id}.fasta ${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam > ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf
-	$bgz -f -i ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf
-	$bcft index ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
-	$bcft stats ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz > ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz.stats
+	$bcft filter -i "FMT/AD[0:1] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:2] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:3] / FMT/DP[0] >= ${minfrac}" \
+		${outdir}/vcf/${id}-pilon.vcf.gz \
+        -Oz -o ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
+    $bcft index ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
+    $bcft stats ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz \
+        > ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz.stats
 done
 
+
+
+
+
 # render freebayes IUPAC 15 % alternative for fasta
-$bcft consensus -f ${outdir}/pilon/${id}.fasta ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz > ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
-$pc $samt faidx ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
-$pc $sent bwa index ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
+#$bcft consensus -f ${outdir}/pilon/${id}.fasta ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz > ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
+#$pc $samt faidx ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
+#$pc $sent bwa index ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
 
 # do it with bcftools instead
 $pc bam2fasta  "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam" "${outdir}/pilon/${id}.fasta" "0.15-iupac" "0.15"
@@ -708,12 +678,25 @@ $pc cp ${outdir}/vadr/${id}*bed ${outdir}/results/
 #      }' >> ${outdir}/results/${id}-coverage.tsv
 
 cd ${outdir}/results/
-$pc zcat ${outdir}/vcf/${id}-pilon-m0.01.vcf | \
-	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
-	sed 's/.*\t//' | \
-	cut -d':' -f2,4 | \
-	tr ':' '\t' | \
-	awk '{print $2/$1}' > ${outdir}/tmp/${id}.mixin
+
+# $pc zcat ${outdir}/vcf/${id}-pilon-m0.01.vcf | \
+# 	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
+# 	sed 's/.*\t//' | \
+# 	cut -d':' -f2,4 | \
+# 	tr ':' '\t' | \
+# 	awk '{print $2/$1}' > ${outdir}/tmp/${id}.mixin
+
+$bcft query -f '[%DP\t%AD]\n' ${outdir}/vcf/${id}-pilon-m0.01.vcf.gz | \
+awk '{
+    split($2, ad, ",")
+    max_ad = ad[1]
+    for (i=2; i<=length(ad); i++) {
+        if (ad[i] > max_ad) max_ad = ad[i]
+    }
+    ratio = max_ad / $1
+    if(ratio<=0.96){print ratio}
+}' > ${outdir}/tmp/${id}.mixin
+
 $pc $python_hcv "${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin
 cd -
 
