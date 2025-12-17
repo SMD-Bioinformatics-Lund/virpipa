@@ -17,7 +17,6 @@ refdir='/fs1/jonas/hcv/refgenomes'
 genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
 # genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
 
-# sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.01.sif sentieon"
 #sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202503--7e7ce56c0d0199c5.sif"
 sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.03.sif sentieon"
 samt="apptainer exec -B /fs1,/local ${containerdir}/samtools_1.21.sif samtools"
@@ -226,7 +225,9 @@ function umimap() { # create bam files while first making a consensus using the 
 	$samt stats ${filterbam} > ${filterbam}.stats
 }
 
-function umimapnoopt() { # create bam files while first making a consensus using the UMIs
+function umimapnoopt() { # create bam files while first making a consensus using the UMIs.
+	# This has no optimizations. The code should not be duplicated in this way, so a better
+	# solution should be created
 	local localref="$1"
 	local shortrefname="$2"
 	local mapqfilter="$3"
@@ -504,7 +505,6 @@ function polish() {
 	if [[ ! -d ${outdir}/pilon ]] ; then
 		$pc mkdir ${outdir}/pilon
 	fi
-#	$pc umimap "${outdir}/mummer/${id}.hybrid.fasta" "hybrid"
 	echo REFGENOME $refgenome
 	echo POLISH ID $polish_id
 	$pc umimap "$refgenome" "pilon-$polish_id"
@@ -514,18 +514,12 @@ function polish() {
 	echo $samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
 	echo $samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
 
-	# get reads that match the the refgenome
-
-	# $samt view -f 0x2 -b ${outdir}/bam/${id}-hybrid.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/paired.bam
-	# $samt view -F 0x2 -b ${outdir}/bam/${id}-hybrid.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/unpaired.bam
-	# $samt index ${outdir}/tmp/paired.bam
-	# $samt index ${outdir}/tmp/unpaired.bam
+	# get paired and unpairted reads that match the the refgenome
 	$samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/paired-${polish_id}.bam
 	$samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/unpaired-${polish_id}.bam
 	$pc $samt index ${outdir}/tmp/paired-${polish_id}.bam
 	$pc $samt index ${outdir}/tmp/unpaired-${polish_id}.bam
 
-	#$pc $pilon --fix all,breaks --mindepth 5 --changes --genome ${outdir}/mummer/${id}.hybrid.fasta --frags ${outdir}/tmp/paired.bam --unpaired ${outdir}/tmp/unpaired.bam --outdir ${outdir}/pilon/ --output ${id}
 	for iupac in "" "--iupac" ; do
 		$pc $pilon ${iupac} --fix all --mindepth 5 --changes --genome "$refgenome" --frags ${outdir}/tmp/paired-${polish_id}.bam --unpaired ${outdir}/tmp/unpaired-${polish_id}.bam --outdir ${outdir}/pilon --output ${id}-pilon-${polish_id}${iupac#-}
 		$pc sed -i -e 's/_pilon//' ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
@@ -586,32 +580,19 @@ done
 
 
 
-# render freebayes IUPAC 15 % alternative for fasta
-#$bcft consensus -f ${outdir}/pilon/${id}.fasta ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz > ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
-#$pc $samt faidx ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
-#$pc $sent bwa index ${outdir}/fasta/${id}-freebayes-0.15-iupac.fasta
-
-# do it with bcftools instead
+# render IUPAC 15 % alternative for fasta
 $pc bam2fasta  "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam" "${outdir}/pilon/${id}.fasta" "0.15-iupac" "0.15"
 $pc umimapnoopt "${outdir}/fasta/${id}-0.15-iupac.fasta" "0.15-iupac"
 
-
 # render cram for consensus mapped bam
-
 echo three
-
-# $pc $samt view -O cram,embed_ref -T ${outdir}/fasta/${id}-freebayes.fasta ${outdir}/bam/${id}-freebayes.${type}.bwa.umi.filter.sort.bam -o ${outdir}/results/${id}-freebayes.cram
-# $pc $samt index ${outdir}/results/${id}-freebayes.cram
-# $pc cp ${outdir}/vcf/${id}-freebayes-m*.vcf* ${outdir}/results/
-# $pc cp ${outdir}/fasta/${id}-freebayes.fasta ${outdir}/results/
-# $pc cp ${outdir}/fasta/${id}-freebayes.fasta.fai ${outdir}/results/
 
 $pc $samt view -O cram,embed_ref -T ${outdir}/pilon/${id}.fasta ${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam -o ${outdir}/results/${id}.cram
 $pc $samt index ${outdir}/results/${id}.cram
 $pc $samt view -O cram,embed_ref -T ${outdir}/fasta/${id}-0.15-iupac.fasta ${outdir}/bam/${id}-0.15-iupac.${type}.bwa.umi.filter.sort.bam -o ${outdir}/results/${id}-0.15-iupac.cram
 $pc $samt index ${outdir}/results/${id}-0.15-iupac.cram
 
-
+# copy results
 $pc cp ${outdir}/vcf/${id}-pilon-m*.vcf* ${outdir}/results/
 $pc cp ${outdir}/pilon/${id}.fasta ${outdir}/results/
 $pc cp ${outdir}/pilon/${id}.fasta.fai ${outdir}/results/
@@ -622,7 +603,7 @@ $pc cp ${outdir}/pilon/${id}-pilon-iupac.fasta ${outdir}/results/
 # link for 15%
 ln -s ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-0.15-iupac.vcf.gz.stats
 echo four
-# this is seriously broken...
+# reporting is quite broken, but currently mainly using the iupac, so good enough for now
 echo $subtype
 #for report in ${id}-${subtype} ${id}-0.15-iupac ${id}-pilon-iupac ; do
 for report in ${id}-${subtype} ${id}-0.15-iupac  ; do
@@ -633,19 +614,12 @@ for report in ${id}-${subtype} ${id}-0.15-iupac  ; do
 	awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper($i)]++}END{for(i in w) print i,w[i]}' ${outdir}/results/${report}.fasta | sort -nr -k2 > ${outdir}/results/${report}.fastanucfreq.tsv
 done
 
-# blast the final fasta and the de novo
-# cp ${outdir}/spades/${id}.spades ${outdir}/results/
-# for fasta in ${outdir}/results/${id}-freebayes.fasta  ${outdir}/spades/${id}.spades ; do
-#     printf "query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\
-# t\ts. end\tevalue\tbit score\n" > ${fasta}.blast
-#     $blastn -query $fasta -db ${refdir}/hcvglue/hcvgluerefs -outfmt 6 >> ${fasta}.blast
-# done
+# blast fasta files for subtypes
 for fasta in ${outdir}/results/${id}.fasta ${outdir}/results/${id}-pilon-iupac.fasta ${outdir}/spades/${id}.spades ${outdir}/results/${id}-0.15-iupac.fasta ; do
     printf "query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\
 t\ts. end\tevalue\tbit score\n" > ${fasta}.blast
     $blastn -query $fasta -db ${refdir}/hcvglue/hcvgluerefs -outfmt 6 >> ${fasta}.blast
 done
-
 
 # annotage with VADR
 
@@ -653,39 +627,9 @@ $pc ${scripts}/vadr_annotate.sh ${outdir}/results/${id}.fasta ${outdir} ${id}
 $pc cp ${outdir}/vadr/${id}*_mod.gff ${outdir}/results/
 $pc cp ${outdir}/vadr/${id}*bed ${outdir}/results/
 
-# plot kde + rug of vcf data with 1% cutoff
-# cd ${outdir}/results/
-# $pc zcat ${outdir}/vcf/${id}-freebayes-m0.1.vcf | \
-# 	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
-# 	sed 's/.*\t//' | \
-# 	cut -d':' -f2,4 | \
-# 	tr ':' '\t' | \
-# 	awk '{print $2/$1}' > ${outdir}/tmp/${id}.mixin
-# $pc $python_hcv ${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin
-# cd -
-
-# # log genome coverage at 1x 10x 100x 1000x
-# printf "id\t1x\t10x\t100x\t1000x\n${id}\t" > ${outdir}/results/${id}-coverage.tsv
-
-# $samt depth -r ${id}:100-9600 ${outdir}/results/${id}-freebayes.cram | \
-# awk 'BEGIN { total=9501; cov1=0; cov10=0; cov100=0; cov1000=0 }
-#      { if ($3 >= 1) cov1++; if ($3 >= 10) cov10++; if ($3 >= 100) cov100++; if ($3 >= 1000) cov1000++ }
-#      END {
-#          printf "%.2f\t", (cov1/total)*100;
-#          printf "%.2f\t", (cov10/total)*100;
-#          printf "%.2f\t", (cov100/total)*100;
-#          printf "%.2f\n", (cov1000/total)*100;
-#      }' >> ${outdir}/results/${id}-coverage.tsv
-
 cd ${outdir}/results/
 
-# $pc zcat ${outdir}/vcf/${id}-pilon-m0.01.vcf | \
-# 	grep 'GT:DP:AD:RO:QR:AO:QA:GL' | \
-# 	sed 's/.*\t//' | \
-# 	cut -d':' -f2,4 | \
-# 	tr ':' '\t' | \
-# 	awk '{print $2/$1}' > ${outdir}/tmp/${id}.mixin
-
+# plot kde + rug of vcf data with 1% cutoff
 $bcft query -f '[%DP\t%AD]\n' ${outdir}/vcf/${id}-pilon-m0.01.vcf.gz | \
 awk '{
     split($2, ad, ",")
