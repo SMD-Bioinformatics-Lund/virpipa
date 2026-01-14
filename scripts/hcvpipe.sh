@@ -56,6 +56,7 @@ function showhelp() {
 	echo '                              if only forward is given, reverse will be inferred'
 	echo '                              but you probably want to change this'
 	echo 'Optional arguments:'
+	echo '   -l <s>, --lid <s>          LID name, if it different from id in fastq files'
 	echo '   -s <i>, --subsample <n>    Subsample reads. [default 500 000]'
 	echo '   -o <s>, --outdir <s>       Sets the root dir for output folders'
 	echo '   -r <s>, --reference <s>    Use this reference'
@@ -83,6 +84,7 @@ pc=''
 force=0
 outdirroot=""
 hostile='true'
+lid=''
 
 while true ; do
 	case "$1" in
@@ -91,6 +93,9 @@ while true ; do
 				"") subsamplereads='500000' ;shift 2 ;;
 				*) subsamplereads=$2 ;shift 2 ;;
 			esac ;;
+		-l|--lid)
+			lid="$2"
+			shift 2;;
 		-o|--outdir)
 			outdirroot="$2"
 			shift 2;;
@@ -124,7 +129,7 @@ if [[ $# -gt 2 ]] ; then
 	echo 'Wrong number of arguments'
 	exit
 elif [[ $# -eq -0 ]] ; then
-[6~	echo 'You must supply at least a forward read'
+	echo 'You must supply at least a forward read'
 	exit
 elif [[ $# -eq 1 ]] ; then
 	# parse R1 and infer R2
@@ -404,7 +409,45 @@ function createreport() {
 	printf "AF0.99\t${af99}\n"
 }
 
+function polish() {
+	local refgenome="$1"
+	local polish_id="$2"
+	local round="$3"
+
+	if [[ ! -d ${outdir}/pilon ]] ; then
+		$pc mkdir ${outdir}/pilon
+	fi
+	echo REFGENOME $refgenome
+	echo POLISH ID $polish_id
+	$pc umimap "$refgenome" "pilon-$polish_id"
+#	echo ${outdir}/bam/${id}-hybrid.${type}.bwa.umi.filter.sort.bam
+#	echo ${outdir}/bam/${polish_id}-hybrid.${type}.bwa.umi.filter.sort.bam
+
+	echo $samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
+	echo $samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
+
+	# get paired and unpairted reads that match the the refgenome
+	$samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/paired-${polish_id}.bam
+	$samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/unpaired-${polish_id}.bam
+	$pc $samt index ${outdir}/tmp/paired-${polish_id}.bam
+	$pc $samt index ${outdir}/tmp/unpaired-${polish_id}.bam
+
+	for iupac in "" "--iupac" ; do
+		$pc $pilon ${iupac} --fix all --mindepth 5 --changes --genome "$refgenome" --frags ${outdir}/tmp/paired-${polish_id}.bam --unpaired ${outdir}/tmp/unpaired-${polish_id}.bam --outdir ${outdir}/pilon --output ${id}-pilon-${polish_id}${iupac#-}
+		$pc sed -i -e 's/_pilon//' ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
+		$pc $samt faidx ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
+		$pc $sent bwa index ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
+	done
+}
+
 ### Main program
+
+# Prepare for output
+if [[ ! -z "$lid" ]] ; then
+	idlid="$lid"-"$id"
+else
+	idlid="$id"
+fi
 
 # Create outdirs
 
@@ -499,36 +542,6 @@ $pc $sent bwa index "${outdir}/mummer/${id}.hybrid.fasta"
 $pc cd -
 
 
-function polish() {
-	local refgenome="$1"
-	local polish_id="$2"
-	local round="$3"
-
-	if [[ ! -d ${outdir}/pilon ]] ; then
-		$pc mkdir ${outdir}/pilon
-	fi
-	echo REFGENOME $refgenome
-	echo POLISH ID $polish_id
-	$pc umimap "$refgenome" "pilon-$polish_id"
-#	echo ${outdir}/bam/${id}-hybrid.${type}.bwa.umi.filter.sort.bam
-#	echo ${outdir}/bam/${polish_id}-hybrid.${type}.bwa.umi.filter.sort.bam
-
-	echo $samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
-	echo $samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam
-
-	# get paired and unpairted reads that match the the refgenome
-	$samt view -f 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/paired-${polish_id}.bam
-	$samt view -F 0x2 -b ${outdir}/bam/${id}-pilon-${polish_id}.${type}.bwa.umi.filter.sort.bam > ${outdir}/tmp/unpaired-${polish_id}.bam
-	$pc $samt index ${outdir}/tmp/paired-${polish_id}.bam
-	$pc $samt index ${outdir}/tmp/unpaired-${polish_id}.bam
-
-	for iupac in "" "--iupac" ; do
-		$pc $pilon ${iupac} --fix all --mindepth 5 --changes --genome "$refgenome" --frags ${outdir}/tmp/paired-${polish_id}.bam --unpaired ${outdir}/tmp/unpaired-${polish_id}.bam --outdir ${outdir}/pilon --output ${id}-pilon-${polish_id}${iupac#-}
-		$pc sed -i -e 's/_pilon//' ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
-		$pc $samt faidx ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
-		$pc $sent bwa index ${outdir}/pilon/${id}-pilon-${polish_id}${iupac#-}.fasta
-	done
-}
 
 # polishing
 polish "${outdir}/mummer/${id}.hybrid.fasta" 1
@@ -565,22 +578,22 @@ $pc $sent bwa index ${outdir}/pilon/${id}.fasta
 
 # create vcf tracks for the non-iupac pilon fasta 
 
-$bcft mpileup -Ob  -f "${outdir}/pilon/${id}.fasta" -d 1000000 -a AD,DP -o ${outdir}/bcf/${id}-pilon.bcf "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam"
-$bcft call -m -A --ploidy 1 -Oz -o ${outdir}/vcf/${id}-pilon.vcf.gz ${outdir}/bcf/${id}-pilon.bcf
-$bcft index ${outdir}/vcf/${id}-pilon.vcf.gz
+$pc $bcft mpileup -Ob  -f "${outdir}/pilon/${id}.fasta" -d 1000000 -a AD,DP -o ${outdir}/bcf/${id}-pilon.bcf "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam"
+$pc $bcft call -m -A --ploidy 1 -Oz -o ${outdir}/vcf/${id}-pilon.vcf.gz ${outdir}/bcf/${id}-pilon.bcf
+$pc $bcft index ${outdir}/vcf/${id}-pilon.vcf.gz
 
 for minfrac in 0.01 0.05 0.1 0.15 0.2 0.3 0.4; do
-	$bcft filter -i "FMT/AD[0:1] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:2] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:3] / FMT/DP[0] >= ${minfrac}" \
-		${outdir}/vcf/${id}-pilon.vcf.gz \
-        -Oz -o ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
-    $bcft index ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
-    $bcft stats ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz \
-        > ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz.stats
+	if [[ "$pc" == 'echo' ]] ; then
+		echo bcftools filter index stats on "$minfrac"
+	else
+		$bcft filter -i "FMT/AD[0:1] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:2] / FMT/DP[0] >= ${minfrac} | FMT/AD[0:3] / FMT/DP[0] >= ${minfrac}" \
+			${outdir}/vcf/${id}-pilon.vcf.gz \
+			-Oz -o ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
+		$bcft index ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz
+		$bcft stats ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz \
+			> ${outdir}/vcf/${id}-pilon-m${minfrac}.vcf.gz.stats
+	fi
 done
-
-
-
-
 
 # render IUPAC 15 % alternative for fasta
 $pc bam2fasta  "${outdir}/bam/${id}-pilon.${type}.bwa.umi.filter.sort.bam" "${outdir}/pilon/${id}.fasta" "0.15-iupac" "0.15"
@@ -603,24 +616,32 @@ $pc cp ${outdir}/fasta/${id}-0.15-iupac.fasta ${outdir}/results/
 $pc cp ${outdir}/pilon/${id}-pilon-iupac.fasta ${outdir}/results/
 
 # link for 15%
-ln -s ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-0.15-iupac.vcf.gz.stats
+$pc ln -s ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-0.15-iupac.vcf.gz.stats
 echo four
 # reporting is quite broken, but currently mainly using the iupac, so good enough for now
 echo $subtype
 #for report in ${id}-${subtype} ${id}-0.15-iupac ${id}-pilon-iupac ; do
 for report in ${id}-${subtype} ${id}-0.15-iupac  ; do
 	echo $report
-	createreport ${outdir}/vcf/${report}.vcf.gz.stats > ${outdir}/results/${report}.report.tsv
-	echo '# COVERAGE' >> ${outdir}/results/${report}.report.tsv
-	$samt coverage ${outdir}/results/${report}.cram | datamash transpose | sed -n '2,$p' >> ${outdir}/results/${report}.report.tsv
-	awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper($i)]++}END{for(i in w) print i,w[i]}' ${outdir}/results/${report}.fasta | sort -nr -k2 > ${outdir}/results/${report}.fastanucfreq.tsv
+	if [[ "$pc" == 'echo' ]] ; then
+		echo createreport coverage and nucleotide freq for "$report"
+	else
+		createreport ${outdir}/vcf/${report}.vcf.gz.stats > ${outdir}/results/${report}.report.tsv
+		echo '# COVERAGE' >> ${outdir}/results/${report}.report.tsv
+		$samt coverage ${outdir}/results/${report}.cram | datamash transpose | sed -n '2,$p' >> ${outdir}/results/${report}.report.tsv
+		awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper($i)]++}END{for(i in w) print i,w[i]}' ${outdir}/results/${report}.fasta | sort -nr -k2 > ${outdir}/results/${report}.fastanucfreq.tsv
+	fi
 done
 
 # blast fasta files for subtypes
 for fasta in ${outdir}/results/${id}.fasta ${outdir}/results/${id}-pilon-iupac.fasta ${outdir}/spades/${id}.spades ${outdir}/results/${id}-0.15-iupac.fasta ; do
-    printf "query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\
-t\ts. end\tevalue\tbit score\n" > ${fasta}.blast
-    $blastn -query $fasta -db ${refdir}/hcvglue/hcvgluerefs -outfmt 6 >> ${fasta}.blast
+	if [[ "$pc" == 'echo' ]] ; then
+		echo blast $fasta
+	else
+		printf "query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\
+			t\ts. end\tevalue\tbit score\n" > ${fasta}.blast
+		$blastn -query $fasta -db ${refdir}/hcvglue/hcvgluerefs -outfmt 6 >> ${fasta}.blast
+	fi
 done
 
 # annotage with VADR
@@ -632,30 +653,53 @@ $pc cp ${outdir}/vadr/${id}*bed ${outdir}/results/
 cd ${outdir}/results/
 
 # plot kde + rug of vcf data with 1% cutoff
-$bcft query -f '[%DP\t%AD]\n' ${outdir}/vcf/${id}-pilon-m0.01.vcf.gz | \
-awk '{
-    split($2, ad, ",")
-    max_ad = ad[1]
-    for (i=2; i<=length(ad); i++) {
-        if (ad[i] > max_ad) max_ad = ad[i]
-    }
-    ratio = max_ad / $1
-    if(ratio<=0.96){print ratio}
-}' > ${outdir}/tmp/${id}.mixin
-
-$pc $python_hcv "${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin
+if [[ "$pc" == 'echo' ]] ; then
+	echo plot kde graph
+else
+	$bcft query -f '[%DP\t%AD]\n' ${outdir}/vcf/${id}-pilon-m0.01.vcf.gz | \
+		awk '{
+			split($2, ad, ",")
+			max_ad = ad[1]
+			for (i=2; i<=length(ad); i++) {
+				if (ad[i] > max_ad) max_ad = ad[i]
+				}
+			ratio = max_ad / $1
+			if(ratio<=0.96){print ratio}
+		}' > ${outdir}/tmp/${id}.mixin
+	# plot the kde graph, if the second argument is not '' then use that for file name and chart title
+	$pc $python_hcv "${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin
+fi
 
 cd -
 
 # log genome coverage at 1x 10x 100x 1000x
-printf "id\t1x\t10x\t100x\t1000x\n${id}\t" > ${outdir}/results/${id}-coverage.tsv
+if [[ "$pc" == 'echo' ]] ; then
+	echo log genome coverage	
+else
+	printf "id\t1x\t10x\t100x\t1000x\n${id}\t" > ${outdir}/results/${id}-coverage.tsv
+	$samt depth -r ${id}:100-9600 ${outdir}/results/${id}.cram | \
+		awk 'BEGIN { total=9501; cov1=0; cov10=0; cov100=0; cov1000=0 }
+	{ if ($3 >= 1) cov1++; if ($3 >= 10) cov10++; if ($3 >= 100) cov100++; if ($3 >= 1000) cov1000++ }
+	END {
+		printf "%.2f\t", (cov1/total)*100;
+		printf "%.2f\t", (cov10/total)*100;
+		printf "%.2f\t", (cov100/total)*100;
+		printf "%.2f\n", (cov1000/total)*100;
+	}' >> ${outdir}/results/${id}-coverage.tsv
+fi
 
-$samt depth -r ${id}:100-9600 ${outdir}/results/${id}.cram | \
-awk 'BEGIN { total=9501; cov1=0; cov10=0; cov100=0; cov1000=0 }
-     { if ($3 >= 1) cov1++; if ($3 >= 10) cov10++; if ($3 >= 100) cov100++; if ($3 >= 1000) cov1000++ }
-     END {
-         printf "%.2f\t", (cov1/total)*100;
-         printf "%.2f\t", (cov10/total)*100;
-         printf "%.2f\t", (cov100/total)*100;
-         printf "%.2f\n", (cov1000/total)*100;
-     }' >> ${outdir}/results/${id}-coverage.tsv
+ # something quick to output only to km
+ if [[ ! -z "$lid" ]] ; then
+	 if [[ "$pc" == 'echo' ]] ; then
+		 echo output with "$lid" instead of "$id"
+	 else	
+		 touch "$outdir"/results/"$lid".lid
+		 mkdir ${outdir}/results/lid/
+		 cd ${outdir}/results/lid/
+		 $pc $python_hcv "${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin "$lid"
+		 cp ${outdir}/results/${id}.fasta "$lid".fasta
+		 cp ${outdir}/results/${id}-0.15-iupac.fasta "$lid"-0.15-iupac.fasta
+		 sed -i "s/^>${id}/>${lid}/" "$lid".fasta
+		 sed -i "s/^>${id}/>${lid}/" "$lid"-0.15-iupac.fasta
+	 fi
+ fi
