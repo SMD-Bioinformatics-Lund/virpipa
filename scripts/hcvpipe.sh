@@ -13,9 +13,13 @@ cpus=16
 type=r11b2L25
 #scripts="/fs1/jonas/hcv/scripts"
 scripts=$(dirname $0)
+scripts=$(readlink -f $scripts)
+scripts='/fs1/jonas/hcv/scripts'
 containerdir='/fs1/resources/containers'
-#refdir='/fs1/jonas/hcv/refgenomes'
-refdir="${scripts}/../refgenomes"
+refdir='/fs1/jonas/hcv/refgenomes'
+#refdir=$(readlink -f "${scripts}/../refgenomes")
+echo $refdir
+echo $scripts
 genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
 # genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
 
@@ -77,7 +81,7 @@ if [[ -z "$1" ]]; then
 fi
 
 
-readopts=$(getopt -o hnfc:s:Ho:r: --long help,dryrun,force,cpus,subsample:,hostile,outdir:,reference: -n 'error' -- "$@")
+readopts=$(getopt -o hnfc:s:l:Ho:r: --long help,dryrun,force,cpus,subsample:,lid:,hostile,outdir:,reference: -n 'error' -- "$@")
 #echo $readopts
 eval set -- "$readopts"
 pc=''
@@ -140,6 +144,7 @@ else
 	r2org="$2"
 fi
 
+echo first id $r1org
 r1base=$(basename $r1org)
 r2base=$(basename $r2org)
 id=${r1base%%_*}
@@ -441,7 +446,7 @@ function polish() {
 }
 
 ### Main program
-
+echo "### starting main program"
 # Prepare for output
 if [[ ! -z "$lid" ]] ; then
 	idlid="$lid"-"$id"
@@ -701,5 +706,14 @@ fi
 		 cp ${outdir}/results/${id}-0.15-iupac.fasta "$lid"-0.15-iupac.fasta
 		 sed -i "s/^>${id}/>${lid}/" "$lid".fasta
 		 sed -i "s/^>${id}/>${lid}/" "$lid"-0.15-iupac.fasta
+		 subtype=$(awk 'NR==2 { split($2, a, "_"); print a[1] }' "${outdir}"/results/"${id}"-0.15-iupac.fasta.blast)
+		 echo ">$subtype<"
+		 if [[ ! $subtype == '' ]] ; then
+			 subtype="HCV genotyp $subtype"
+		 else
+			 subtype="Ej typbar"
+		 fi
+		 printf "sample_id\tparameter_name\tparameter_value\tcomment\n" > "${outdir}"/results/lid/$lid-2limsrs.txt
+		 printf "%s\thcvtype\t%s\t\n" "$lid" "$subtype" >> "${outdir}"/results/lid/"$lid"-2limsrs.txt
 	 fi
  fi
