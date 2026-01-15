@@ -714,6 +714,6 @@ fi
 			 subtype="Ej typbar"
 		 fi
 		 printf "sample_id\tparameter_name\tparameter_value\tcomment\n" > "${outdir}"/results/lid/$lid-2limsrs.txt
-		 printf "%s\thcvtype\t%s\t\n" "$lid" "$subtype" >> "${outdir}"/results/lid/"$lid"-2limsrs.txt
+		 printf "%s\thcvtyp\t%s\t\n" "$lid" "$subtype" >> "${outdir}"/results/lid/"$lid"-2limsrs.txt
 	 fi
  fi
