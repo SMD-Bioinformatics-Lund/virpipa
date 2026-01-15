@@ -19,7 +19,12 @@ cd $logdir
 for sample in ${fulldir}/*R1*gz ; do
 	jobname=$(basename $sample)
 	jobname=${jobname%%_*}
-	$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -f -s $subsample -o ${outdir}/${runname} $sample
+	if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
+		lid=$(grep $jobname "$fulldir"/../"$runname".tsv | cut -f2)
+		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l $lid -o ${outdir}/${runname} $sample
+	else
+		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
+	fi
 done
 
 cd - > /dev/null
