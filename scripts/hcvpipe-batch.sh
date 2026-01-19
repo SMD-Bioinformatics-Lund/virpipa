@@ -44,27 +44,38 @@ done
 
 
 sbatch_sample(){
-	if [[ -z "$lid" ]] ; then
+	local jobname="$1"
+	local sample="$2"
+	local lid="$3"
+	if [[ ! -z "$lid" ]] ; then
 		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l $lid -o ${outdir}/${runname} $sample
 	else
-		:
+		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
 	fi	
 }
 
 runraw(){
-	for sample in ${fulldir}/*R1*gz ; do
+	# Uses a directory with fastq files
+	fulldir=$(readlink -f $inputdir)
+	runname=$(basename $fulldir)
+	for sample in ${inputdir}/*R1*gz ; do
 		jobname=$(basename $sample)
 		jobname=${jobname%%_*}
-		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
-			lid=$(grep $jobname "$fulldir"/../"$runname".tsv | cut -f2)
+		if [[ -f "$inputdir"/../"$runname".tsv ]] ; then
+			lid=$(grep $jobname "$inputdir"/../"$runname".tsv | cut -f2)
 			$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l $lid -o ${outdir}/${runname} $sample
 		else
 			$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
 		fi
+		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
+			lid=$(grep $jobname "$fulldir"/../"$runname".tsv | cut -f2)
+		fi
+		sbatch_sample "$jobname" "$sample" "$lid"
 	done
 }
 
 runcsv(){
+	# Uses a csv file, parses the header and then created the sbatch commands
 	declare -A csvdata
 	{
 		IFS=',' read -r -a keys
@@ -81,13 +92,16 @@ runcsv(){
 		echo "$k: ${csvdata[$k]}"
 	done
 	echo
-	if [[ -z ${csvdata["sample_name"]} ]] ; then
-		echo run without lid
-		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} ${csvdata["read1"]}
-	else
-		echo run with lid
-		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l ${csvdata["sample_name"]} -o ${outdir}/${runname} ${csvdata["read1"]}
-	fi
+	# send the paramteres
+		sbatch_sample ${csvdata["clarity_sample_id"]} ${csvdata["read1"]} ${csvdata["sample_name"]}
+# 	if [[ -z ${csvdata["sample_name"]} ]] ; then
+# 		echo run without lid
+# 		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} ${csvdata["read1"]}
+# 	else
+# 		echo run with lid
+# 		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l ${csvdata["sample_name"]} -o ${outdir}/${runname} ${csvdata["read1"]}
+# 		sbatch_sample ${csvdata["clarity_sample_id"]} ${csvdata["read1"]} ${csvdata["sample_name"]}
+# 	fi
 }
 
 ### main program
@@ -95,9 +109,6 @@ runcsv(){
 if [[ ! -d $outdir ]] ; then
 	echo $outdir is not a directory
 	exit
-else
-	fulldir=$(readlink -f $outdir)
-	runname=$(basename $fulldir)
 fi
 
 cd $logdir
