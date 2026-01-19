@@ -42,15 +42,6 @@ while true ; do
 	esac
 done
 
-#[[ "$2" == 'dry' ]] && dry='echo'
-
-if [[ ! -d $outdir ]] ; then
-	echo $outdir is not a directory
-	exit
-else
-	fulldir=$(readlink -f $outdir)
-	runname=$(basename $fulldir)
-fi
 
 sbatch_sample(){
 	if [[ -z "$lid" ]] ; then
@@ -79,25 +70,36 @@ runcsv(){
 		IFS=',' read -r -a keys
 		IFS=',' read -r -a values
 	} < "$csv"
-for i in "${!keys[@]}"; do
-	# Remove potential carriage returns (\r) from Windows-style CSVs
-	key=$(echo "${keys[$i]}" | tr -d '\r')
-	val=$(echo "${values[$i]}" | tr -d '\r')
-	csvdata["$key"]="$val"
-done
-for k in "${!csvdata[@]}"; do
-	echo "$k: ${csvdata[$k]}"
-done
-if [[ -z ${csvdata["sample_name"]} ]] ; then
-	echo run without lid
-	$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
-else
-	echo run with lid
-	$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l ${csvdata["sample_name"]} -o ${outdir}/${runname} ${csvdata["read1"]}
-fi
+	for i in "${!keys[@]}"; do
+		# Remove potential carriage returns (\r) from Windows-style CSVs
+		key=$(echo "${keys[$i]}" | tr -d '\r')
+		val=$(echo "${values[$i]}" | tr -d '\r')
+		csvdata["$key"]="$val"
+	done
+	echo CSV contents:
+	for k in "${!csvdata[@]}"; do
+		echo "$k: ${csvdata[$k]}"
+	done
+	echo
+	if [[ -z ${csvdata["sample_name"]} ]] ; then
+		echo run without lid
+		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} ${csvdata["read1"]}
+	else
+		echo run with lid
+		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l ${csvdata["sample_name"]} -o ${outdir}/${runname} ${csvdata["read1"]}
+	fi
 }
 
 ### main program
+
+if [[ ! -d $outdir ]] ; then
+	echo $outdir is not a directory
+	exit
+else
+	fulldir=$(readlink -f $outdir)
+	runname=$(basename $fulldir)
+fi
+
 cd $logdir
 
 if [[ ! -z "$csv" ]] ; then
