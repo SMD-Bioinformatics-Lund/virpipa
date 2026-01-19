@@ -112,7 +112,7 @@ while true ; do
 		-n|--dryrun)
 			pc=echo
 			shift;;
-		-H|--dryrun)
+		-H|--hostile)
 			hostile='false'
 			shift;;
 		-f|--force)
