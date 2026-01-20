@@ -7,10 +7,40 @@ partition=low
 dry=''
 
 showhelp(){
-	echo hcvpipe_batch.sh lskdjfsldkfjlskdfj
+    cat << EOF
+
+Usage: $(basename "$0") [OPTIONS] -i <inputdir> | -c <csvfile>
+
+A batch runner for the HCV pipeline that submits jobs via SLURM (sbatch).
+It can either scan a directory for R1 FastQ files or use a CSV file for mapping.
+
+REQUIRED ARGUMENTS (Choose one):
+  -i, --inputdir PATH    Directory containing FastQ files (*R1*gz).
+  -c, --csv PATH         CSV file with columns: clarity_sample_id, read1, sample_name.
+                         (Takes precedence over --inputdir)
+
+GENERAL OPTIONS:
+  -o, --outdir PATH      Output directory (Default: $outdir)
+  -l, --logdir PATH      Log directory (Default: $logdir)
+  -p, --partition STR    SLURM partition (Default: $partition)
+  -s, --subsample INT    Number of reads to subsample (Default: $subsample)
+
+TOOLS:
+  -n, --dryrun           Print the sbatch commands without executing them.
+  -d, --debug            Enable verbose output and dump CSV contents.
+  -h, --help             Display this help message and exit.
+
+EXAMPLES:
+  # Run using a directory of FastQ files:
+  $(basename "$0") -i /path/to/fastqs -p high
+
+  # Run using a CSV file (Dry run):
+  $(basename "$0") -c samples.csv --dryrun
+
+EOF
 }
 
-readopts=$(getopt -o hno:l:p:i:c: --long help,dryrun,outdir:,logdir:,partition:,input:,csv: -n 'error' -- "$@")
+readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,debug,outdir:,subsample:,logdir:,partition:,input:,csv: -n 'error' -- "$@")
 eval set -- "$readopts"
 dry=''
 
@@ -22,8 +52,14 @@ while true ; do
 		-n|--dryrun)
 			dry='echo'
 			shift ;;
+		-d|--debug)
+			debug='1'
+			shift ;;
 		-o|--outdir)
 			outdir="$2"
+			shift 2 ;;
+		-s|--subsample)
+			subsample="$2"
 			shift 2 ;;
 		-l|--logdir)
 			logdir="$2"
@@ -61,12 +97,6 @@ runraw(){
 	for sample in ${inputdir}/*R1*gz ; do
 		jobname=$(basename $sample)
 		jobname=${jobname%%_*}
-		if [[ -f "$inputdir"/../"$runname".tsv ]] ; then
-			lid=$(grep $jobname "$inputdir"/../"$runname".tsv | cut -f2)
-			$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l $lid -o ${outdir}/${runname} $sample
-		else
-			$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
-		fi
 		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
 			lid=$(grep $jobname "$fulldir"/../"$runname".tsv | cut -f2)
 		fi
@@ -77,37 +107,39 @@ runraw(){
 runcsv(){
 	# Uses a csv file, parses the header and then created the sbatch commands
 	declare -A csvdata
-	{
-		IFS=',' read -r -a keys
-		IFS=',' read -r -a values
-	} < "$csv"
-	for i in "${!keys[@]}"; do
-		# Remove potential carriage returns (\r) from Windows-style CSVs
-		key=$(echo "${keys[$i]}" | tr -d '\r')
-		val=$(echo "${values[$i]}" | tr -d '\r')
-		csvdata["$key"]="$val"
-	done
-	echo CSV contents:
-	for k in "${!csvdata[@]}"; do
-		echo "$k: ${csvdata[$k]}"
-	done
-	echo
-	# send the paramteres
+	exec 3< "$csv"
+	IFS=',' read -r -a keys <&3
+	while IFS=',' read -r -a values <&3 ; do
+		#skip empty
+		[[ -z "${values[0]}" ]] && continue
+		for i in "${!keys[@]}"; do
+			# Remove potential carriage returns (\r) from Windows-style CSVs
+			key=$(echo "${keys[$i]}" | tr -d '\r')
+			val=$(echo "${values[$i]}" | tr -d '\r')
+			csvdata["$key"]="$val"
+		done
+		if [[ ! "$debug" == '' ]] ; then
+			echo CSV contents:
+			for k in "${!csvdata[@]}"; do
+				echo "$k: ${csvdata[$k]}"
+			done
+			echo
+		fi
+		# send the paramteres
 		sbatch_sample ${csvdata["clarity_sample_id"]} ${csvdata["read1"]} ${csvdata["sample_name"]}
-# 	if [[ -z ${csvdata["sample_name"]} ]] ; then
-# 		echo run without lid
-# 		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} ${csvdata["read1"]}
-# 	else
-# 		echo run with lid
-# 		$dry sbatch -J HCV-${csvdata["clarity_sample_id"]} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l ${csvdata["sample_name"]} -o ${outdir}/${runname} ${csvdata["read1"]}
-# 		sbatch_sample ${csvdata["clarity_sample_id"]} ${csvdata["read1"]} ${csvdata["sample_name"]}
-# 	fi
+	done
 }
 
 ### main program
 
 if [[ ! -d $outdir ]] ; then
 	echo $outdir is not a directory
+	exit
+elif [[ -z "$inputdir" ]] && [[ -z "$csv" ]] ; then
+	echo you must provide either inputdir or csv
+	exit
+elif [[ ! -z "$inputdir" ]] && [[ ! -z "$csv" ]] ; then
+	echo you cannot provide both inputdir and csv
 	exit
 fi
 
