@@ -40,6 +40,11 @@ EXAMPLES:
 EOF
 }
 
+if [[ $# -eq 0 ]] ; then
+	showhelp
+	exit
+fi
+
 readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,debug,outdir:,subsample:,logdir:,partition:,input:,csv: -n 'error' -- "$@")
 eval set -- "$readopts"
 dry=''
@@ -131,15 +136,14 @@ runcsv(){
 }
 
 ### main program
-
 if [[ ! -d $outdir ]] ; then
 	echo $outdir is not a directory
 	exit
 elif [[ -z "$inputdir" ]] && [[ -z "$csv" ]] ; then
-	echo you must provide either inputdir or csv
+	echo You must provide either inputdir or csv
 	exit
 elif [[ ! -z "$inputdir" ]] && [[ ! -z "$csv" ]] ; then
-	echo you cannot provide both inputdir and csv
+	echo You cannot provide both inputdir and csv
 	exit
 fi
 
