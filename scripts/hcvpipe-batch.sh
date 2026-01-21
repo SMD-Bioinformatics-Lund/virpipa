@@ -89,21 +89,21 @@ sbatch_sample(){
 	local sample="$2"
 	local lid="$3"
 	if [[ ! -z "$lid" ]] ; then
-		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -l $lid -o ${outdir}/${runname} $sample
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -l "$lid" -o "$outdir"/"$runname" "$sample"
 	else
-		$dry sbatch -J HCV-${jobname} --partition $partition $(dirname $0)/hcvpipe.sh -s $subsample -o ${outdir}/${runname} $sample
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -o "$outdir"/"$runname" "$sample"
 	fi	
 }
 
 runraw(){
 	# Uses a directory with fastq files
-	fulldir=$(readlink -f $inputdir)
-	runname=$(basename $fulldir)
-	for sample in ${inputdir}/*R1*gz ; do
-		jobname=$(basename $sample)
+	fulldir=$(readlink -f "$inputdir")
+	runname=$(basename "$fulldir")
+	for sample in "$inputdir"/*R1*gz ; do
+		jobname=$(basename "$sample")
 		jobname=${jobname%%_*}
 		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
-			lid=$(grep $jobname "$fulldir"/../"$runname".tsv | cut -f2)
+			lid=$(grep "$jobname" "$fulldir"/../"$runname".tsv | cut -f2)
 		fi
 		sbatch_sample "$jobname" "$sample" "$lid"
 	done
@@ -131,13 +131,13 @@ runcsv(){
 			echo
 		fi
 		# send the paramteres
-		sbatch_sample ${csvdata["clarity_sample_id"]} ${csvdata["read1"]} ${csvdata["sample_name"]}
+		sbatch_sample "${csvdata["clarity_sample_id"]}" "${csvdata["read1"]}" "${csvdata["sample_name"]}"
 	done
 }
 
 ### main program
 if [[ ! -d $outdir ]] ; then
-	echo $outdir is not a directory
+	echo "$outdir" is not a directory
 	exit
 elif [[ -z "$inputdir" ]] && [[ -z "$csv" ]] ; then
 	echo You must provide either inputdir or csv
@@ -147,7 +147,7 @@ elif [[ ! -z "$inputdir" ]] && [[ ! -z "$csv" ]] ; then
 	exit
 fi
 
-cd $logdir
+cd "$logdir" || exit
 
 if [[ ! -z "$csv" ]] ; then
 	runcsv
@@ -155,4 +155,4 @@ else
 	runraw
 fi
 
-cd - > /dev/null
+cd - > /dev/null || exit
