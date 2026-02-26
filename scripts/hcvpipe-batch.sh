@@ -10,6 +10,7 @@ inputdir=''
 csv=''
 runname=''
 scriptdir=$(cd "$(dirname "$0")" && pwd)
+refsdir=$(readlink -f "${scriptdir}/../refgenomes")
 
 showhelp(){
     cat << EOF
@@ -28,6 +29,7 @@ GENERAL OPTIONS:
   -o, --outdir PATH      Output directory (Default: $outdir)
   -l, --logdir PATH      Log directory (Default: $logdir)
   -p, --partition STR    SLURM partition (Default: $partition)
+  -r, --runname STR      Subdirectory under outdir (default: input dir basename for -i, none for -c)
   -s, --subsample INT    Number of reads to subsample (Default: $subsample)
 
 TOOLS:
@@ -50,7 +52,7 @@ if [[ $# -eq 0 ]] ; then
 	exit
 fi
 
-readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,dry-run,debug,outdir:,subsample:,logdir:,partition:,inputdir:,csv: -n 'error' -- "$@")
+readopts=$(getopt -o hndo:s:l:p:r:i:c: --long help,dryrun,dry-run,debug,outdir:,subsample:,logdir:,partition:,runname:,inputdir:,csv: -n 'error' -- "$@")
 eval set -- "$readopts"
 dry=''
 
@@ -77,6 +79,9 @@ while true ; do
 		-p|--partition)
 			partition="$2"
 			shift 2 ;;
+		-r|--runname)
+			runname="$2"
+			shift 2 ;;
 		-i|--inputdir)
 			inputdir="$2"
 			shift 2 ;;
@@ -93,17 +98,23 @@ sbatch_sample(){
 	local jobname="$1"
 	local sample="$2"
 	local lid="$3"
+	local target_outdir="$outdir"
+	if [[ -n "$runname" ]] ; then
+		target_outdir="${outdir%/}/${runname}"
+	fi
 	if [[ ! -z "$lid" ]] ; then
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh -s "$subsample" -l "$lid" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -l "$lid" -o "$target_outdir" "$sample"
 	else
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh -s "$subsample" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -o "$target_outdir" "$sample"
 	fi	
 }
 
 runraw(){
 	# Uses a directory with fastq files
 	fulldir=$(readlink -f "$inputdir")
-	runname=$(basename "$fulldir")
+	if [[ -z "$runname" ]] ; then
+		runname=$(basename "$fulldir")
+	fi
 	shopt -s nullglob
 	for sample in "$inputdir"/*R1*gz ; do
 		jobname=$(basename "$sample")
@@ -120,7 +131,6 @@ runraw(){
 runcsv(){
 	# Uses a csv file, parses the header and then created the sbatch commands
 	declare -A csvdata
-	runname=$(basename "${csv%.*}")
 	exec 3< "$csv"
 	IFS=',' read -r -a keys <&3
 	while IFS=',' read -r -a values <&3 ; do
@@ -147,6 +157,9 @@ runcsv(){
 ### main program
 if [[ ! -d $outdir ]] ; then
 	echo "$outdir" is not a directory
+	exit
+elif [[ ! -d "$refsdir" ]] ; then
+	echo "Reference directory does not exist: $refsdir"
 	exit
 elif [[ -z "$inputdir" ]] && [[ -z "$csv" ]] ; then
 	echo You must provide either inputdir or csv
