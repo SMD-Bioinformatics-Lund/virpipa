@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SMD-Bioinformatics-Lund/virpipa/nextflow_schema.json",
+  "title": "virpipa params",
+  "description": "Parameters for the virpipa Nextflow scaffold.",
+  "type": "object",
+  "properties": {
+    "input": {
+      "type": "string",
+      "description": "CSV samplesheet path"
+    },
+    "outdir": {
+      "type": "string",
+      "description": "Output directory"
+    },
+    "scripts_dir": {
+      "type": "string",
+      "description": "Directory containing hcvpipe.sh and helper scripts"
+    },
+    "ref_dir": {
+      "type": "string",
+      "description": "Directory containing HCV references"
+    },
+    "container_dir": {
+      "type": ["string", "null"],
+      "description": "Directory containing tool containers"
+    },
+    "bind_paths": {
+      "type": "string",
+      "description": "Apptainer bind paths, comma separated"
+    },
+    "hostile_cache_dir": {
+      "type": ["string", "null"],
+      "description": "Hostile cache directory"
+    },
+    "remove_human": {
+      "type": "boolean",
+      "description": "If true, run Hostile human read removal"
+    },
+    "subsample_reads": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Reads to subsample for the optional stage"
+    },
+    "cpus": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "CPUs per sample process"
+    },
+    "memory": {
+      "type": "string",
+      "description": "Memory per sample process"
+    },
+    "time": {
+      "type": "string",
+      "description": "Time limit per sample process"
+    },
+    "partition": {
+      "type": ["string", "null"],
+      "description": "SLURM partition"
+    }
+  },
+  "required": ["input"]
+}

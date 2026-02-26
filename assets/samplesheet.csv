@@ -1,0 +1,2 @@
+clarity_sample_id,read1,read2,sample_name
+SAMPLE001,/path/to/SAMPLE001_R1_001.fastq.gz,/path/to/SAMPLE001_R2_001.fastq.gz,LID001
