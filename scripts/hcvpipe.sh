@@ -23,20 +23,20 @@ echo $scripts
 genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
 # genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
 
-#sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202503--7e7ce56c0d0199c5.sif"
-sent="apptainer exec -B /fs1,/local ${containerdir}/sentieon_202308.03.sif sentieon"
-samt="apptainer exec -B /fs1,/local ${containerdir}/samtools_1.21.sif samtools"
-bgz="apptainer exec -B /fs1,/local ${containerdir}/samtools_1.21.sif bgzip"
-bcft="apptainer exec -B /fs1,/local ${containerdir}/bcftools_1.21.sif bcftools"
-mum="apptainer exec -B /fs1,/local ${containerdir}/mummer3.23.sif"
-mafftbin="apptainer exec -B /fs1,/local ${containerdir}/mafft7.525.sif mafft"
-spadesbin="apptainer exec -B /fs1,/local ${containerdir}/spades_3.15.5.sif spades.py"
-hostilebin="apptainer exec -B /fs1,/local ${containerdir}/hostile_1.1.0.sif hostile"
-freebayes="apptainer exec -B /fs1,/local ${containerdir}/freebayes_1.3.8.sif freebayes"
-blastn="apptainer exec -B /fs1,/local ${containerdir}/blast_2.16.0.sif blastn"
-python_hcv="apptainer exec -B /fs1,/local ${containerdir}/python_hcvpipe.sif python"
-pilon="apptainer exec -B /fs1,/local ${containerdir}/pilon-1.24.sif pilon"
-pypolca="apptainer exec -B /fs1,/local ${containerdir}/pypolca-0.4.0.sif pypolca"
+#sent="apptainer exec -B /fs1,/fs2,/local ${containerdir}/sentieon_202503--7e7ce56c0d0199c5.sif"
+sent="apptainer exec -B /fs1,/fs2,/local ${containerdir}/sentieon_202308.03.sif sentieon"
+samt="apptainer exec -B /fs1,/fs2,/local ${containerdir}/samtools_1.21.sif samtools"
+bgz="apptainer exec -B /fs1,/fs2,/local ${containerdir}/samtools_1.21.sif bgzip"
+bcft="apptainer exec -B /fs1,/fs2,/local ${containerdir}/bcftools_1.21.sif bcftools"
+mum="apptainer exec -B /fs1,/fs2,/local ${containerdir}/mummer3.23.sif"
+mafftbin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/mafft7.525.sif mafft"
+spadesbin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/spades_3.15.5.sif spades.py"
+hostilebin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/hostile_1.1.0.sif hostile"
+freebayes="apptainer exec -B /fs1,/fs2,/local ${containerdir}/freebayes_1.3.8.sif freebayes"
+blastn="apptainer exec -B /fs1,/fs2,/local ${containerdir}/blast_2.16.0.sif blastn"
+python_hcv="apptainer exec -B /fs1,/fs2,/local ${containerdir}/python_hcvpipe.sif python"
+pilon="apptainer exec -B /fs1,/fs2,/local ${containerdir}/pilon-1.24.sif pilon"
+pypolca="apptainer exec -B /fs1,/fs2,/local ${containerdir}/pypolca-0.4.0.sif pypolca"
 
 export LC_NUMERIC=en_US.UTF-8    # otherwise datamash recognizes , as decimal separator
 export HOSTILE_CACHE_DIR=/fs1/resources/ref/micro/hostile
@@ -453,7 +453,10 @@ if [[ ! -z "$lid" ]] ; then
 else
 	idlid="$id"
 fi
-
+echo $r1base
+echo $r2base
+echo $r1org
+echo $r2org
 # Create outdirs
 
 if [[ -d ${outdir} ]] && [[ $force -eq 0 ]] ; then
@@ -468,9 +471,13 @@ fi
 
 # remove human reads
 if [[ $hostile == 'true' ]] ; then
-	$pc $hostilebin clean --offline --fastq1 $r1org --fastq2 $r2org --out-dir ${outdir}/fastq > ${outdir}/results/hostile.json
-	r1=${outdir}/fastq/${r1base/.fastq.gz/.clean_1.fastq.gz}
-	r2=${outdir}/fastq/${r2base/.fastq.gz/.clean_2.fastq.gz}
+	if [[ "$pc" == 'echo' ]] ; then
+		$pc $hostilebin clean --offline --fastq1 $r1org --fastq2 $r2org --out-dir ${outdir}/fastq
+	else
+		$pc $hostilebin clean --offline --fastq1 $r1org --fastq2 $r2org --out-dir ${outdir}/fastq > ${outdir}/results/hostile.json
+		r1=${outdir}/fastq/${r1base/.fastq.gz/.clean_1.fastq.gz}
+		r2=${outdir}/fastq/${r2base/.fastq.gz/.clean_2.fastq.gz}
+	fi
 else
 	r1=$r1org
 	r2=$r2org
