@@ -23,6 +23,7 @@ It can either scan a directory for R1 FastQ files or use a CSV file for mapping.
 REQUIRED ARGUMENTS (Choose one):
   -i, --inputdir PATH    Directory containing FastQ files (*R1*gz).
   -c, --csv PATH         CSV file with columns: clarity_sample_id, read1, sample_name.
+                         Output folders will use clarity_sample_id.
                          (Takes precedence over --inputdir)
 
 GENERAL OPTIONS:
@@ -98,14 +99,15 @@ sbatch_sample(){
 	local jobname="$1"
 	local sample="$2"
 	local lid="$3"
+	local sample_outname="$4"
 	local target_outdir="$outdir"
 	if [[ -n "$runname" ]] ; then
 		target_outdir="${outdir%/}/${runname}"
 	fi
 	if [[ ! -z "$lid" ]] ; then
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -l "$lid" -o "$target_outdir" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -l "$lid" --outname "$sample_outname" -o "$target_outdir" "$sample"
 	else
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -o "$target_outdir" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" --outname "$sample_outname" -o "$target_outdir" "$sample"
 	fi	
 }
 
@@ -123,7 +125,7 @@ runraw(){
 		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
 			lid=$(grep "$jobname" "$fulldir"/../"$runname".tsv | cut -f2)
 		fi
-		sbatch_sample "$jobname" "$sample" "$lid"
+		sbatch_sample "$jobname" "$sample" "$lid" "$jobname"
 	done
 	shopt -u nullglob
 }
@@ -150,7 +152,7 @@ runcsv(){
 			echo
 		fi
 		# send the paramteres
-		sbatch_sample "${csvdata["clarity_sample_id"]}" "${csvdata["read1"]}" "${csvdata["sample_name"]}"
+		sbatch_sample "${csvdata["clarity_sample_id"]}" "${csvdata["read1"]}" "${csvdata["sample_name"]}" "${csvdata["clarity_sample_id"]}"
 	done
 }
 

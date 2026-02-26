@@ -19,6 +19,7 @@ subsamplereads=''
 pc=''
 force=0
 outdirroot=""
+outname=''
 hostile='true'
 lid=''
 reference_override=''
@@ -56,6 +57,7 @@ function showhelp() {
 	echo '   -l <s>, --lid <s>          LID name, if it different from id in fastq files'
 	echo '   -s <i>, --subsample <n>    Subsample reads. [default 500 000]'
 	echo '   -o <s>, --outdir <s>       Sets the root dir for output folders'
+	echo '   --outname <s>              Sets final output folder name (default: inferred sample id)'
 	echo '   -r <s>, --reference <s>    Use this reference'
 	echo '   --ref-dir <s>              Directory with default HCV references'
 	echo '   --container-dir <s>        Directory with container images'
@@ -79,7 +81,7 @@ if [[ -z "$1" ]]; then
 fi
 
 
-readopts=$(getopt -o hnfc:s:l:Ho:r: --long help,dryrun,dry-run,force,cpus:,subsample:,lid:,hostile,outdir:,reference:,ref-dir:,container-dir:,scripts-dir:,bind-paths:,hostile-cache-dir: -n 'error' -- "$@")
+readopts=$(getopt -o hnfc:s:l:Ho:r: --long help,dryrun,dry-run,force,cpus:,subsample:,lid:,hostile,outdir:,outname:,reference:,ref-dir:,container-dir:,scripts-dir:,bind-paths:,hostile-cache-dir: -n 'error' -- "$@")
 #echo $readopts
 eval set -- "$readopts"
 
@@ -95,6 +97,9 @@ while true ; do
 			shift 2;;
 		-o|--outdir)
 			outdirroot="$2"
+			shift 2;;
+		--outname)
+			outname="$2"
 			shift 2;;
 		-c|--cpus)
 			cpus="$2"
@@ -192,10 +197,14 @@ id=${r1base%%_*}
 
 # set name of output dir in rootdir
 
+if [[ -z "$outname" ]] ; then
+	outname="$id"
+fi
+
 if [[ $outdirroot == "" ]] ; then
-	outdir=${id}
+	outdir="${outname}"
 else
-	outdir="${outdirroot%/}/${id}"
+	outdir="${outdirroot%/}/${outname}"
 fi
 
 ### FUNCTIONS ###
