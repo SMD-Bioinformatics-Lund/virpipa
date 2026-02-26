@@ -1,10 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 subsample=1000000
 outdir=/fs1/jonas/hcv/results/
 logdir=/fs1/jonas/hcv/logs/
 partition=low
 dry=''
+debug=''
+inputdir=''
+csv=''
+runname=''
+scriptdir=$(cd "$(dirname "$0")" && pwd)
 
 showhelp(){
     cat << EOF
@@ -45,7 +50,7 @@ if [[ $# -eq 0 ]] ; then
 	exit
 fi
 
-readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,debug,outdir:,subsample:,logdir:,partition:,input:,csv: -n 'error' -- "$@")
+readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,dry-run,debug,outdir:,subsample:,logdir:,partition:,inputdir:,csv: -n 'error' -- "$@")
 eval set -- "$readopts"
 dry=''
 
@@ -54,7 +59,7 @@ while true ; do
 		-h|--help)
 			showhelp
 			exit 1 ;;
-		-n|--dryrun)
+		-n|--dryrun|--dry-run)
 			dry='echo'
 			shift ;;
 		-d|--debug)
@@ -89,9 +94,9 @@ sbatch_sample(){
 	local sample="$2"
 	local lid="$3"
 	if [[ ! -z "$lid" ]] ; then
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -l "$lid" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh -s "$subsample" -l "$lid" -o "$outdir"/"$runname" "$sample"
 	else
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh -s "$subsample" -o "$outdir"/"$runname" "$sample"
 	fi	
 }
 
@@ -99,19 +104,23 @@ runraw(){
 	# Uses a directory with fastq files
 	fulldir=$(readlink -f "$inputdir")
 	runname=$(basename "$fulldir")
+	shopt -s nullglob
 	for sample in "$inputdir"/*R1*gz ; do
 		jobname=$(basename "$sample")
 		jobname=${jobname%%_*}
+		lid=''
 		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
 			lid=$(grep "$jobname" "$fulldir"/../"$runname".tsv | cut -f2)
 		fi
 		sbatch_sample "$jobname" "$sample" "$lid"
 	done
+	shopt -u nullglob
 }
 
 runcsv(){
 	# Uses a csv file, parses the header and then created the sbatch commands
 	declare -A csvdata
+	runname=$(basename "${csv%.*}")
 	exec 3< "$csv"
 	IFS=',' read -r -a keys <&3
 	while IFS=',' read -r -a values <&3 ; do
@@ -147,6 +156,7 @@ elif [[ ! -z "$inputdir" ]] && [[ ! -z "$csv" ]] ; then
 	exit
 fi
 
+mkdir -p "$logdir"
 cd "$logdir" || exit
 
 if [[ ! -z "$csv" ]] ; then

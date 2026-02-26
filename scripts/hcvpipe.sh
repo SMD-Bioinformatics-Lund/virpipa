@@ -6,40 +6,33 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=grace-normal
 
-ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
+if command -v ml > /dev/null 2>&1 ; then
+	ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
+else
+	echo "INFO: 'ml' command not found; assuming tools are available via containers/PATH."
+fi
 
 # define defaults
 cpus=16
 type=r11b2L25
-#scripts="/fs1/jonas/hcv/scripts"
-scripts=$(dirname $0)
-scripts=$(readlink -f $scripts)
-scripts='/fs1/jonas/hcv/scripts'
-containerdir='/fs1/resources/containers'
-refdir='/fs1/jonas/hcv/refgenomes'
-#refdir=$(readlink -f "${scripts}/../refgenomes")
+subsamplereads=''
+pc=''
+force=0
+outdirroot=""
+hostile='true'
+lid=''
+reference_override=''
+scriptdir=$(cd "$(dirname "$0")" && pwd)
+scripts="${HCVPIPE_SCRIPTSDIR:-$scriptdir}"
+containerdir="${HCVPIPE_CONTAINERDIR:-/fs1/resources/containers}"
+refdir="${HCVPIPE_REFDIR:-$(readlink -f "${scripts}/../refgenomes")}"
+bind_paths="${HCVPIPE_BIND_PATHS:-/fs1,/fs2,/local}"
+hostile_cache_dir="${HCVPIPE_HOSTILE_CACHE_DIR:-/fs1/resources/ref/micro/hostile}"
 echo $refdir
 echo $scripts
-genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1a-M62321.fa" "${refdir}/1b-D90208.fa" "${refdir}/2a-D00944.fa" "${refdir}/2b-D10988.fa" "${refdir}/3a-D17763.fa" "${refdir}/3k-HPCJK049E1.fa" "${refdir}/4a-GU814265.fa" "${refdir}/5a-Y13184.fa" "${refdir}/6a-Y12083.fa" "${refdir}/6g-HPCJK046E2.fa" "${refdir}/7a-EF108306.fa" )
-# genome_files=( "${refdir}/1a-AF009606.fa" "${refdir}/1b-D90208.fa" )
-
-#sent="apptainer exec -B /fs1,/fs2,/local ${containerdir}/sentieon_202503--7e7ce56c0d0199c5.sif"
-sent="apptainer exec -B /fs1,/fs2,/local ${containerdir}/sentieon_202308.03.sif sentieon"
-samt="apptainer exec -B /fs1,/fs2,/local ${containerdir}/samtools_1.21.sif samtools"
-bgz="apptainer exec -B /fs1,/fs2,/local ${containerdir}/samtools_1.21.sif bgzip"
-bcft="apptainer exec -B /fs1,/fs2,/local ${containerdir}/bcftools_1.21.sif bcftools"
-mum="apptainer exec -B /fs1,/fs2,/local ${containerdir}/mummer3.23.sif"
-mafftbin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/mafft7.525.sif mafft"
-spadesbin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/spades_3.15.5.sif spades.py"
-hostilebin="apptainer exec -B /fs1,/fs2,/local ${containerdir}/hostile_1.1.0.sif hostile"
-freebayes="apptainer exec -B /fs1,/fs2,/local ${containerdir}/freebayes_1.3.8.sif freebayes"
-blastn="apptainer exec -B /fs1,/fs2,/local ${containerdir}/blast_2.16.0.sif blastn"
-python_hcv="apptainer exec -B /fs1,/fs2,/local ${containerdir}/python_hcvpipe.sif python"
-pilon="apptainer exec -B /fs1,/fs2,/local ${containerdir}/pilon-1.24.sif pilon"
-pypolca="apptainer exec -B /fs1,/fs2,/local ${containerdir}/pypolca-0.4.0.sif pypolca"
+default_genomes=( "1a-AF009606" "1a-M62321" "1b-D90208" "2a-D00944" "2b-D10988" "3a-D17763" "3k-HPCJK049E1" "4a-GU814265" "5a-Y13184" "6a-Y12083" "6g-HPCJK046E2" "7a-EF108306" )
 
 export LC_NUMERIC=en_US.UTF-8    # otherwise datamash recognizes , as decimal separator
-export HOSTILE_CACHE_DIR=/fs1/resources/ref/micro/hostile
 
 #echo $id
 #echo $genome_files
@@ -64,6 +57,11 @@ function showhelp() {
 	echo '   -s <i>, --subsample <n>    Subsample reads. [default 500 000]'
 	echo '   -o <s>, --outdir <s>       Sets the root dir for output folders'
 	echo '   -r <s>, --reference <s>    Use this reference'
+	echo '   --ref-dir <s>              Directory with default HCV references'
+	echo '   --container-dir <s>        Directory with container images'
+	echo '   --scripts-dir <s>          Directory with helper scripts'
+	echo '   --bind-paths <s>           Comma separated bind paths for apptainer'
+	echo '   --hostile-cache-dir <s>    HOSTILE cache path'
 	echo '   -c <i>, --cpus <i>         Number of CPUs to use. [default 16]'
 	echo '   -H, --hostile              Do NOT remove human reads with hostile'
 	echo '   -n, --dry-run              Dry run'
@@ -81,14 +79,9 @@ if [[ -z "$1" ]]; then
 fi
 
 
-readopts=$(getopt -o hnfc:s:l:Ho:r: --long help,dryrun,force,cpus,subsample:,lid:,hostile,outdir:,reference: -n 'error' -- "$@")
+readopts=$(getopt -o hnfc:s:l:Ho:r: --long help,dryrun,dry-run,force,cpus:,subsample:,lid:,hostile,outdir:,reference:,ref-dir:,container-dir:,scripts-dir:,bind-paths:,hostile-cache-dir: -n 'error' -- "$@")
 #echo $readopts
 eval set -- "$readopts"
-pc=''
-force=0
-outdirroot=""
-hostile='true'
-lid=''
 
 while true ; do
 	case "$1" in
@@ -107,9 +100,24 @@ while true ; do
 			cpus="$2"
 			shift 2;;
 		-r|--reference)
-			genome_files=( "$2" )
+			reference_override="$2"
 			shift 2;;
-		-n|--dryrun)
+		--ref-dir)
+			refdir="$2"
+			shift 2;;
+		--container-dir)
+			containerdir="$2"
+			shift 2;;
+		--scripts-dir)
+			scripts="$2"
+			shift 2;;
+		--bind-paths)
+			bind_paths="$2"
+			shift 2;;
+		--hostile-cache-dir)
+			hostile_cache_dir="$2"
+			shift 2;;
+		-n|--dryrun|--dry-run)
 			pc=echo
 			shift;;
 		-H|--hostile)
@@ -124,6 +132,39 @@ while true ; do
 	esac
 done
 
+if [[ ! -d "$scripts" ]] ; then
+	echo "scripts directory does not exist: $scripts"
+	exit 1
+fi
+if [[ ! -d "$refdir" ]] ; then
+	echo "reference directory does not exist: $refdir"
+	exit 1
+fi
+
+sent="apptainer exec -B ${bind_paths} ${containerdir}/sentieon_202308.03.sif sentieon"
+samt="apptainer exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif samtools"
+bgz="apptainer exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif bgzip"
+bcft="apptainer exec -B ${bind_paths} ${containerdir}/bcftools_1.21.sif bcftools"
+mum="apptainer exec -B ${bind_paths} ${containerdir}/mummer3.23.sif"
+mafftbin="apptainer exec -B ${bind_paths} ${containerdir}/mafft7.525.sif mafft"
+spadesbin="apptainer exec -B ${bind_paths} ${containerdir}/spades_3.15.5.sif spades.py"
+hostilebin="apptainer exec -B ${bind_paths} ${containerdir}/hostile_1.1.0.sif hostile"
+freebayes="apptainer exec -B ${bind_paths} ${containerdir}/freebayes_1.3.8.sif freebayes"
+blastn="apptainer exec -B ${bind_paths} ${containerdir}/blast_2.16.0.sif blastn"
+python_hcv="apptainer exec -B ${bind_paths} ${containerdir}/python_hcvpipe.sif python"
+pilon="apptainer exec -B ${bind_paths} ${containerdir}/pilon-1.24.sif pilon"
+pypolca="apptainer exec -B ${bind_paths} ${containerdir}/pypolca-0.4.0.sif pypolca"
+export HOSTILE_CACHE_DIR="${hostile_cache_dir}"
+
+if [[ -n "$reference_override" ]] ; then
+	genome_files=( "$reference_override" )
+else
+	genome_files=()
+	for ref_name in "${default_genomes[@]}" ; do
+		genome_files+=( "${refdir}/${ref_name}.fa" )
+	done
+fi
+
 echo precommand is $pc
 echo subsample to $subsamplereads
 
@@ -132,7 +173,7 @@ echo subsample to $subsamplereads
 if [[ $# -gt 2 ]] ; then
 	echo 'Wrong number of arguments'
 	exit
-elif [[ $# -eq -0 ]] ; then
+elif [[ $# -eq 0 ]] ; then
 	echo 'You must supply at least a forward read'
 	exit
 elif [[ $# -eq 1 ]] ; then
@@ -180,10 +221,10 @@ function subsample() {
 		echo seqtk sample -s100 $read1 $nofreads \| pigz \> ${outdir}/${outsubdir}/${r1base/.fastq/.sub.fastq}
 		echo seqtk sample -s100 $read2 $nofreads \| pigz \> ${outdir}/${outsubdir}/${r2base/.fastq/.sub.fastq}
 	else
-		if [[ ! -f ${outdir}/fastq/${r1base/.fastq/.sub.fastq} ]] ; then
+		if [[ ! -f ${outdir}/${outsubdir}/${r1base/.fastq/.sub.fastq} ]] ; then
 			seqtk sample -s100 $read1 $nofreads | pigz > ${outdir}/${outsubdir}/${r1base/.fastq/.sub.fastq}
 		fi
-		if [[ ! -f ${outdir}/fastq/${r2base/.fastq/.sub.fastq} ]] ; then
+		if [[ ! -f ${outdir}/${outsubdir}/${r2base/.fastq/.sub.fastq} ]] ; then
 			seqtk sample -s100 $read2 $nofreads | pigz > ${outdir}/${outsubdir}/${r2base/.fastq/.sub.fastq}
 		fi
 	fi
@@ -396,18 +437,17 @@ function getbestsubtype() {
 }
 
 function createreport() {
-	stats="$1"
-	local id=${stats%.vcf.gz.stats}
-	local id=$(echo $id | cut -d'-' -f1)
-	ref=$(echo $id | cut -d'-' -f2,3)
-	snps=$(sed -n 's/^SN\t0\tnumber of SNPs:\t\([0-9]*\)$/\1/p' $stats)
-	multiallelic=$(sed -n 's/^SN\t0\tnumber of multiallelic SNP sites:\t\([0-9]*\)$/\1/p' $stats)
-	af0=$(sed -n 's/^AF\t0\t0.000000\t\([0-9]*\)\t.*/\1/p' $stats)
-	af99=$(sed -n 's/^AF\t0\t0.990000\t\([0-9]*\)\t.*/\1/p' $stats)
+	local stats="$1"
+	local report_id=$(basename "${stats%.vcf.gz.stats}")
+	local sample_id=$(echo "$report_id" | cut -d'-' -f1)
+	local snps=$(sed -n 's/^SN\t0\tnumber of SNPs:\t\([0-9]*\)$/\1/p' "$stats")
+	local multiallelic=$(sed -n 's/^SN\t0\tnumber of multiallelic SNP sites:\t\([0-9]*\)$/\1/p' "$stats")
+	local af0=$(sed -n 's/^AF\t0\t0.000000\t\([0-9]*\)\t.*/\1/p' "$stats")
+	local af99=$(sed -n 's/^AF\t0\t0.990000\t\([0-9]*\)\t.*/\1/p' "$stats")
 	echo '# VCF stats'
 	printf "subtype\t${subtype%-*}\n"
 	printf "reference\t${subtype}\n"
-	printf "id\t${id}\n"
+	printf "id\t${sample_id}\n"
 	printf "snps\t${snps}\n"
 	printf "multiallelic_snps\t${multiallelic}\n"
 	printf "AF0\t${af0}\n"
@@ -499,14 +539,25 @@ for genome_file in "${genome_files[@]}" ; do
 	genome_file_short=$(basename $genome_file)
 	genome_file_short=${genome_file_short%.fa}
 	echo $id $genome_file_short
-	if [[ $pc == 'echo' ]] || [[ -f ${outdir}/bam/${id}-${genome_file_short}.${type}.bwa.umi.sort.bam ]]; then
+	if [[ $pc == 'echo' ]] ; then
 		echo umimap  "${genome_file}" "${genome_file_short}"
 		echo bamtofasta "${outdir}/bam/${id}-${genome_file_short}.${type}.bwa.umi.filter.sort.bam" "${genome_file}" "${genome_file_short}"
 		continue
-	else
+	fi
+
+	bam_path="${outdir}/bam/${id}-${genome_file_short}.${type}.bwa.umi.sort.bam"
+	filter_bam_path="${outdir}/bam/${id}-${genome_file_short}.${type}.bwa.umi.filter.sort.bam"
+	fasta_path="${outdir}/fasta/${id}-${genome_file_short}.fasta"
+
+	if [[ ! -f ${bam_path} ]] || [[ ! -f ${filter_bam_path} ]] ; then
 		[[ ! -f ${genome_file}.bwt ]] && $sent bwa index $genome_file
 		umimap "${genome_file}" "${genome_file_short}"
-		bam2fasta  "${outdir}/bam/${id}-${genome_file_short}.${type}.bwa.umi.filter.sort.bam" "${genome_file}" "${genome_file_short}"
+	fi
+
+	if [[ ! -f ${fasta_path} ]] ; then
+		bam2fasta  "${filter_bam_path}" "${genome_file}" "${genome_file_short}"
+	else
+		echo "Found existing FASTA ${fasta_path}, skipping bam2fasta."
 	fi
 done
 
@@ -539,7 +590,7 @@ fi
 
 
 # Align contigs with the best ref genome using mummer
-$pc mkdir ${outdir}/mummer
+$pc mkdir -p ${outdir}/mummer
 $pc cd ${outdir}/mummer
 $pc $mum nucmer --maxmatch -p ${id} ${refdir}/${subtype}.fa ${outdir}/spades/${id}.spades
 $pc $mum delta-filter -q ${outdir}/mummer/${id}.delta > ${id}.delta-filter
@@ -564,8 +615,8 @@ for ((i=2; i<=$maxpolish; i++)) ; do
 	echo ${outdir}/pilon/${id}-pilon-$((i-1)).changes
 	if [[ $(wc -l < ${outdir}/pilon/${id}-pilon-$i.changes) -eq $(wc -l < ${outdir}/pilon/${id}-pilon-$((i-1)).changes) ]] || [[ $i -eq $maxpolish ]] ; then
 		echo COPY final pilon files in iteration $i !
-		cp ${outdir}/pilon/${id}-pilon-${i}.fasta ${outdir}/pilon/${id}.fasta
-		cp ${outdir}/pilon/${id}-pilon-${i}-iupac.fasta ${outdir}/pilon/${id}-iupac.fasta
+		$pc cp ${outdir}/pilon/${id}-pilon-${i}.fasta ${outdir}/pilon/${id}.fasta
+		$pc cp ${outdir}/pilon/${id}-pilon-${i}-iupac.fasta ${outdir}/pilon/${id}-iupac.fasta
         $pc $samt faidx ${outdir}/pilon/${id}.fasta
         $pc $sent bwa index ${outdir}/pilon/${id}.fasta
 		break
@@ -628,7 +679,7 @@ $pc cp ${outdir}/fasta/${id}-0.15-iupac.fasta ${outdir}/results/
 $pc cp ${outdir}/pilon/${id}-pilon-iupac.fasta ${outdir}/results/
 
 # link for 15%
-$pc ln -s ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-0.15-iupac.vcf.gz.stats
+$pc ln -sf ${outdir}/vcf/${id}-pilon-m0.15.vcf.gz.stats ${outdir}/vcf/${id}-0.15-iupac.vcf.gz.stats
 echo four
 # reporting is quite broken, but currently mainly using the iupac, so good enough for now
 echo $subtype
