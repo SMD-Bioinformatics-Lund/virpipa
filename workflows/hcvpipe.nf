@@ -21,7 +21,16 @@ workflow HCVPIPE {
 
             def read2 = (row.read2 ?: row.fastq_2 ?: '').toString().trim()
             def lid = (row.sample_name ?: row.lid ?: '').toString().trim()
-            tuple(sample, read1, read2, lid)
+            def runCandidate = (row.run_name ?: params.run_name ?: '').toString().trim()
+            if (!runCandidate) {
+                def runMatcher = (read1 =~ /\/([^\/]+)\/Data\/Intensities\/BaseCalls\//)
+                if (runMatcher.find()) {
+                    runCandidate = runMatcher.group(1)
+                }
+            }
+            def runName = runCandidate ? runCandidate : 'run_unknown'
+            runName = runName.replaceAll(/[\\\/\s]+/, '_')
+            tuple(runName, sample, read1, read2, lid)
         }
         .set { ch_samples }
 

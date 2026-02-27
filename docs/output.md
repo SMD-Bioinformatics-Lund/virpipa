@@ -4,7 +4,7 @@ For each sample, the pipeline publishes the same output directory produced by `s
 
 Example:
 
-- `results/SAMPLE001/`
+- `results/240101_A00000_0001_XXXXXX/SAMPLE001/`
 
 Pipeline run metadata is written to:
 

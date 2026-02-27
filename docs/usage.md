@@ -8,6 +8,11 @@ Provide a CSV samplesheet with at least these columns:
 - `read1`
 - `read2` (optional; if omitted, `hcvpipe.sh` will infer R2 from R1 naming)
 - `sample_name` (optional; passed to `hcvpipe.sh` as LID)
+- `run_name` (optional; folder level under `outdir`)
+
+If `run_name` is omitted, the pipeline infers it from `read1` using:
+
+- `.../<run_name>/Data/Intensities/BaseCalls/...`
 
 ## Run
 
@@ -15,6 +20,7 @@ Provide a CSV samplesheet with at least these columns:
 nextflow run . \
   --input samplesheet.csv \
   --outdir results \
+  --run_name 260224_A00681_1214_BHHG2YDRX7 \
   --container_dir /fs1/resources/containers \
   --bind_paths '/fs1,/fs2,/local' \
   -profile slurm,apptainer

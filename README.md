@@ -14,6 +14,7 @@ Virus assembly pipeline. First for HCV.
 nextflow run . \
   --input samplesheet.csv \
   --outdir results \
+  --run_name 260224_A00681_1214_BHHG2YDRX7 \
   --container_dir /fs1/resources/containers \
   --bind_paths '/fs1,/fs2,/local' \
   -profile slurm,apptainer

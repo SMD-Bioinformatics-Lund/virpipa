@@ -1,5 +1,5 @@
 process RUN_HCVPIPE {
-    tag { sample_id }
+    tag { "${run_name}:${sample_id}" }
     label 'process_high'
 
     cpus params.cpus
@@ -9,10 +9,10 @@ process RUN_HCVPIPE {
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
-    tuple val(sample_id), val(read1), val(read2), val(lid)
+    tuple val(run_name), val(sample_id), val(read1), val(read2), val(lid)
 
     output:
-    path("${sample_id}"), emit: sample_dirs
+    path("${run_name}/${sample_id}"), emit: sample_dirs
 
     script:
     def lidArg = lid ? "-l '${lid}'" : ''
@@ -24,13 +24,14 @@ process RUN_HCVPIPE {
 
     """
     work_root=\$(pwd)
+    mkdir -p "\${work_root}/${run_name}"
     bash '${params.scripts_dir}/hcvpipe.sh' \\
       --scripts-dir '${params.scripts_dir}' \\
       --ref-dir '${params.ref_dir}' \\
       ${containerArg} \\
       ${bindArg} \\
       ${hostileCacheArg} \\
-      -o "\${work_root}" \\
+      -o "\${work_root}/${run_name}" \\
       --outname '${sample_id}' \\
       -s ${params.subsample_reads} \\
       -c ${task.cpus} \\

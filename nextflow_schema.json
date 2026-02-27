@@ -58,6 +58,10 @@
     "partition": {
       "type": ["string", "null"],
       "description": "SLURM partition"
+    },
+    "run_name": {
+      "type": ["string", "null"],
+      "description": "Run name folder; if null, inferred from read1 path"
     }
   },
   "required": ["input"]
