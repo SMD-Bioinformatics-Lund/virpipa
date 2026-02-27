@@ -23,13 +23,14 @@ process RUN_HCVPIPE {
     def readArgs = read2 ? "'${read1}' '${read2}'" : "'${read1}'"
 
     """
+    work_root=\$(pwd)
     bash '${params.scripts_dir}/hcvpipe.sh' \\
       --scripts-dir '${params.scripts_dir}' \\
       --ref-dir '${params.ref_dir}' \\
       ${containerArg} \\
       ${bindArg} \\
       ${hostileCacheArg} \\
-      -o . \\
+      -o "\${work_root}" \\
       --outname '${sample_id}' \\
       -s ${params.subsample_reads} \\
       -c ${task.cpus} \\
