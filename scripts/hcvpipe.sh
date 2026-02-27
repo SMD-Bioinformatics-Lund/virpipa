@@ -207,6 +207,13 @@ else
 	outdir="${outdirroot%/}/${outname}"
 fi
 
+# Ensure outdir is absolute so later `cd` calls do not break path resolution.
+if [[ "$outdir" != /* ]] ; then
+	outdir="$(readlink -m "$PWD/$outdir")"
+else
+	outdir="$(readlink -m "$outdir")"
+fi
+
 ### FUNCTIONS ###
 
 function abspath() {
