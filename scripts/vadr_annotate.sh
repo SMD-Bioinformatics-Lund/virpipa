@@ -35,10 +35,8 @@ if [[ ! -f "$annotate_tbl2gff" ]] ; then
 	exit 1
 fi
 
-mkdir -p "${resultsdir}/vadr"
-
 if [[ ! -f ${resultsdir}/vadr/${id}.vadr.seqstat ]] ; then
-	${vadr} v-annotate.pl --mdir "$vadr_mdir" --group HCV --mkey flavi --forcegene "$fullseq" "${resultsdir}/vadr/"
+	${vadr} v-annotate.pl -f --mdir "$vadr_mdir" --group HCV --mkey flavi --forcegene "$fullseq" "${resultsdir}/vadr/"
 fi
 
 shopt -s nullglob

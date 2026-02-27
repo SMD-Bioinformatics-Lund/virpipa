@@ -438,11 +438,19 @@ function bam2fasta-nogood() {
 
 
 function getbestsubtype() {
-	for statsfile in ${outdir}/bam/*stats ; do
-		printf "${statsfile%%.*}\t" | sed 's:.*/::' | sed 's:-:\t:'
-		grep error ${statsfile} | awk '{print $4}'
-	done | \
-		datamash -f -g1 min 3 | cut -f2 # get the lowest error from the generated bam.stats files
+	local statsfile
+	local refname
+	local errrate
+
+	for statsfile in "${outdir}"/bam/*.stats ; do
+		[[ -e "$statsfile" ]] || continue
+		refname=$(basename "$statsfile")
+		refname=${refname#${id}-}
+		refname=${refname%.${type}.bwa.umi.filter.sort.bam.stats}
+		errrate=$(awk '$1=="SN" && $2=="error" && $3=="rate:" { print $4; exit }' "$statsfile")
+		[[ -z "$errrate" ]] && continue
+		printf "%s\t%s\n" "$refname" "$errrate"
+	done | sort -k2,2g | head -n 1 | cut -f1
 }
 
 function createreport() {
@@ -583,6 +591,10 @@ fi
 
 # get the best subtype
 subtype=$(getbestsubtype)
+if [[ -z "$subtype" ]] ; then
+	echo "Could not determine best subtype from ${outdir}/bam/*.stats"
+	exit 1
+fi
 
 # copying results data and create cram from the best results
 # mapping to the best subtype with all reads
@@ -766,7 +778,7 @@ fi
 		 echo output with "$lid" instead of "$id"
 	 else	
 		 touch "$outdir"/results/"$lid".lid
-		 mkdir ${outdir}/results/lid/
+		 mkdir -p ${outdir}/results/lid/
 		 cd ${outdir}/results/lid/
 		 $pc $python_hcv "${scripts}/kderug.py" ${outdir}/tmp/${id}.mixin "$lid"
 		 cp ${outdir}/results/${id}.fasta "$lid".fasta
