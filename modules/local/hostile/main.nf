@@ -10,7 +10,7 @@ process REMOVE_HOSTILE {
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)
-        val(cache_dir)
+        val cache_dir
     
     output:
         tuple val(run_name), val(sample_id), path("*_hostile_*.fastq.gz"), emit: reads
@@ -19,7 +19,7 @@ process REMOVE_HOSTILE {
     script:
     def r1base = read1.baseName
     def r2base = read2 ? read2.baseName : ''
-    def hostile_cache = cache_dir ? "--hostile-cache-dir ${cache_dir}" : ""
+    def hostile_cache = cache_dir && cache_dir.toString().trim() ? "--hostile-cache-dir ${cache_dir}" : ""
     
     """
     hostile -1 ${read1} -2 ${read2} -o . ${hostile_cache} -t ${task.cpus} -p ${sample_id}

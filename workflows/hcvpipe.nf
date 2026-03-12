@@ -47,7 +47,8 @@ workflow HCVPIPE {
 
     // Step 2: Remove human reads (optional)
     if (params.remove_human) {
-        REMOVE_HOSTILE(ch_subsampled, params.hostile_cache_dir)
+        def cache_dir = params.hostile_cache_dir ?: ''
+        REMOVE_HOSTILE(ch_subsampled, cache_dir)
         ch_prepped = REMOVE_HOSTILE.out.reads
     } else {
         ch_prepped = ch_subsampled
