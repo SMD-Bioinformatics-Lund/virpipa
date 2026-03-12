@@ -35,8 +35,9 @@ Annotates VCF variants with drug resistance information.
 
 **Optional arguments:**
 - `--sample-name` - Sample ID (default: derived from VCF filename)
-- `--output-dir` - Output directory (default: results)
+- `--output-dir` - Output directory (default: VCF directory)
 - `--rules` - Rules CSV (default: hbv_result_rules.csv)
+- `--ref-bed` - Also generate reference BED with all resistance positions
 
 **Example:**
 ```bash
@@ -45,8 +46,7 @@ python scripts/annotate_vcf_resistance.py \
     --gff /path/to/CMD1065A189.vadr.pass_mod.gff \
     --fasta /path/to/CMD1065A189-0.15-iupac.fasta \
     --subtype 3a \
-    --sample-name CMD1065A189 \
-    --output-dir results/
+    --sample-name CMD1065A189
 ```
 
 **Environment:**
