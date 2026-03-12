@@ -10,9 +10,7 @@ process MAP_READS {
     publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bai'
     
     input:
-        tuple val(run_name), val(sample_id), path(read1), path(read2)
-        path genome
-        val genome_name
+        tuple val(run_name), val(sample_id), path(read1), path(read2), path(genome), val(genome)
     
     output:
         tuple val(run_name), val(sample_id), path("*.bam"), path("*.bai"), emit: bams

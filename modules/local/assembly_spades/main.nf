@@ -1,5 +1,5 @@
 process ASSEMBLE_SPADES {
-    tag { "${sample_id}:${genome}" }
+    tag { sample_id }
     label 'process_high'
     
     cpus 16
@@ -10,7 +10,6 @@ process ASSEMBLE_SPADES {
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)
-        val genome_name
     
     output:
         path "*.spades", emit: contigs
@@ -24,9 +23,9 @@ process ASSEMBLE_SPADES {
         def spades = "apptainer exec -B ${bind_paths} ${container_dir}/spades_3.15.5.sif spades.py"
         
         """
-        ${spades} -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}-${genome_name}.spades -t ${task.cpus}
+        ${spades} -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
-        mv ${sample_id}-${genome_name}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
+        mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
         """
     } else {
         // Direct execution (local testing with mamba)
@@ -35,9 +34,9 @@ process ASSEMBLE_SPADES {
         """
         export PATH="${mamba_env}/bin:\$PATH"
         
-        spades.py -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}-${genome_name}.spades -t ${task.cpus}
+        spades.py -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
-        mv ${sample_id}-${genome_name}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
+        mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
         """
     }
 }
