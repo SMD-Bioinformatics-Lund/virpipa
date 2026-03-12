@@ -1,0 +1,546 @@
+#chrom	start	end	name	score	strand	gene	drugs	prediction
+REF	3897	3901	NS3:155:K	0	+	NS3	Asunaprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Asunaprevir	resistant
+REF	3900	3904	NS3:156:S	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3900	3904	NS3:156:T	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3900	3904	NS3:156:V	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:A	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:C	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:G	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:G	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:H	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:H	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:T	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Asunaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Asunaprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:A	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:L	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:L	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:R	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Asunaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:G	0	+	NS3	Boceprevir	resistant
+REF	3897	3901	NS3:155:G	0	+	NS3	Boceprevir	resistant
+REF	3897	3901	NS3:155:I	0	+	NS3	Boceprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Boceprevir	resistant
+REF	3897	3901	NS3:155:M	0	+	NS3	Boceprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Boceprevir	resistant
+REF	3900	3904	NS3:156:G	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3900	3904	NS3:156:S	0	+	NS3	Boceprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Boceprevir	resistant
+REF	3900	3904	NS3:156:V	0	+	NS3	Boceprevir	resistant
+REF	3594	3598	NS3:54:C	0	+	NS3	Boceprevir	resistant
+REF	3594	3598	NS3:54:G	0	+	NS3	Boceprevir	resistant
+REF	3597	3601	NS3:55:A	0	+	NS3	Boceprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3936	3940	NS3:168:Y	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3942	3946	NS3:170:A	0	+	NS3	Boceprevir	resistant
+REF	3942	3946	NS3:170:T	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3954	3958	NS3:174:F	0	+	NS3	Boceprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Boceprevir	resistant
+REF	3540	3544	NS3:36:L	0	+	NS3	Boceprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Boceprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3561	3565	NS3:43:S	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3561	3565	NS3:43:V	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3594	3598	NS3:54:A	0	+	NS3	Boceprevir	reduced susceptibility
+REF	3594	3598	NS3:54:S	0	+	NS3	Boceprevir	resistant
+REF	6354	6358	NS5A:28:A	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:M	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Daclatasvir	resistant
+REF	6354	6358	NS5A:28:S	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:T	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:D	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:E	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:Q	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:S	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Daclatasvir	resistant
+REF	6366	6370	NS5A:32:del	0	+	NS5A	Daclatasvir	resistant
+REF	6366	6370	NS5A:32:L	0	+	NS5A	Daclatasvir	resistant
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Daclatasvir	resistant
+REF	6546	6550	NS5A:92:K	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:C	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:W	0	+	NS5A	Daclatasvir	resistant
+REF	6549	6553	NS5A:93:R	0	+	NS5A	Daclatasvir	resistant
+REF	6342	6346	NS5A:24:R	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6342	6346	NS5A:24:H	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:N	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:T	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:T	0	+	NS5A	Daclatasvir	resistant
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Daclatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Daclatasvir	resistant
+REF	6366	6370	NS5A:32:S	0	+	NS5A	Daclatasvir	resistant
+REF	6366	6370	NS5A:32:L	0	+	NS5A	Daclatasvir	resistant
+REF	6444	6448	NS5A:58:A	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6444	6448	NS5A:58:N	0	+	NS5A	Daclatasvir	resistant
+REF	6444	6448	NS5A:58:S	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6456	6460	NS5A:62:L	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Daclatasvir	reduced susceptibility
+REF	8574	8578	NS5B:316:Y	0	+	NS5B	Dasabuvir	resistant
+REF	8730	8734	NS5B:368:T	0	+	NS5B	Dasabuvir	resistant
+REF	8811	8815	NS5B:395:G	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	8859	8863	NS5B:411:S	0	+	NS5B	Dasabuvir	resistant
+REF	8868	8872	NS5B:414:I	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	8868	8872	NS5B:414:T	0	+	NS5B	Dasabuvir	resistant
+REF	8958	8962	NS5B:444:K	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	8961	8965	NS5B:445:F	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	8979	8983	NS5B:451:S	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9381	9385	NS5B:585:V	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	8970	8974	NS5B:448:C	0	+	NS5B	Dasabuvir	resistant
+REF	8970	8974	NS5B:448:H	0	+	NS5B	Dasabuvir	resistant
+REF	8979	8983	NS5B:451:S	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9285	9289	NS5B:553:T	0	+	NS5B	Dasabuvir	resistant
+REF	9285	9289	NS5B:553:V	0	+	NS5B	Dasabuvir	resistant
+REF	9288	9292	NS5B:554:S	0	+	NS5B	Dasabuvir	resistant
+REF	9294	9298	NS5B:556:G	0	+	NS5B	Dasabuvir	resistant
+REF	9294	9298	NS5B:556:N	0	+	NS5B	Dasabuvir	resistant
+REF	9294	9298	NS5B:556:R	0	+	NS5B	Dasabuvir	resistant
+REF	9297	9301	NS5B:557:R	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9300	9304	NS5B:558:R	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9303	9307	NS5B:559:G	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9303	9307	NS5B:559:N	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9309	9313	NS5B:561:H	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	9321	9325	NS5B:565:F	0	+	NS5B	Dasabuvir	reduced susceptibility
+REF	6354	6358	NS5A:28:T	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:C	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Elbasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Elbasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:S	0	+	NS5A	Elbasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:V	0	+	NS5A	Elbasvir	susceptible
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Elbasvir	resistant
+REF	6354	6358	NS5A:28:G	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Elbasvir	resistant
+REF	6360	6364	NS5A:30:Y	0	+	NS5A	Elbasvir	reduced susceptibility
+REF	3900	3904	NS3:156:V	0	+	NS3	Glecaprevir	resistant
+REF	3900	3904	NS3:156:G	0	+	NS3	Glecaprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Glecaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:A	0	+	NS3	Glecaprevir	reduced susceptibility
+REF	3600	3604	NS3:56:H	0	+	NS3	Glecaprevir	resistant
+REF	3936	3940	NS3:168:K	0	+	NS3	Glecaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:R	0	+	NS3	Glecaprevir	resistant
+REF	3936	3940	NS3:168:L	0	+	NS3	Glecaprevir	resistant
+REF	3897	3901	NS3:155:G	0	+	NS3	Grazoprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3900	3904	NS3:156:T	0	+	NS3	Grazoprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:any	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3936	3940	NS3:168:E	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3936	3940	NS3:168:G	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:G	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:K	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Grazoprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Grazoprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3540	3544	NS3:36:L	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3936	3940	NS3:168:N	0	+	NS3	Grazoprevir	resistant
+REF	3600	3604	NS3:56:H	0	+	NS3	Grazoprevir	resistant
+REF	3600	3604	NS3:56:F	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3897	3901	NS3:155:Q	0	+	NS3	Grazoprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Grazoprevir	resistant
+REF	3900	3904	NS3:156:V	0	+	NS3	Grazoprevir	resistant
+REF	3897	3901	NS3:155:L	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3897	3901	NS3:155:S	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	3897	3901	NS3:155:S	0	+	NS3	Grazoprevir	reduced susceptibility
+REF	6354	6358	NS5A:28:A	0	+	NS5A	Ledipasvir	resistant
+REF	6354	6358	NS5A:28:T	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:E	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:S	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Ledipasvir	resistant
+REF	6354	6358	NS5A:28:M	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Ledipasvir	resistant
+REF	6366	6370	NS5A:32:del	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6366	6370	NS5A:32:L	0	+	NS5A	Ledipasvir	resistant
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Ledipasvir	resistant
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Ledipasvir	resistant
+REF	6546	6550	NS5A:92:K	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:C	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:T	0	+	NS5A	Ledipasvir	resistant
+REF	6549	6553	NS5A:93:W	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Ledipasvir	resistant
+REF	6342	6346	NS5A:24:R	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6342	6346	NS5A:24:G	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6342	6346	NS5A:24:N	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:N	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:T	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:Y	0	+	NS5A	Ledipasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Ledipasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Ledipasvir	resistant
+REF	6384	6388	NS5A:38:F	0	+	NS5A	Ledipasvir	resistant
+REF	6546	6550	NS5A:92:T	0	+	NS5A	Ledipasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Ledipasvir	resistant
+REF	6354	6358	NS5A:28:M	0	+	NS5A	Ombitasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Ombitasvir	resistant
+REF	6354	6358	NS5A:28:S	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:T	0	+	NS5A	Ombitasvir	resistant
+REF	6354	6358	NS5A:28:T	0	+	NS5A	Ombitasvir	resistant
+REF	6354	6358	NS5A:28:V	0	+	NS5A	Ombitasvir	resistant
+REF	6354	6358	NS5A:28:V	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:V	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:V	0	+	NS5A	Ombitasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Ombitasvir	resistant
+REF	6360	6364	NS5A:30:E	0	+	NS5A	Ombitasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Ombitasvir	resistant
+REF	6363	6367	NS5A:31:F	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Ombitasvir	resistant
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:Q	0	+	NS5A	Ombitasvir	resistant
+REF	6366	6370	NS5A:32:del	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:C	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Ombitasvir	resistant
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Ombitasvir	resistant
+REF	6360	6364	NS5A:30:Y	0	+	NS5A	Ombitasvir	resistant
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6546	6550	NS5A:92:T	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Ombitasvir	reduced susceptibility
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:D	0	+	NS5A	Pibrentasvir	resistant
+REF	6366	6370	NS5A:32:del	0	+	NS5A	Pibrentasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Pibrentasvir	resistant
+REF	6444	6448	NS5A:58:D	0	+	NS5A	Pibrentasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Pibrentasvir	resistant
+REF	6354	6358	NS5A:28:S	0	+	NS5A	Pibrentasvir	resistant
+REF	6363	6367	NS5A:31:I	0	+	NS5A	Pibrentasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6444	6448	NS5A:58:C	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Pibrentasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Pibrentasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Pibrentasvir	resistant
+REF	6360	6364	NS5A:30:S	0	+	NS5A	Pibrentasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Pibrentasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Pibrentasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6342	6346	NS5A:24:R	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:G	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6354	6358	NS5A:28:K	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:G	0	+	NS5A	Pibrentasvir	reduced susceptibility
+REF	3897	3901	NS3:155:C	0	+	NS3	Paritaprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Paritaprevir	resistant
+REF	3897	3901	NS3:155:Q	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3900	3904	NS3:156:T	0	+	NS3	Paritaprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3900	3904	NS3:156:V	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:E	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:E	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:H	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:H	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Paritaprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3561	3565	NS3:43:L	0	+	NS3	Paritaprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Paritaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:C	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:F	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:K	0	+	NS3	Paritaprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Paritaprevir	resistant
+REF	3897	3901	NS3:155:H	0	+	NS3	Paritaprevir	resistant
+REF	3798	3802	NS3:122:R	0	+	NS3	Simeprevir	resistant
+REF	3846	3850	NS3:138:T	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3897	3901	NS3:155:G	0	+	NS3	Simeprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Simeprevir	resistant
+REF	3897	3901	NS3:155:Q	0	+	NS3	Simeprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Simeprevir	resistant
+REF	3900	3904	NS3:156:G	0	+	NS3	Simeprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Simeprevir	resistant
+REF	3900	3904	NS3:156:V	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:G	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3936	3940	NS3:168:H	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:I	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3936	3940	NS3:168:Q	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:T	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:V	0	+	NS3	Simeprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Simeprevir	resistant
+REF	3942	3946	NS3:170:T	0	+	NS3	Simeprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3540	3544	NS3:36:L	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3561	3565	NS3:43:I	0	+	NS3	Simeprevir	resistant
+REF	3561	3565	NS3:43:S	0	+	NS3	Simeprevir	resistant
+REF	3561	3565	NS3:43:V	0	+	NS3	Simeprevir	resistant
+REF	3672	3676	NS3:80:H	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Simeprevir	resistant
+REF	3672	3676	NS3:80:R	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3897	3901	NS3:155:W	0	+	NS3	Simeprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Simeprevir	resistant
+REF	3900	3904	NS3:156:G	0	+	NS3	Simeprevir	resistant
+REF	3672	3676	NS3:80:H	0	+	NS3	Simeprevir	reduced susceptibility
+REF	3672	3676	NS3:80:R	0	+	NS3	Simeprevir	reduced susceptibility
+REF	8103	8107	NS5B:159:F	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8472	8476	NS5B:282:R	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8472	8476	NS5B:282:T	0	+	NS5B	Sofosbuvir	resistant
+REF	8472	8476	NS5B:282:T	0	+	NS5B	Sofosbuvir	resistant
+REF	8472	8476	NS5B:282:T	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8493	8497	NS5B:289:L	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8589	8593	NS5B:321:A	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8472	8476	NS5B:282:T	0	+	NS5B	Sofosbuvir	resistant
+REF	8586	8590	NS5B:320:I	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8586	8590	NS5B:320:V	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	8589	8593	NS5B:321:A	0	+	NS5B	Sofosbuvir	reduced susceptibility
+REF	3897	3901	NS3:155:G	0	+	NS3	Telaprevir	resistant
+REF	3897	3901	NS3:155:K	0	+	NS3	Telaprevir	resistant
+REF	3897	3901	NS3:155:Q	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:T	0	+	NS3	Telaprevir	resistant
+REF	3900	3904	NS3:156:S	0	+	NS3	Telaprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Telaprevir	resistant
+REF	3900	3904	NS3:156:V	0	+	NS3	Telaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3597	3601	NS3:55:A	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:A	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3954	3958	NS3:174:S	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:A	0	+	NS3	Telaprevir	resistant
+REF	3783	3787	NS3:117:H	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:G	0	+	NS3	Telaprevir	resistant
+REF	3540	3544	NS3:36:L	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:M	0	+	NS3	Telaprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Telaprevir	resistant
+REF	3900	3904	NS3:156:F	0	+	NS3	Telaprevir	resistant
+REF	3900	3904	NS3:156:N	0	+	NS3	Telaprevir	resistant
+REF	3561	3565	NS3:43:S	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3594	3598	NS3:54:A	0	+	NS3	Telaprevir	reduced susceptibility
+REF	3954	3958	NS3:174:F	0	+	NS3	Telaprevir	reduced susceptibility
+REF	6354	6358	NS5A:28:V	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:E	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6360	6364	NS5A:30:H	0	+	NS5A	Velpatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Velpatasvir	resistant
+REF	6360	6364	NS5A:30:K	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Velpatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Velpatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6363	6367	NS5A:31:V	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6366	6370	NS5A:32:L	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6363	6367	NS5A:31:M	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:H	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:N	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:R	0	+	NS5A	Velpatasvir	resistant
+REF	6549	6553	NS5A:93:S	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	6549	6553	NS5A:93:W	0	+	NS5A	Velpatasvir	resistant
+REF	6360	6364	NS5A:30:R	0	+	NS5A	Velpatasvir	reduced susceptibility
+REF	3798	3802	NS3:122:D	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:W	0	+	NS3	Voxilaprevir	resistant
+REF	3900	3904	NS3:156:L	0	+	NS3	Voxilaprevir	resistant
+REF	3900	3904	NS3:156:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3900	3904	NS3:156:T	0	+	NS3	Voxilaprevir	resistant
+REF	3900	3904	NS3:156:V	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:F	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:H	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:T	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:Y	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:A	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:A	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	susceptible
+REF	3561	3565	NS3:43:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3561	3565	NS3:43:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:L	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:G	0	+	NS3	Voxilaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:L	0	+	NS3	Voxilaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:L	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	resistant
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	resistant
+REF	3900	3904	NS3:156:S	0	+	NS3	Voxilaprevir	resistant
+REF	3540	3544	NS3:36:A	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3597	3601	NS3:55:I	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3900	3904	NS3:156:T	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:H	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:G	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Voxilaprevir	resistant
+REF	3561	3565	NS3:43:L	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	resistant
+REF	3600	3604	NS3:56:H	0	+	NS3	Voxilaprevir	resistant
+REF	3600	3604	NS3:56:F	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3600	3604	NS3:56:H	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:R	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:L	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Voxilaprevir	resistant
+REF	3798	3802	NS3:122:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Voxilaprevir	resistant
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3897	3901	NS3:155:T	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:N	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	resistant
+REF	3942	3946	NS3:170:T	0	+	NS3	Voxilaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	resistant
+REF	3600	3604	NS3:56:H	0	+	NS3	Voxilaprevir	resistant
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3597	3601	NS3:55:I	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:L	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3600	3604	NS3:56:F	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:N	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:I	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:R	0	+	NS3	Voxilaprevir	resistant
+REF	3897	3901	NS3:155:N	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	resistant
+REF	3798	3802	NS3:122:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3540	3544	NS3:36:M	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:K	0	+	NS3	Voxilaprevir	resistant
+REF	3561	3565	NS3:43:L	0	+	NS3	Voxilaprevir	resistant
+REF	3672	3676	NS3:80:K	0	+	NS3	Voxilaprevir	resistant
+REF	3936	3940	NS3:168:Y	0	+	NS3	Voxilaprevir	resistant
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3597	3601	NS3:55:I	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3597	3601	NS3:55:A	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3672	3676	NS3:80:R	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:E	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3594	3598	NS3:54:S	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3597	3601	NS3:55:I	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3798	3802	NS3:122:G	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3897	3901	NS3:155:K	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3942	3946	NS3:170:V	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:H	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3555	3559	NS3:41:R	0	+	NS3	Voxilaprevir	reduced susceptibility
+REF	3936	3940	NS3:168:A	0	+	NS3	Voxilaprevir	reduced susceptibility

@@ -35,19 +35,24 @@ Annotates VCF variants with drug resistance information.
 
 **Optional arguments:**
 - `--sample-name` - Sample ID (default: derived from VCF filename)
-- `--output-dir` - Output directory (default: VCF directory)
-- `--rules` - Rules CSV (default: hbv_result_rules.csv)
+- `--output-dir` - Output directory (default: results subfolder of sample)
+- `--rules` - Rules CSV (default: assets/hbv_result_rules.csv)
+- `--assets-dir` - Directory for reference files (default: assets)
 - `--ref-bed` - Also generate reference BED with all resistance positions
 
 **Example:**
 ```bash
 python scripts/annotate_vcf_resistance.py \
-    --vcf /path/to/CMD1065A189-pilon.vcf.gz \
-    --gff /path/to/CMD1065A189.vadr.pass_mod.gff \
-    --fasta /path/to/CMD1065A189-0.15-iupac.fasta \
+    --vcf /path/to/vcf/CMD1065A189-pilon.vcf.gz \
+    --gff /path/to/results/CMD1065A189.vadr.pass_mod.gff \
+    --fasta /path/to/fasta/CMD1065A189-0.15-iupac.fasta \
     --subtype 3a \
     --sample-name CMD1065A189
 ```
+
+**Output:**
+- Results go to sample's `results/` folder (e.g., `results/CMD1065A189_resistance.tsv`)
+- Reference files go to `assets/` folder (e.g., `assets/hbv_result_rules.csv`, `assets/resistance_reference.bed`)
 
 **Environment:**
 Requires the `skrotis` mamba environment with:

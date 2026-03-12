@@ -1,0 +1,465 @@
+# Downloaded from: https://hcv.geno2pheno.org/index.php?page=Rules
+# Last updated: 2026-03-12 20:32:47
+#
+Drugs,Region,Rule Definitions,Rule for Subtype,Drug licensed for genotype,Predictions,Reference
+Asunaprevir,NS3,155K,1a,1,resistant,McPhee et al. 2013;Jensen et al. 2015
+Asunaprevir,NS3,155K,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,156S,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,156T,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,156V,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,168A,1a,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168A,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168C,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168E,1a,1,resistant,McPhee et al. 2012;Jensen et al. 2015
+Asunaprevir,NS3,168E,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168G,1a,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,168G,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168H,1a,1,resistant,Jensen et al. 2015
+Asunaprevir,NS3,168H,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168T,1a,1,resistant,McPhee et al. 2013
+Asunaprevir,NS3,168V,1a,1,resistant,McPhee et al. 2013
+Asunaprevir,NS3,168V,1a,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168V,1b,1,resistant,McPhee et al. 2012;Jensen et al. 2015
+Asunaprevir,NS3,168Y,1a,1,resistant,McPhee et al. 2013
+Asunaprevir,NS3,168Y,1a,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,168Y,1b,1,resistant,McPhee et al. 2012
+Asunaprevir,NS3,36A,1a,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,36A,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,36L,1a,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,36L,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,36M,1a,1,reduced susceptibility,McPhee et al. 2013;Jensen et al. 2015
+Asunaprevir,NS3,36M,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,41R and 80R,1b,1,reduced susceptibility,McPhee et al. 2012
+Asunaprevir,NS3,80K,1b,1,reduced susceptibility,McPhee et al. 2012
+Boceprevir,NS3,36G,1,1,resistant,Ogert et al. 2013;Susser et al. 2009
+Boceprevir,NS3,155G,1,1,resistant,Lenz et al. 2010
+Boceprevir,NS3,155I,1,1,resistant,Ogert et al. 2013;Lenz et al. 2010
+Boceprevir,NS3,155K,1,1,resistant,Susser et al. 2009;Lenz et al. 2010;Tong et al. 2008;Lagace et al. 2012
+Boceprevir,NS3,155M,1,1,resistant,Ogert et al. 2013;Lenz et al. 2010
+Boceprevir,NS3,155T,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Susser et al. 2009;Lenz et al. 2010
+Boceprevir,NS3,156G,1,1,reduced susceptibility,Lenz et al. 2010
+Boceprevir,NS3,156S,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Tong et al. 2008;Susser et al. 2009;Lenz et al. 2010
+Boceprevir,NS3,156T,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Tong et al. 2008;Lenz et al. 2010;Lagace et al. 2012
+Boceprevir,NS3,156V,1,1,resistant,Barnard et al. 2013;Lenz et al. 2010
+Boceprevir,NS3,54C,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013
+Boceprevir,NS3,54G,1,1,resistant,Barnard et al. 2013;Wyles 2012;http://www.idsociety.org/uploadedFiles/IDSA/Hepatitis;C/For;IDSA;Members/ForumforCollaborativeHIV-ClinicallyRelevantHCVDrug.pdf
+Boceprevir,NS3,55A,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Susser et al. 2009;Wyles 2012;http://www.idsociety.org/uploadedFiles/IDSA/Hepatitis;C/For;IDSA;Members/ForumforCollaborativeHIV-ClinicallyRelevantHCVDrug.pdf
+Boceprevir,NS3,168N,1,1,reduced susceptibility,Barnard et al. 2013;Lenz et al. 2010
+Boceprevir,NS3,168Y,1,1,reduced susceptibility,Lenz et al. 2010
+Boceprevir,NS3,170A,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Lenz et al. 2010;Tong et al. 2008;Susser et al. 2009
+Boceprevir,NS3,170T,1,1,reduced susceptibility,Ogert et al. 2013;Barnard et al. 2013;Lenz et al. 2010;Susser et al. 2009
+Boceprevir,NS3,174F,1,1,resistant,Susser et al. 2012.
+Boceprevir,NS3,36A,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Lenz et al. 2010;Susser et al. 2009
+Boceprevir,NS3,36L,1,1,resistant,Ogert et al. 2013;Lenz et al. 2010
+Boceprevir,NS3,36M,1,1,resistant,Barnard et al. 2013;Lenz et al. 2010;Tong et al. 2008;Zhou et al. 2008;Lagace et al. 2012
+Boceprevir,NS3,41R,1,1,reduced susceptibility,Tong et al. 2008;Lagace et al. 2012
+Boceprevir,NS3,43S,1,1,reduced susceptibility,Lenz et al. 2010;Tong et al. 2008;Lagace et al. 2012
+Boceprevir,NS3,43V,1,1,reduced susceptibility,Lenz et al. 2010;Lagace et al. 2012
+Boceprevir,NS3,54A,1,1,reduced susceptibility,Barnard et al. 2013;Susser et al. 2009;Lenz et al. 2010;Tong et al. 2008;Lagace et al. 2012
+Boceprevir,NS3,54S,1,1,resistant,Ogert et al. 2013;Barnard et al. 2013;Lenz et al. 2010;Susser et al. 2009;Bae et al. 2010
+Daclatasvir,NS5A,28A,1b,"1,3,4",reduced susceptibility,Lok et al. 2014;Lontok et al. 2015
+Daclatasvir,NS5A,28M and 30H,4a,"1,3,4",resistant,Zhou et al. 2016
+Daclatasvir,NS5A,28S,2a,"1,3,4",reduced susceptibility,Fridell et al. 2011;O'Boyle et al. 2013
+Daclatasvir,NS5A,28T,1a,"1,3,4",resistant,Wong et al. 2013;Fridell et al. 2010 (20585111)
+Daclatasvir,NS5A,30D,1a,"1,3,4",resistant,Wang et al. 2012
+Daclatasvir,NS5A,30E,"1a, 4a","1,3,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003768/WC500172848.pdf
+Daclatasvir,NS5A,30H,4,"1,3,4",resistant,Zhou et al. 2016
+Daclatasvir,NS5A,30H,"1a, 4a","1,3,4",resistant,Wong et al. 2013
+Daclatasvir,NS5A,30H,4a,"1,3,4",resistant,Wong et al. 2013
+Daclatasvir,NS5A,30K,3a,"1,3,4",resistant,Hernandez et al. 2013
+Daclatasvir,NS5A,30K,1a,"1,3,4",resistant,Wang et al. 2012;Wong et al. 2013;McPhee et al. 2013
+Daclatasvir,NS5A,30Q,1b,"1,3,4",resistant,Sorbo et al. 2018
+Daclatasvir,NS5A,30R,"1a, 4a","1,3,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003768/WC500172848.pdf
+Daclatasvir,NS5A,30S,4,"1,3,4",resistant,Zhou et al. 2016
+Daclatasvir,NS5A,31F,3a,"1,3,4",resistant,Wang et al. 2013
+Daclatasvir,NS5A,31I,1b,"1,3,4",reduced susceptibility,McPhee et al. 2014
+Daclatasvir,NS5A,31M,1b,"1,3,4",reduced susceptibility,Murakami et al. 2014
+Daclatasvir,NS5A,31M,1a,"1,3,4",resistant,Wong et al. 2013;McPhee et al. 2013
+Daclatasvir,NS5A,31M,3a,"1,3,4",resistant,Hernandez et al. 2013
+Daclatasvir,NS5A,31V,1b,"1,3,4",reduced susceptibility,McPhee et al. 2014
+Daclatasvir,NS5A,31V,1a,"1,3,4",resistant,McPhee et al. 2013
+Daclatasvir,NS5A,31V,3a,"1,3,4",resistant,Hernandez et al. 2013
+Daclatasvir,NS5A,32 del,1b,"1,3,4",resistant,McPhee et al. 2014;Lio et al. (27236547);Herzer et al. (25999053)
+Daclatasvir,NS5A,32L,1b,"1,3,4",resistant,Wang et al. 2012
+Daclatasvir,NS5A,58D,1a,"1,3,4",resistant,Lok et al. 2014;Wong et al. 2013
+Daclatasvir,NS5A,92K,1b,"1,3,4",reduced susceptibility,McPhee et al. 2014
+Daclatasvir,NS5A,93C,1a,"1,3,4",resistant,Wong et al. 2013;McPhee et al. 2013
+Daclatasvir,NS5A,93H,1b,"1,3,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003768/WC500172848.pdf
+Daclatasvir,NS5A,93H,"1b, 4a","1,3,4",resistant,Murakami et al. 2014
+Daclatasvir,NS5A,93H,3,"1,3,4",resistant,Hernandez et al. 2013;Wang et al. 2013;Leroy et al. (26822022)
+Daclatasvir,NS5A,93H,"1,2,3,4,5,6","1,3,4",resistant,g2p;Expert opinion
+Daclatasvir,NS5A,93N,1b,"1,3,4",resistant,Lok et al. 2014
+Daclatasvir,NS5A,93N,1a,"1,3,4",resistant,Fridell et al. 2010
+Daclatasvir,NS5A,93W,4,"1,3,4",resistant,Zhou et al. 2016
+Daclatasvir,NS5A,93R,4a,"1,3,4",resistant,Wang et al. 2012
+Daclatasvir,NS5A,24R,1a,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,24H,6,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30G,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30N,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30T,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30T,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30G,1b,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30H,1b,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,30G,4,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,31I,3a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,31V,4,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,31V,5,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,31F,5,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,31M,6,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,32S,6,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,32L,6,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,58A,6,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,58N,6,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,58S,6,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,62L,3,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Daclatasvir,NS5A,93S,4,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Dasabuvir,NS5B,316Y,"1a, 1b",1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,368T,1b,1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,395G,1a,1,reduced susceptibility,Kati et al. 2015
+Dasabuvir,NS5B,411S,1b,1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,414I,"1a, 1b",1,reduced susceptibility,Kati et al. 2015;http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Dasabuvir,NS5B,414T,"1a, 1b",1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,444K,1a,1,reduced susceptibility,Kati et al. 2015
+Dasabuvir,NS5B,445F and 451S and 585V,1b,1,reduced susceptibility,Kati et al. 2015
+Dasabuvir,NS5B,448C,"1a, 1b",1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,448H,"1a, 1b",1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,451S,1b,1,reduced susceptibility,Sorbo et al. 2018
+Dasabuvir,NS5B,553T,1a,1,resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003837/WC500182233.pdf
+Dasabuvir,NS5B,553V,"1a, 1b",1,resistant,Kati et al. 2015;http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Dasabuvir,NS5B,554S,1a,1,resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003837/WC500182233.pdf
+Dasabuvir,NS5B,556G,"1a, 1b",1,resistant,"Kati et al. 2015;Zeuzem et al. 2014; Feld presentation at ILC/EASL 2014; Zeuzem, presentation at ILC/EASL 2014"
+Dasabuvir,NS5B,556N,1a,1,resistant,Kati et al. 2015
+Dasabuvir,NS5B,556R,1a,1,resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003837/WC500182233.pdf
+Dasabuvir,NS5B,557R,1,1,reduced susceptibility,Kwo presentation at ILC/EASL 2014 (study M12-999)
+Dasabuvir,NS5B,558R,1a,1,reduced susceptibility,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003837/WC500182233.pdf
+Dasabuvir,NS5B,559G,1a,1,reduced susceptibility,Kati et al. 2015
+Dasabuvir,NS5B,559N,1a,1,reduced susceptibility,Feld presentation at ILC/EASL 2014
+Dasabuvir,NS5B,561H,1a,1,reduced susceptibility,"http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003837/WC500182233.pdf; Feld, presentation at ILC/EASL 2014"
+Dasabuvir,NS5B,565F,1a,1,reduced susceptibility,Kati et al. 2015
+Elbasvir,NS5A,28T,1a,"1,3,4",resistant,Liu et al. 2015;Sulkowski et al. 2015
+Elbasvir,NS5A,30H,1a,"1,3,4",resistant,Coburn 2013;Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,30K,3,"1,3,4",resistant,Liu et al. 2015
+Elbasvir,NS5A,30R,1a,"1,3,4",resistant,Coburn 2013;Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,31F,1a,"1,3,4",resistant,Coburn et al. 2013
+Elbasvir,NS5A,31F,1b,"1,3,4",resistant,Coburn 2013;Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,31F,3,"1,3,4",resistant,Liu et al. 2015
+Elbasvir,NS5A,31M,1b,"1,3,4",resistant,Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,31V,1a,"1,3,4",resistant,Coburn et al. 2013
+Elbasvir,NS5A,93C,1a,"1,3,4",resistant,Coburn et al. 2013
+Elbasvir,NS5A,93H,1a,"1,3,4",resistant,Coburn 2013;Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,93H,1b,"1,3,4",resistant,Coburn 2013;Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,93H,"3,4","1,3,4",resistant,Liu et al. 2015;http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/004126/WC500211235.pdf
+Elbasvir,NS5A,93H,"1,2,3,4,5,6","1,3,4",resistant,g2p;Expert opinion
+Elbasvir,NS5A,93N,1a,"1,3,4",resistant,Forns 2015;Sulkowski 2015;Zeuzem 2015
+Elbasvir,NS5A,31M,"1a,1b","1,3,4",resistant,Kawada et al. 2015 (AASLD);Sulkowski et al. 2015
+Elbasvir,NS5A,30S,4,"1,3,4",reduced susceptibility,EMA
+Elbasvir,NS5A,30V,4,"1,3,4",susceptible,EMA
+Elbasvir,NS5A,58D,1a,"1,3,4",resistant,EMA;Sulkowski et al. 2015
+Elbasvir,NS5A,28G,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Elbasvir,NS5A,30G,1a,"1,3,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Elbasvir,NS5A,30Y,1a,"1,3,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Glecaprevir,NS3,156V,1a,"1,2,3,4,5,6",resistant,28128852
+Glecaprevir,NS3,156G,3a,"1,2,3,4,5,6",resistant,Sorbo et al. 2018
+Glecaprevir,NS3,36M,1a,"1,2,3,4,5,6",reduced susceptibility,28128852
+Glecaprevir,NS3,168A,1a,"1,2,3,4,5,6",reduced susceptibility,28128852;EASL 2017 #305
+Glecaprevir,NS3,56H,3a,"1,2,3,4,5,6",resistant,28412293
+Glecaprevir,NS3,168K,3a,"1,2,3,4,5,6",reduced susceptibility,28412293
+Glecaprevir,NS3,168R,3a,"1,2,3,4,5,6",resistant,28412293
+Glecaprevir,NS3,168L,3a,"1,2,3,4,5,6",resistant,28412293
+Grazoprevir,NS3,155G,1b,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,155K,1a,"1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,156T,1b,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,156T,1a,"1,4",resistant,Forns 2015;Sulkowski 2015
+Grazoprevir,NS3,168A,1a,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168A,1b,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168any,1,"1,4",reduced susceptibility,Scientific committee of g2p HCV
+Grazoprevir,NS3,168E,1a,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168E,1b,"1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,168G,1a,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168G,1b,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168K,1b,"1,4",resistant,Howe et al. 2014
+Grazoprevir,NS3,168N,1a,"1,4",resistant,Forns 2015
+Grazoprevir,NS3,168V,1a,"1,4",resistant,Zeuzem 2015
+Grazoprevir,NS3,36A,1b,"1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,36L,"1a,1b","1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,36M,1a,"1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,36M,1b,"1,4",reduced susceptibility,Howe et al. 2014
+Grazoprevir,NS3,168N,1,"1,4",resistant,Howe et al. 2014;Gane et al. 2016 (27291249)
+Grazoprevir,NS3,56H,1a,"1,4",resistant,Lahser et al. 2016 (26926625);Gane et al. 2016 (27291249)
+Grazoprevir,NS3,56F,"1a,1b","1,4",reduced susceptibility,
+Grazoprevir,NS3,155Q,1a,"1,4",resistant,
+Grazoprevir,NS3,155T,1b,"1,4",resistant,
+Grazoprevir,NS3,156V,1b,"1,4",resistant,
+Grazoprevir,NS3,155L,1b,"1,4",reduced susceptibility,"Sorbo, 2018; EASL guidelines 2018"
+Grazoprevir,NS3,155S,1a,"1,4",reduced susceptibility,"Sorbo, 2018; EASL guidelines 2018"
+Grazoprevir,NS3,155S,4,"1,4",reduced susceptibility,"Sorbo, 2018; EASL guidelines 2018"
+Ledipasvir,NS5A,28A,1a,"1,3,4,5,6",resistant,
+Ledipasvir,NS5A,28T,1a,"1,3,4,5,6",resistant,Wong et al. 2013;Lawitz et al. 2012
+Ledipasvir,NS5A,30E,1a,"1,3,4,5,6",resistant,Wong et al. 2013
+Ledipasvir,NS5A,30H,4,"1,3,4,5,6",resistant,Zhou et al. 2016
+Ledipasvir,NS5A,30H,1a,"1,3,4,5,6",resistant,Wong et al. 2013;Lawitz et al. 2012
+Ledipasvir,NS5A,30K,"1a, 3","1,3,4,5,6",resistant,Hernandez et al. 2013
+Ledipasvir,NS5A,30R,1a,"1,3,4,5,6",resistant,Wong et al. 2013
+Ledipasvir,NS5A,30S,4,"1,3,4,5,6",resistant,Zhou et al. 2016
+Ledipasvir,NS5A,31I,1a,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,31M,1a,"1,3,4,5,6",resistant,Afdhal et al. 2014;Wong et al. 2013
+Ledipasvir,NS5A,31M and 28M,1b,"1,3,4,5,6",resistant,Newton (CROI)
+Ledipasvir,NS5A,31V,1a,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,32 del,1,"1,3,4,5,6",reduced susceptibility,Scientific committee of g2p HCV
+Ledipasvir,NS5A,32L,1a,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,58D,1a,"1,3,4,5,6",resistant,Wong et al. 2013
+Ledipasvir,NS5A,58D,1b,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,92K,1b,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,93C,1a,"1,3,4,5,6",resistant,Wong et al. 2013;Lawitz et al. 2012
+Ledipasvir,NS5A,93H,"1a, 1b","1,3,4,5,6",resistant,Osinusi et al. 2015;Wong et al. 2013;Lawitz et al. 2012
+Ledipasvir,NS5A,93H,3,"1,3,4,5,6",resistant,Hernandez et al. 2013
+Ledipasvir,NS5A,93H,1a,"1,3,4,5,6",resistant,Wong et al. 2013
+Ledipasvir,NS5A,93H,"1,2,3,4,5,6","1,3,4,5,6",resistant,g2p;Expert opinion
+Ledipasvir,NS5A,93N,1a,"1,3,4,5,6",resistant,Wong et al. 2013
+Ledipasvir,NS5A,93S,1b,"1,3,4,5,6",resistant,Sarrazin 2016;Zeuzem 2017 (28108232)
+Ledipasvir,NS5A,93T,1a,"1,3,4,5,6",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003850/WC500177995.pdf
+Ledipasvir,NS5A,93W,4,"1,3,4,5,6",resistant,Zhou et al. 2016
+Ledipasvir,NS5A,31M,1b,"1,3,4,5,6",resistant,Newton (CROI);Zeuzem et al. 2017
+Ledipasvir,NS5A,24R,1a,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,24G,1a,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,24N,1a,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,30G,1a,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,30N,1a,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,30T,1a,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,30Y,1a,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,30H,1b,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,31I,4,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,31V,4,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,38F,1a,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,92T,1b,"1,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ledipasvir,NS5A,93S,4,"1,3,4,5,6",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ombitasvir,NS5A,28M and 31F,1b,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,28S and 31I,4,"1,4",reduced susceptibility,Hezode presentation at ILC/EASL 2014
+Ombitasvir,NS5A,28T,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,28T,1b,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,28V,4d,"1,4",resistant,Schnell et al. 2015
+Ombitasvir,NS5A,28V,1a,"1,4",reduced susceptibility,Krishnan et al. 2015;Zeuzem et al. 2014
+Ombitasvir,NS5A,28V,"4a, 4b, 4c, 4f, 4g, 4k, 4l, 4m, 4n, 4o, 4p, 4q, 4r, 4t, 4v, 4w","1,4",reduced susceptibility,Krishnan et al. 2015
+Ombitasvir,NS5A,28V and 31F,1b,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,30E,1a,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Ombitasvir,NS5A,30R,1a,"1,4",resistant,Krishnan et al. 2015;Zeuzem et al. 2014
+Ombitasvir,NS5A,31F,1b,"1,4",reduced susceptibility,Krishnan et al. 2015
+Ombitasvir,NS5A,31V,1a,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Ombitasvir,NS5A,31V,1b,"1,4",reduced susceptibility,Krishnan et al. 2015
+Ombitasvir,NS5A,30Q,1b,"1,4",resistant,Sorbo et al. 2018
+Ombitasvir,NS5A,32 del,"1, 4","1,4",reduced susceptibility,McPhee et al. 2014
+Ombitasvir,NS5A,58D,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,93C,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,93H,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,93H,1b,"1,4",resistant,Krishnan et al. 2015;Zeuzem et al. 2014
+Ombitasvir,NS5A,93H,"1,2,3,4,5,6","1,4",resistant,g2p;Expert opinion
+Ombitasvir,NS5A,93N,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,93S,1a,"1,4",resistant,Krishnan et al. 2015
+Ombitasvir,NS5A,30Y,1a,"1,4",resistant,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ombitasvir,NS5A,31I,4d,"1,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ombitasvir,NS5A,92T,1b,"1,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Ombitasvir,NS5A,93S,4,"1,4",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Pibrentasvir,NS5A,58D,1a,"1,2,3,4,5,6",reduced susceptibility,28818546;28128852
+Pibrentasvir,NS5A,30D,1a,"1,2,3,4,5,6",resistant,28193664
+Pibrentasvir,NS5A,32 del,1a,"1,2,3,4,5,6",resistant,28193664
+Pibrentasvir,NS5A,93H,1a,"1,2,3,4,5,6",reduced susceptibility,28193664
+Pibrentasvir,NS5A,93N,1a,"1,2,3,4,5,6",resistant,28193664
+Pibrentasvir,NS5A,58D and 93H,1a,"1,2,3,4,5,6",resistant,28193664
+Pibrentasvir,NS5A,28S and 31I,2a,"1,2,3,4,5,6",resistant,28193664
+Pibrentasvir,NS5A,30K,1a,"1,2,3,4,5,6",reduced susceptibility,28412293
+Pibrentasvir,NS5A,58C,1a,"1,2,3,4,5,6",reduced susceptibility,28128852
+Pibrentasvir,NS5A,30R,1a,"1,2,3,4,5,6",reduced susceptibility,28818546;28128852
+Pibrentasvir,NS5A,31M,1a,"1,2,3,4,5,6",reduced susceptibility,28128852
+Pibrentasvir,NS5A,93H and 30K,3,"1,2,3,4,5,6",resistant,
+Pibrentasvir,NS5A,93H and 30S,3,"1,2,3,4,5,6",resistant,Expert opinion
+Pibrentasvir,NS5A,93H and 30R,1a,"1,2,3,4,5,6",resistant,
+Pibrentasvir,NS5A,30K,3,"1,2,3,4,5,6",reduced susceptibility,
+Pibrentasvir,NS5A,24R,1a,"1,2,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Pibrentasvir,NS5A,28G,3,"1,2,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018"
+Pibrentasvir,NS5A,28K,3,"1,2,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Pibrentasvir,NS5A,30G,1a,"1,2,3,4,5,6",reduced susceptibility,"Sorbo et al., Drug Res Upd 2018, EASL guidelines 2018"
+Paritaprevir,NS3,155C,4a,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,155K,"1a, 1b, 4","1,4",resistant,Sorbo et al. 2018
+Paritaprevir,NS3,155Q,1a,"1,4",reduced susceptibility,Jensen et al. 2015
+Paritaprevir,NS3,156T,4a,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,156T,1a,"1,4",reduced susceptibility,Pilot-Matias et al. 2015
+Paritaprevir,NS3,156V,4a,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,168A,"1a, 4, 5a, 6a","1,4",resistant,Jensen et al. 2015
+Paritaprevir,NS3,168A or 168H or 168E or 168N or 168Y,1a,"1,4",resistant,Pilot-Matias et al. 2015
+Paritaprevir,NS3,168A or 168H or 168T or 168Y,1b,"1,4",resistant,Pilot-Matias et al. 2015
+Paritaprevir,NS3,168E,1b,"1,4",reduced susceptibility,Pilot-Matias et al. 2015
+Paritaprevir,NS3,168E,"1b, 5a, 1a","1,4",reduced susceptibility,Jensen et al. 2015
+Paritaprevir,NS3,168E,6a,"1,4",reduced susceptibility,Jensen et al. 2015
+Paritaprevir,NS3,168H,"4a,4d","1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,168H,5a,"1,4",resistant,Jensen et al. 2015
+Paritaprevir,NS3,168V,"5a, 6a","1,4",resistant,Jensen et al. 2015
+Paritaprevir,NS3,168V,4,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,168V,1a,"1,4",resistant,Lawitz et al. 2013;Pilot-Matias et al. 2015
+Paritaprevir,NS3,168V,1b,"1,4",resistant,Chayama et al. 2015
+Paritaprevir,NS3,36A,1a,"1,4",reduced susceptibility,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,36M,1a,"1,4",reduced susceptibility,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,43L,1a,"1,4",resistant,Pilot-Matias et al. 2015
+Paritaprevir,NS3,155K,1b,"1,4",reduced susceptibility,Pilot-Matias et al. 2015
+Paritaprevir,NS3,155C,4,"1,4",resistant,http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/003839/WC500183997.pdf
+Paritaprevir,NS3,168F,1a,"1,4",resistant,Pilot-Matias et al. 2015
+Paritaprevir,NS3,168K,1b,"1,4",resistant,Sulkowski et al. 2015
+Paritaprevir,NS3,168N,1b,"1,4",resistant,Susser et al. 2016 EASL
+Paritaprevir,NS3,155H,4,"1,4",resistant,"Sorbo, 2018; EASL guidelines 2018"
+Simeprevir,NS3,122R,1,"1,4",resistant,Forns et al. 2014;Lenz et al. 2013
+Simeprevir,NS3,138T,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,155G,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,155K,1,"1,4",resistant,Fried et al. 2013;Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,155Q,1,"1,4",resistant,Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,155T,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,156G,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,156T,1,"1,4",resistant,Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,156V,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,168A,1,"1,4",resistant,Forns et al. 2014;Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,168E,1,"1,4",resistant,Forns et al. 2014;Lenz et al. 2010;Lenz et al. 2013
+Simeprevir,NS3,168G,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,168H,1,"1,4",resistant,Lenz et al. 2015;Lenz et al. 2010
+Simeprevir,NS3,168I,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,168N,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,168Q,1,"1,4",resistant,Lenz et al. 2013
+Simeprevir,NS3,168T,1,"1,4",resistant,Forns et al. 2014;Lenz et al. 2010
+Simeprevir,NS3,168V,"1, 4","1,4",resistant,Fried et al. 2013;Manns et al. 2014;Forns et al. 2014;Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,168Y,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,170T,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,36A,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,36L,1,"1,4",reduced susceptibility,Lenz et al. 2010;Lenz et al. 2013
+Simeprevir,NS3,36M,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,43I,1,"1,4",resistant,Lenz et al. 2010
+Simeprevir,NS3,43S,1,"1,4",resistant,Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,43V,1,"1,4",resistant,Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,80H,1,"1,4",reduced susceptibility,Lenz et al. 2010
+Simeprevir,NS3,80K,1,"1,4",resistant,Fried et al. 2013;Bae et al. 2010;Lenz et al. 2013
+Simeprevir,NS3,80R,1,"1,4",reduced susceptibility,Lenz et al. 2010;Lagace et al. 2012
+Simeprevir,NS3,155W,1b,"1,4",resistant,Susser et al. 2016 EASL
+Simeprevir,NS3,155K,4,"1,4",resistant,Jensen et al. 2015
+Simeprevir,NS3,156G,4,"1,4",resistant,Jensen et al. 2015
+Simeprevir,NS3,80H,1b,"1,4",reduced susceptibility,"Sorbo, 2018; EASL guidelines 2018"
+Simeprevir,NS3,80R,4,"1,4",reduced susceptibility,"Sorbo, 2018; EASL guidelines 2018"
+Sofosbuvir,NS5B,159F,"1a, 1b, 2b, 3a","1,2,3,4,5,6",reduced susceptibility,Donaldson et al. 2015;Svarovskaia et al. 2014
+Sofosbuvir,NS5B,282R,1a,"1,2,3,4,5,6",reduced susceptibility,Donaldson et al. 2015
+Sofosbuvir,NS5B,282T,2a,"1,2,3,4,5,6",resistant,Svarovskaia et al. 2014
+Sofosbuvir,NS5B,282T,"1a, 1b","1,2,3,4,5,6",resistant,Lam et al. 2012
+Sofosbuvir,NS5B,282T,"3, 4, 5, 6, 7","1,2,3,4,5,6",reduced susceptibility,Lam et al. 2012
+Sofosbuvir,NS5B,289L,2a,"1,2,3,4,5,6",reduced susceptibility,Lam et al. 2012
+Sofosbuvir,NS5B,321A,3a,"1,2,3,4,5,6",reduced susceptibility,Donaldson et al. 2015;Svarovskaia et al. 2014
+Sofosbuvir,NS5B,282T,3,"1,2,3,4,5,6",resistant,Walker et al. 2017
+Sofosbuvir,NS5B,320I,1a,"1,2,3,4,5,6",reduced susceptibility,EASL guidelines 2018
+Sofosbuvir,NS5B,320V,1a,"1,2,3,4,5,6",reduced susceptibility,EASL guidelines 2018
+Sofosbuvir,NS5B,321A,1a,"1,2,3,4,5,6",reduced susceptibility,EASL guidelines 2018
+Telaprevir,NS3,155G,1,1,resistant,Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,155K,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lenz et al. 2010;Tong et al. 2008;He et al. 2008;Kieffer et al. 2012;Lagace et al. 2012
+Telaprevir,NS3,155Q,1,1,reduced susceptibility,He et al. 2008;Lenz et al. 2010
+Telaprevir,NS3,155T,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,156S,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lin et al. 2004;Sarrazin et al. 2007;Tong et al. 2008;Susser et al. 2009;He et al. 2008;Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,156T,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lin et al. 2005;Tong et al. 2008;He et al. 2008;Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,156V,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lin et al. 2005;He et al. 2008;Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,54S,1,1,reduced susceptibility,Sullivan et al. 2013;Susser et al. 2009;Bae et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,55A,1,1,reduced susceptibility,Susser et al. 2009
+Telaprevir,NS3,170A,1,1,reduced susceptibility,Tong et al. 2008;Susser et al. 2009;He et al. 2008
+Telaprevir,NS3,174S,1a,1,reduced susceptibility,
+Telaprevir,NS3,36A,1,1,resistant,Sarrazin et al. 2007;Hezode et al. 2009;Zhou et al. 2008;Kieffer et al. 2007;Kieffer et al. 2012
+Telaprevir,NS3,117H,1,1,reduced susceptibility,Susser et al. 2012
+Telaprevir,NS3,36G,1,1,resistant,Sullivan et al. 2013;Zhou et al. 2008;Kieffer et al. 2012
+Telaprevir,NS3,36L,1,1,reduced susceptibility,Sullivan et al. 2013;Lenz et al. 2010;Zhou et al. 2008;Kieffer et al. 2012
+Telaprevir,NS3,155M,1,1,resistant,Sullivan et al. 2013;Lenz et al. 2010;Kieffer et al. 2012
+Telaprevir,NS3,36M,1,1,resistant,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lenz et al. 2010;Sarrazin et al. 2007;Tong et al. 2008;Zhou et al. 2008;Kieffer et al. 2012;Kieffer et al. 2012;Lagace et al. 2012
+Telaprevir,NS3,156F,1,1,resistant,Kieffer et al. 2012
+Telaprevir,NS3,156N,1,1,resistant,Sullivan et al. 2013;Kieffer et al. 2012
+Telaprevir,NS3,43S,1,1,reduced susceptibility,Lenz et al. 2010;Tong et al. 2008;Lagace et al. 2012
+Telaprevir,NS3,54A,1,1,reduced susceptibility,Sarrazin et al. 2007;Kieffer et al. 2007;Hezode et al. 2009;Lenz et al. 2010;Sarrazin et al. 2007;Tong et al. 2008;Zhou et al. 2008;He et al. 2008;Kieffer et al. 2012;Lagace et al. 2012
+Telaprevir,NS3,174F,1,1,reduced susceptibility,Susser et al. 2012
+Velpatasvir,NS5A,28V,1a,"1,2,3,4,5,6",reduced susceptibility,Sorbo et al. 2018
+Velpatasvir,NS5A,30E,1a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,30H and 93H,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,30H and 31M,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,30K,3a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,30R and 93H,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,30R and 31M,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,31M,3a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,31V,1a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,32L,1a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,93H,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,31M and 93H,1b,"1,2,3,4,5,6",resistant,Sorbo et al. 2018
+Velpatasvir,NS5A,93H,3a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,93H,"1,2,3,4,5,6","1,2,3,4,5,6",resistant,g2p;Expert opinion
+Velpatasvir,NS5A,93N,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,93R,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,93S,1a,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2016
+Velpatasvir,NS5A,93W,1a,"1,2,3,4,5,6",resistant,Lawitz et al. 2016
+Velpatasvir,NS5A,30R,1a,"1,2,3,4,5,6",reduced susceptibility,geno2pheno expert opinion
+Voxilaprevir,NS3,122D,1b,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,155G,1a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD); Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,155W,"1a,1b","1,2,3,4,5,6",resistant,Dvory-Sobol et al. 2017 (AASLD);Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,156L,"1a,1b,2a,3a,4","1,2,3,4,5,6",resistant,Dvory-Sobol et al. 2017 (AASLD);Reau et al. 2016 (AASLD);EMA(SmPC);Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,156S,1b,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,156T,"1a,1b,2a,3a,4","1,2,3,4,5,6",resistant,Dvory-Sobol et al. 2017 (AASLD);Reau et al. 2016 (AASLD);EMA(SmPC);Taylor et al. 2015 (EASL);Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,156V,"1a,1b,2a,3a,4","1,2,3,4,5,6",resistant,Dvory-Sobol et al. 2017 (AASLD);Reau et al. 2016 (AASLD);EMA(SmPC);Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,168A,"1a,5a,6a","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168A,1b,"1,2,3,4,5,6",resistant,"Taylor JG, Appleby T, Barauskas O, et al. Preclinical profile of the pan-genotypic HCV NS3/4A protease inhibitor GS-9857 [Abstract P0899]"
+Voxilaprevir,NS3,168E,4,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168F or 168I or 168L,1a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168H,"5a,6a","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168K or 168R,"1a,5a","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168T,"1a,4","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,168V,"1a,1b,4","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD); Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,168Y,"1b,5","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,170A,1b,"1,2,3,4,5,6",reduced susceptibility,Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,36A,1b,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,36G,1a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,36M,1b,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD); Lawitz et al. 2015 (AASLD)
+Voxilaprevir,NS3,41K,"3a,6a","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,41R,"1a,4,6a","1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,41R,3a,"1,2,3,4,5,6",susceptible,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions andClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,43S,1a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,43V,2a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,80K,3,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,80K,1a,"1,2,3,4,5,6",reduced susceptibility,"Jacobson et al. Gastroenterology 2017; Wyles J, et al. J Hepatol 2017; 65(Suppl 1):S303 (Poster presentation THU-257))"
+Voxilaprevir,NS3,80K and 36L,1a,"1,2,3,4,5,6",reduced susceptibility,Reau et al. 2016 (AASLD)
+Voxilaprevir,NS3,36M and 41R and 168G,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 155T and 168N,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,80K and 155T and 168N,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36M and 41R,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36A and 41R,6a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36L and 54S,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36L and 80K,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36M and 122N,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36M and 156S,6a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36A and 168A,6a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 55I,3a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41K and 80K,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 156T,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168H,"5a,6a","1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168G,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168A,"1a,5a,6a","1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168Y,6a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,43L and 80K,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 56H,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,56F and 122N,1b,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,56H and 168R,3a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,80L and 168E,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,80K and 168E,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,80K and 168Y,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122G and 155K,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122N and 168Y,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122N and 168A,5a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122N and 168A,6a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,155T and 168N,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,168A and 170T,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 56H and 170V,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 55I and 80L,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,56F and 122N and 170I,1b,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,80K and 168E and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122R and 155N and 168E,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,122G and 155K and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,36M and 155K and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41K and 43L and 80K and 168Y,1a,"1,2,3,4,5,6",resistant,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 122G and 155K and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 55I and 122G and 155K,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,55A and 80R and 168E and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,54S and 55I and 122G and 155K and 170V,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168H,1a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"
+Voxilaprevir,NS3,41R and 168A,6a,"1,2,3,4,5,6",reduced susceptibility,"Dvory-Sobol H. et al. Susceptibility to Voxilaprevir of NS3 Resistance-Associated Substitutions and Clinical Isolates From Direct-Acting Antiviral-Experienced and -Naïve PatientsClinical Isolates From Direct-Acting Antiviral–Experienced and –Naïve Patients. Presented at AASLD 2017, Poster #1176"

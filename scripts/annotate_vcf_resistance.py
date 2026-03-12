@@ -421,8 +421,8 @@ def main():
     )
     parser.add_argument(
         '--output-dir', '-o',
-        default=None,
-        help='Output directory (default: VCF directory)'
+        default='results',
+        help='Output directory (default: results subfolder of VCF location)'
     )
     parser.add_argument(
         '--sample-name',
@@ -432,6 +432,11 @@ def main():
         '--ref-bed',
         action='store_true',
         help='Also generate reference BED with all resistance positions from rules'
+    )
+    parser.add_argument(
+        '--assets-dir',
+        default='assets',
+        help='Directory for reference files (default: assets)'
     )
     
     args = parser.parse_args()
@@ -453,15 +458,16 @@ def main():
     if not sample_name:
         sample_name = Path(args.vcf).stem.replace('.vcf', '').replace('.gz', '')
     
-    if args.output_dir is None:
-        vcf_path = Path(args.vcf)
-        output_dir = vcf_path.parent
-    else:
-        output_dir = Path(args.output_dir)
+    vcf_parent = Path(args.vcf).parent
+    sample_folder = vcf_parent.parent
+    output_dir = sample_folder / args.output_dir
+    
+    assets_dir = Path(args.assets_dir)
     
     if args.ref_bed:
-        ref_bed_file = output_dir / "resistance_reference.bed"
+        ref_bed_file = assets_dir / "resistance_reference.bed"
         print(f"\nGenerating reference BED: {ref_bed_file}")
+        assets_dir.mkdir(parents=True, exist_ok=True)
         with open(ref_bed_file, 'w') as f:
             f.write("#chrom\tstart\tend\tname\tscore\tstrand\tgene\tdrugs\tprediction\n")
             for rule in rules:
