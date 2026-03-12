@@ -28,9 +28,9 @@ python scripts/parse_geno2pheno_rules.py --subtype 3a
 Annotates VCF variants with drug resistance information.
 
 **Required arguments:**
-- `--vcf` - VCF file (e.g., CMD1065A189-pilon.vcf.gz)
-- `--gff` - VADR GFF file (e.g., CMD1065A189.vadr.pass_mod.gff)
-- `--fasta` - IUPAC FASTA (e.g., CMD1065A189-0.15-iupac.fasta)
+- `--vcf` - VCF file (e.g., SAMPLE001-pilon.vcf.gz)
+- `--gff` - VADR GFF file (e.g., SAMPLE001.vadr.pass_mod.gff)
+- `--fasta` - IUPAC FASTA (e.g., SAMPLE001-0.15-iupac.fasta)
 - `--subtype` - HCV subtype (e.g., 3a, 1b)
 
 **Optional arguments:**
@@ -43,15 +43,15 @@ Annotates VCF variants with drug resistance information.
 **Example:**
 ```bash
 python scripts/annotate_vcf_resistance.py \
-    --vcf /path/to/vcf/CMD1065A189-pilon.vcf.gz \
-    --gff /path/to/results/CMD1065A189.vadr.pass_mod.gff \
-    --fasta /path/to/fasta/CMD1065A189-0.15-iupac.fasta \
+    --vcf /path/to/vcf/SAMPLE001-pilon.vcf.gz \
+    --gff /path/to/results/SAMPLE001.vadr.pass_mod.gff \
+    --fasta /path/to/fasta/SAMPLE001-0.15-iupac.fasta \
     --subtype 3a \
-    --sample-name CMD1065A189
+    --sample-name SAMPLE001
 ```
 
 **Output:**
-- Results go to sample's `results/` folder (e.g., `results/CMD1065A189_resistance.tsv`)
+- Results go to sample's `results/` folder (e.g., `results/SAMPLE001_resistance.tsv`)
 - Reference files go to `assets/` folder (e.g., `assets/hbv_result_rules.csv`, `assets/resistance_reference.bed`)
 
 **Environment:**
@@ -86,16 +86,16 @@ To integrate into the Nextflow pipeline:
 2. Input: tuple of (sample_id, vcf, gff, fasta, subtype)
 3. Output: resistance TSV, BED, and by_drug TSV files
 
-## Data Locations (example sample CMD1065A189)
+## Data Locations (example sample SAMPLE001)
 
-- VCF: `results/vcf/CMD1065A189-pilon.vcf.gz`
-- GFF: `results/CMD1065A189.vadr.pass_mod.gff`
-- FASTA: `fasta/CMD1065A189-0.15-iupac.fasta`
+- VCF: `results/vcf/SAMPLE001-pilon.vcf.gz`
+- GFF: `results/SAMPLE001.vadr.pass_mod.gff`
+- FASTA: `fasta/SAMPLE001-0.15-iupac.fasta`
 - Subtype: extracted from blast file or lid file (stored in `$subtype` variable)
 
 ## Testing
 
-Tested with sample CMD1065A189 (subtype 3a):
+Tested with sample SAMPLE001 (subtype 3a):
 - Results match the PDF from geno2pheno
 - BED coordinates correctly span the full codon (e.g., 3900-3903 for NS3:156)
 
