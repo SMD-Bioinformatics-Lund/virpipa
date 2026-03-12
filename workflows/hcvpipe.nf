@@ -2,17 +2,17 @@
 
 nextflow.enable.dsl = 2
 
-include { SUBSAMPLE_READS } from './modules/local/subsample/main'
-include { REMOVE_HOSTILE } from './modules/local/hostile/main'
-include { INDEX_REFERENCE } from './modules/local/index/main'
-include { MAP_READS } from './modules/local/mapping/main'
-include { ASSEMBLE_SPADES } from './modules/local/assembly_spades/main'
-include { ASSEMBLE_HYBRID } from './modules/local/assembly_hybrid/main'
-include { POLISH_PILON } from './modules/local/polish/main'
-include { CREATE_CONSENSUS } from './modules/local/consensus/main'
-include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
-include { SUBTYPE_BLAST } from './modules/local/subtype/main'
-include { ANNOTATE_RESISTANCE } from './modules/local/resistance/main'
+include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
+include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
+include { INDEX_REFERENCE } from '../modules/local/index/main'
+include { MAP_READS } from '../modules/local/mapping/main'
+include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
+include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
+include { POLISH_PILON } from '../modules/local/polish/main'
+include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
+include { ANNOTATE_VADR } from '../modules/local/annotate_vadr/main'
+include { SUBTYPE_BLAST } from '../modules/local/subtype/main'
+include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 
 workflow HCVPIPE {
     if (!params.input) {
