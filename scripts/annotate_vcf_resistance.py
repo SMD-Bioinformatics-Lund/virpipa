@@ -421,12 +421,17 @@ def main():
     )
     parser.add_argument(
         '--output-dir', '-o',
-        default='results',
-        help='Output directory (default: results)'
+        default=None,
+        help='Output directory (default: VCF directory)'
     )
     parser.add_argument(
         '--sample-name',
         help='Sample name (default: derived from VCF)'
+    )
+    parser.add_argument(
+        '--ref-bed',
+        action='store_true',
+        help='Also generate reference BED with all resistance positions from rules'
     )
     
     args = parser.parse_args()
@@ -447,6 +452,34 @@ def main():
     sample_name = args.sample_name
     if not sample_name:
         sample_name = Path(args.vcf).stem.replace('.vcf', '').replace('.gz', '')
+    
+    if args.output_dir is None:
+        vcf_path = Path(args.vcf)
+        output_dir = vcf_path.parent
+    else:
+        output_dir = Path(args.output_dir)
+    
+    if args.ref_bed:
+        ref_bed_file = output_dir / "resistance_reference.bed"
+        print(f"\nGenerating reference BED: {ref_bed_file}")
+        with open(ref_bed_file, 'w') as f:
+            f.write("#chrom\tstart\tend\tname\tscore\tstrand\tgene\tdrugs\tprediction\n")
+            for rule in rules:
+                gene = rule['region']
+                pos = rule['position']
+                aa = rule['aa']
+                drug = rule['drug']
+                pred = rule['prediction']
+                strand = '+'
+                if gene in genes:
+                    gene_info = genes.get(gene)
+                    if gene_info:
+                        strand = gene_info.get('strand', '+')
+                        gene_start = gene_info['start']
+                        codon_start = gene_start + (pos - 1) * 3
+                        codon_end = codon_start + 3
+                        f.write(f"REF\t{codon_start-1}\t{codon_end}\t{gene}:{pos}:{aa}\t0\t{strand}\t{gene}\t{drug}\t{pred}\n")
+        print(f"Reference BED written with {len(rules)} entries")
     
     print(f"Parsing VCF: {args.vcf}")
     variants = parse_vcf(args.vcf)
@@ -568,7 +601,6 @@ def main():
     
     print(f"Consolidated to {len(consolidated)} unique amino acid changes")
     
-    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     
     tsv_file = output_dir / f"{sample_name}_resistance.tsv"
