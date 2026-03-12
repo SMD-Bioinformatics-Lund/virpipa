@@ -35,7 +35,7 @@ Annotates VCF variants with drug resistance information.
 
 **Optional arguments:**
 - `--sample-name` - Sample ID (default: derived from VCF filename)
-- `--output-dir` - Output directory (default: .)
+- `--output-dir` - Output directory (default: results)
 - `--rules` - Rules CSV (default: hbv_result_rules.csv)
 
 **Example:**
@@ -59,6 +59,8 @@ Run with: `mamba run -n skrotis python scripts/annotate_vcf_resistance.py ...`
 
 ## Output Files
 
+Output goes to `results/` directory by default.
+
 ### 1. `sample_resistance.tsv`
 Variant-focused results sorted by genomic position.
 
@@ -66,7 +68,7 @@ Columns:
 - sample, gene, genomic_start, genomic_end, ref_nuc, alt_nuc, aa_pos, ref_aa, alt_aa, rule_definition, drugs, prediction, reference, strand
 
 ### 2. `sample_resistance.bed`
-BED file for IGV visualization. One entry per unique amino acid change.
+BED file for IGV visualization. One entry per unique amino acid change. Coordinates cover the full codon.
 
 ### 3. `sample_resistance_by_drug.tsv`
 Drug-focused results with sections per drug.
@@ -89,14 +91,14 @@ To integrate into the Nextflow pipeline:
 ## Testing
 
 Tested with sample CMD1065A189 (subtype 3a):
-- Found 31 raw rule matches
-- Consolidated to 8 unique amino acid changes
-- Output: 9 BED entries (properly merged)
+- Results match the PDF from geno2pheno
+- BED coordinates correctly span the full codon (e.g., 3900-3903 for NS3:156)
 
-## Known Issues
+## Notes
 
-- LSP errors shown for pysam import are false positives (pysam installed in mamba env)
-- Some variant positions may have multiple genomic positions (e.g., 6550+6551 for NS5A:93) - these are merged into single entries
+- The rules CSV (hbv_result_rules.csv) should be downloaded occasionally to get updated rules
+- BED coordinates use codon boundaries (not just variant position)
+- Results default to the `results/` folder
 
 ## Branch
 
