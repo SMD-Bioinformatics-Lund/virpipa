@@ -421,8 +421,8 @@ def main():
     )
     parser.add_argument(
         '--output-dir', '-o',
-        default='.',
-        help='Output directory (default: .)'
+        default='results',
+        help='Output directory (default: results)'
     )
     parser.add_argument(
         '--sample-name',
@@ -480,6 +480,8 @@ def main():
             gene_info['strand'], codon_offset
         )
         
+        codon_end = codon_start + 2
+        
         possible_ref_aa = get_possible_aa(ref_codon)
         
         ref_base = ref[0] if ref else ''
@@ -505,6 +507,8 @@ def main():
                 'sample': sample_name,
                 'gene': gene_name,
                 'genomic_pos': pos,
+                'codon_start': codon_start,
+                'codon_end': codon_end,
                 'ref_nuc': ref,
                 'alt_nuc': alt,
                 'aa_pos': aa_pos,
@@ -520,7 +524,8 @@ def main():
     print(f"Found {len(results)} raw rule matches")
     
     grouped = defaultdict(lambda: {
-        'genomic_positions': set(),
+        'codon_start': None,
+        'codon_end': None,
         'ref_nuc': '',
         'alt_nuc': '',
         'drugs': set(),
@@ -531,7 +536,9 @@ def main():
     
     for r in results:
         key = (r['gene'], r['aa_pos'], r['ref_aa'], r['alt_aa'])
-        grouped[key]['genomic_positions'].add(r['genomic_pos'])
+        if grouped[key]['codon_start'] is None:
+            grouped[key]['codon_start'] = r['codon_start']
+            grouped[key]['codon_end'] = r['codon_end']
         grouped[key]['ref_nuc'] = r['ref_nuc']
         grouped[key]['alt_nuc'] = r['alt_nuc']
         grouped[key]['drugs'].add(r['drug'])
@@ -542,15 +549,11 @@ def main():
     
     consolidated = []
     for (gene, aa_pos, ref_aa, alt_aa), data in sorted(grouped.items()):
-        gen_pos = sorted(data['genomic_positions'])
-        start_pos = min(gen_pos)
-        end_pos = max(gen_pos) + 1
-        
         consolidated.append({
             'sample': sample_name,
             'gene': gene,
-            'genomic_start': start_pos,
-            'genomic_end': end_pos,
+            'genomic_start': data['codon_start'],
+            'genomic_end': data['codon_end'],
             'ref_nuc': data['ref_nuc'],
             'alt_nuc': data['alt_nuc'],
             'aa_pos': aa_pos,
