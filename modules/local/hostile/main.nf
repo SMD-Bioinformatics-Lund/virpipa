@@ -13,7 +13,7 @@ process REMOVE_HOSTILE {
         val cache_dir
     
     output:
-        tuple val(run_name), val(sample_id), path("*_hostile*.fastq.gz"), emit: reads
+        tuple val(run_name), val(sample_id), path("*_R1_*_hostile*.fastq.gz"), path("*_R2_*_hostile*.fastq.gz"), emit: reads
         path "*.log", emit: logs
     
     script:
