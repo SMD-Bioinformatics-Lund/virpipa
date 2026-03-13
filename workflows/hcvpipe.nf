@@ -100,14 +100,12 @@ workflow HCVPIPE {
     }
 
     // Step 5b: Hybrid assembly with best reference
-    // Join assembly with best ref by sample (run_name, sample_id)
-    ch_assembly_for_join = ch_assembly.map { it -> tuple(it[0], it[1], it[2]) }
-    
-    ch_hybrid_input = ch_assembly_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, contigs, ref_info ->
-        def ref_name = ref_info[0]
-        def ref_file = ref_info[1]
-        tuple(tuple(key[0], key[1], contigs), ref_file, ref_name)
-    }
+    // Use cross to combine and then filter by matching sample
+    ch_hybrid_input = ch_assembly.cross(ch_best_ref_with_name)
+        .filter { assembly, best_ref -> assembly[1] == best_ref[1] }
+        .map { assembly, best_ref -> 
+            tuple(tuple(assembly[0], assembly[1], assembly[2]), best_ref[3], best_ref[2])
+        }
     
     // Split the tuple into 3 separate channels for the process
     ch_hybrid_contigs = ch_hybrid_input.map { it[0] }
@@ -120,29 +118,22 @@ workflow HCVPIPE {
     // (Polishing loop - 10 iterations - to be implemented)
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
-    // Join on (run_name, sample_id)
-    ch_mapped_for_join = ch_mapped.map { it -> tuple(it[0], it[1], it[2], it[3]) }
-    
-    ch_mapped_best = ch_mapped_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, bam_bai, ref_info ->
-        def ref_name = ref_info[0]
-        def ref_file = ref_info[1]
-        def bam = bam_bai[0]
-        def bai = bam_bai[1]
-        tuple(key[0], key[1], bam, bai, ref_file, ref_name)
-    }
+    // Cross and filter by sample_id
+    ch_mapped_best = ch_mapped.cross(ch_best_ref_with_name)
+        .filter { bam, best_ref -> bam[1] == best_ref[1] }
+        .map { bam, best_ref ->
+            tuple(bam[0], bam[1], bam[2], bam[3], best_ref[3], best_ref[2])
+        }
     
     VARIANT_CALLING(ch_mapped_best)
     ch_vcf = VARIANT_CALLING.out.vcf
 
     // Step 8: Create consensus from VCF - only for best reference
-    // ch_vcf has: (run_name, sample_id, vcf, vcf_idx)
-    ch_vcf_for_join = ch_vcf.map { it -> tuple(it[0], it[1], it[2]) }
-    
-    ch_consensus_input = ch_vcf_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, vcf, ref_info ->
-        def ref_name = ref_info[0]
-        def ref_file = ref_info[1]
-        tuple(key[0], key[1], vcf, ref_file, file(ref_file.toString() + '.fai'))
-    }
+    ch_consensus_input = ch_vcf.cross(ch_best_ref_with_name)
+        .filter { vcf, best_ref -> vcf[1] == best_ref[1] }
+        .map { vcf, best_ref ->
+            tuple(vcf[0], vcf[1], vcf[2], best_ref[3], file(best_ref[3].toString() + '.fai'))
+        }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
     // Get consensus with sample metadata
