@@ -6,6 +6,7 @@ include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
 include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
+include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -64,7 +65,19 @@ workflow HCVPIPE {
     // Step 4: Spades assembly
     ASSEMBLE_SPADES(ch_prepped)
     ch_assembly = ASSEMBLE_SPADES.out.contigs
+
+    // Step 5: Hybrid assembly with mummer
+    if (params.genome) {
+        def genome_file = file(params.genome)
+        def genome_name = genome_file.simpleName
+        def build_script = file("${projectDir}/scripts/build_hybrid_reference.py")
+        
+        ASSEMBLE_HYBRID(ch_assembly, genome_file, genome_name, build_script)
+        ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
+    } else {
+        ch_hybrid = ch_assembly
+    }
     
     // Output
-    ch_assembly.view { "Assembly: $it" }
+    ch_hybrid.view { "Hybrid assembly: $it" }
 }
