@@ -14,6 +14,8 @@ include { SUBTYPE_BLAST } from '../modules/local/subtype/main'
 include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
+include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
+
 workflow HCVPIPE {
     if (!params.input) {
         error "Missing required parameter: --input <samplesheet.csv>"
@@ -115,7 +117,16 @@ workflow HCVPIPE {
     ASSEMBLE_HYBRID(ch_hybrid_contigs, ch_hybrid_ref, ch_hybrid_refname)
     ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
-    // (Polishing loop - 10 iterations - to be implemented)
+    // Step 6: Polishing loop (10 iterations with convergence check)
+    // Prepare input: combine reads with hybrid assembly
+    ch_polish_input = ch_hybrid.cross(ch_prepped)
+        .filter { hybrid, reads -> hybrid[1] == reads[1] }
+        .map { hybrid, reads ->
+            tuple(hybrid[0], hybrid[1], reads[2], reads[3], hybrid[2])
+        }
+    
+    POLISH_PILON_LOOP(ch_polish_input)
+    ch_polished = POLISH_PILON_LOOP.out.polished
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
     // Cross and filter by sample_id

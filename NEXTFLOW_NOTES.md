@@ -11,18 +11,18 @@ Pipeline runs end-to-end for single sample with ref_dir.
 - SELECT_BEST_REFERENCE ✅
 - ASSEMBLE_SPADES ✅
 - ASSEMBLE_HYBRID (mummer) ✅
+- POLISH_PILON_LOOP (10 iterations, convergence check) ✅
 - VARIANT_CALLING (bcftools) ✅
 - CREATE_CONSENSUS (bcftools + awk) ✅
 - SUBTYPE_BLAST ✅
 - ANNOTATE_VADR ✅
 
 ### Missing vs Original Bash Pipeline
-1. **Pilon polishing** - 10 iteration loop (critical for quality!)
-2. **Mapping to hybrid/pilon** - need to map reads to hybrid assembly
-3. **Multiple VCF filtering** - different min fractions (0.01, 0.05, 0.1, etc.)
-4. **CRAM file creation**
-5. **Coverage logging**
-6. **ANNOTATE_RESISTANCE** module exists but not connected
+1. ~~**Pilon polishing**~~ - Now implemented!
+2. **Multiple VCF filtering** - different min fractions (0.01, 0.05, 0.1, etc.)
+3. **CRAM file creation**
+4. **Coverage logging**
+5. **ANNOTATE_RESISTANCE** module exists but not connected
 
 ### Key Technical Notes
 
