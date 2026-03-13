@@ -79,8 +79,8 @@ process POLISH_PILON_LOOP {
             local input_bam=\$2
             local round=\$3
             
-            ${samtools} view -f 0x2 \${input_bam} > paired-\${round}.bam
-            ${samtools} view -F 0x2 \${input_bam} > unpaired-\${round}.bam
+            ${samtools} view -b -f 0x2 \${input_bam} > paired-\${round}.bam
+            ${samtools} view -b -F 0x2 \${input_bam} > unpaired-\${round}.bam
             ${samtools} index paired-\${round}.bam
             ${samtools} index unpaired-\${round}.bam
             
