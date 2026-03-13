@@ -27,8 +27,13 @@ process MAP_READS {
         def sentieon = "apptainer exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
         
         """
-        # Use absolute path for genome to ensure bwa index is found
-        genome_path=\$(readlink -f ${genome})
+        # Copy genome and index to work dir (bwa inside container can't follow symlinks)
+        ref_path=\$(readlink -f ${genome})
+        ref_dir=\$(dirname \${ref_path})
+        ref_base=\$(basename \${ref_path})
+        mkdir -p ref_copy
+        cp -L \${ref_path} ref_copy/
+        cp \${ref_dir}/\${ref_base}.* ref_copy/ 2>/dev/null || true
         
         # UMI extraction -> bwa mem -> umi consensus
         ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
@@ -36,7 +41,7 @@ process MAP_READS {
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
             -k 11 -B 2 -L 25 \\
-            -p -C \${genome_path} - | \\
+            -p -C ref_copy/\${ref_base} - | \\
         ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
         
         # Align consensus reads
@@ -44,7 +49,7 @@ process MAP_READS {
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
             -k 11 -B 2 -L 25 \\
-            -p -C \${genome_path} consensus.fastq.gz | \\
+            -p -C ref_copy/\${ref_base} consensus.fastq.gz | \\
         ${sentieon} util sort -i - --sam2bam --umi_post_process -o ${sample_id}-${genome_name}.bam
         
         # Index
