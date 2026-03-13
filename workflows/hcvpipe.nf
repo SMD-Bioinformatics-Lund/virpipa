@@ -144,8 +144,8 @@ workflow HCVPIPE {
     }
 
     // Step 9: Subtype with BLAST
-    // Get blast db from params or use default - skip if not available
-    def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
+    // Get blast db from params or use default (directory containing hcvgluerefs)
+    def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
     
     if (blast_db_path.exists()) {
         ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
