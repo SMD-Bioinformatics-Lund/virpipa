@@ -22,11 +22,18 @@ process CREATE_CONSENSUS {
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
-    def python_cmd = container_dir ? 
-        "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
-        "python3"
+    def bcftools = container_dir ? 
+        "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
+        "bcftools"
     
     """
-    ${python_cmd} ${scripts_dir}/consensus_fasta_iupac.py ${fasta} ${vcf} ${min_freq}
+    # Decompress VCF to uncompressed format
+    ${bcftools} view -O v ${vcf} > ${vcf.baseName}
+    
+    # Use AWK script to create IUPAC consensus
+    awk -v MIN_AF=${min_freq} -v MIN_DP=5 -f ${scripts_dir}/vcf_to_iupac.awk ${vcf.baseName} ${fasta} > ${sample_id}_consensus_iupac.fasta
+    
+    # Index the fasta
+    ${bcftools} faidx ${sample_id}_consensus_iupac.fasta
     """
 }
