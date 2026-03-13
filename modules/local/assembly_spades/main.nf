@@ -12,7 +12,7 @@ process ASSEMBLE_SPADES {
         tuple val(run_name), val(sample_id), path(read1), path(read2)
     
     output:
-        path "${sample_id}.spades", emit: contigs
+        tuple val(run_name), val(sample_id), path("${sample_id}.spades"), emit: contigs
         path "${sample_id}.spades/*.txt", emit: logs
     
     script:
