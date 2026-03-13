@@ -19,16 +19,7 @@ process ANNOTATE_RESISTANCE {
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
     
     script:
-    def scripts_dir = params.scripts_dir ?: '/fs1/jonas/src/virpipa/scripts'
-    
     """
-    python3 ${scripts_dir}/annotate_vcf_resistance.py \
-        --vcf \${vcf} \
-        --gff \${gff} \
-        --fasta \${fasta} \
-        --subtype \${subtype} \
-        --sample-name \${sample_id} \
-        --rules \${rules_csv} \
-        --output-dir .
+    python3 /fs1/jonas/src/virpipa/scripts/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir .
     """
 }
