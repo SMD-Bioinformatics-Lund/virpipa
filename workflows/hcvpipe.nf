@@ -130,32 +130,23 @@ workflow HCVPIPE {
     
     POLISH_PILON_LOOP(ch_polish_input)
     ch_polished = POLISH_PILON_LOOP.out.polished
-    ch_pilon_bams = POLISH_PILON_LOOP.out.bams
+    ch_pilon_bam = POLISH_PILON_LOOP.out.final_bam
+    ch_pilon_bai = POLISH_PILON_LOOP.out.final_bai
     
     // Step 6b: Create CRAM from polished BAM
-    // Get the pilon BAM (final mapping to polished assembly)
-    ch_cram_input = ch_pilon_bams.map { run_name, sample_id, bam_files ->
-        def bam_list = bam_files instanceof List ? bam_files : [bam_files]
-        def pilon_bam = bam_list.find { it.toString().contains('-pilon.bam') && !it.toString().contains('.bai') }
-        def pilon_bai = bam_list.find { it.toString().contains('-pilon.bam.bai') }
-        tuple(run_name, sample_id, pilon_bam, pilon_bai)
-    }
-    
-    // Cross with best ref to get reference fasta
-    ch_cram_with_ref = ch_cram_input.cross(ch_best_ref_with_name)
-        .filter { cram, ref -> cram[1] == ref[1] }
-        .map { cram, ref ->
-            tuple(cram[0], cram[1], cram[2], cram[3], ref[3])
+    ch_cram_input = ch_pilon_bam.join(ch_pilon_bai)
+        .combine(ch_best_ref_with_name)
+        .map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
+            [run_name, sample_id, bam, bai, ref_fasta]
         }
     
-    CREATE_CRAM(ch_cram_with_ref, "pilon")
+    CREATE_CRAM(ch_cram_input, "pilon")
     
     // Step 6c: Log coverage from CRAM
     ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
-        .cross(ch_best_ref_with_name)
-        .filter { cram_idx, ref -> cram_idx[1] == ref[1] }
-        .map { cram_idx, ref ->
-            tuple(cram_idx[0], cram_idx[1], cram_idx[2], cram_idx[3], ref[3])
+        .combine(ch_best_ref_with_name)
+        .map { run_name, sample_id, cram, crai, ref_run, ref_sample, ref_name, ref_fasta ->
+            [run_name, sample_id, cram, crai, ref_fasta]
         }
     
     LOG_COVERAGE(ch_coverage_input)
