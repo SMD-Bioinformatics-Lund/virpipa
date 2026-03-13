@@ -95,7 +95,11 @@ process POLISH_PILON_LOOP {
                 
                 sed -i 's/_pilon//' \${outdir}/\${sample}-pilon-\${round}\${iupac_suffix}.fasta
                 ${samtools} faidx \${outdir}/\${sample}-pilon-\${round}\${iupac_suffix}.fasta
-                ${sentieon} bwa index \${outdir}/\${sample}-pilon-\${round}\${iupac_suffix}.fasta
+                
+                # Create bwa index in outdir
+                cd \${outdir}
+                ${sentieon} bwa index \${sample}-pilon-\${round}\${iupac_suffix}.fasta
+                cd -
             done
             
             echo "\${outdir}/\${sample}-pilon-\${round}.fasta"
@@ -129,10 +133,20 @@ process POLISH_PILON_LOOP {
         final_ref="\${outdir}/\${sample}.fasta"
         final_bam=\$(map_to_ref "\${final_ref}" "pilon")
         
+        # Copy final outputs
         cp \${sample}-pilon.bam \${outdir}/\${sample}-pilon.bam
         cp \${sample}-pilon.bam.bai \${outdir}/\${sample}-pilon.bam.bai
         cp \${outdir}/\${sample}.fasta ./
         cp \${outdir}/\${sample}.fasta.fai ./
+        
+        # Also copy changes files to current dir
+        cp \${outdir}/*.changes ./
+        
+        # Create bwa index for final fasta
+        cd \${outdir}
+        ${sentieon} bwa index \${sample}.fasta
+        ${sentieon} bwa index \${sample}-iupac.fasta
+        cd -
         """
     } else {
         error "POLISH_PILON_LOOP requires use_sentieon=true and container_dir"
