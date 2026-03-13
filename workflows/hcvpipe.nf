@@ -144,15 +144,20 @@ workflow HCVPIPE {
     }
 
     // Step 9: Subtype with BLAST
-    // Get blast db from params or use default
-    def blast_db = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
-    ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
-        [ [run_name, sample_id, fasta], blast_db ]
-    }
-    ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
-    ch_subtype_db = ch_subtype_tuple.map { it[1] }
+    // Get blast db from params or use default - skip if not available
+    def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
     
-    SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+    if (blast_db_path.exists()) {
+        ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+            [ tuple(run_name, sample_id, fasta), blast_db_path ]
+        }
+        ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
+        ch_subtype_db = ch_subtype_tuple.map { it[1] }
+        
+        SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+    } else {
+        println "WARNING: BLAST database not found at ${blast_db_path}, skipping SUBTYPE_BLAST"
+    }
 
     // Step 10: Annotate with VADR
     def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
