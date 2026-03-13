@@ -79,14 +79,11 @@ workflow HCVPIPE {
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
     // Step 5: Select best reference based on mapping stats
-    // Collect all stats and refs per sample
-    ch_stats_per_sample = ch_stats.map { run_name, sample_id, stats ->
-        [run_name, sample_id, stats]
-    }.groupTuple(by: [0, 1])
+    // Group stats by sample
+    ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
     
-    ch_refs_per_sample = ch_references.map { ref_name, ref_file ->
-        [ref_name, ref_file]
-    }.collect()
+    // Collect refs
+    ch_refs_per_sample = ch_references.collect()
     
     ch_best_ref_input = ch_stats_per_sample.combine(ch_refs_per_sample).map { run_name, sample_id, stats_list, refs ->
         [run_name, sample_id, stats_list, refs]

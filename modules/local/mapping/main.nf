@@ -14,8 +14,7 @@ process MAP_READS {
     
     output:
         tuple val(run_name), val(sample_id), path("*.bam"), path("*.bai"), emit: bams
-        path "*.bam.bai", emit: bai
-        path "*.stats", emit: stats
+        tuple val(run_name), val(sample_id), path("*.stats"), emit: stats
     
     script:
     def container_dir = params.container_dir
