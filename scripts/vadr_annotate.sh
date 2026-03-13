@@ -36,7 +36,8 @@ if [[ ! -f "$annotate_tbl2gff" ]] ; then
 fi
 
 if [[ ! -f ${resultsdir}/vadr/${id}.vadr.seqstat ]] ; then
-	${vadr} v-annotate.pl -f --mdir "$vadr_mdir" --group HCV --mkey flavi --forcegene "$fullseq" "${resultsdir}/vadr/"
+	vadr_cpus=${VADR_CPUS:-8}
+	${vadr} v-annotate.pl -f --mdir "$vadr_mdir" --group HCV --mkey flavi --forcegene --cpu ${vadr_cpus} --split "$fullseq" "${resultsdir}/vadr/"
 fi
 
 shopt -s nullglob
