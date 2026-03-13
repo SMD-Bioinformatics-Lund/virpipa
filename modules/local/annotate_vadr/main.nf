@@ -15,7 +15,7 @@ process ANNOTATE_VADR {
     output:
         path "*_mod.gff", emit: gff
         path "*.bed", emit: bed
-        path "*.txt", emit: logs
+        path "*.tbl", emit: logs
     
     script:
     def container_dir = params.container_dir
@@ -29,9 +29,8 @@ process ANNOTATE_VADR {
         # Run VADR using the script from original pipeline
         bash ${scripts_dir}/vadr_annotate.sh ${fasta} . ${sample_id}
         
-        # Move outputs to expected locations
-        mv vadr/*.gff . 2>/dev/null || true
-        mv vadr/*.bed . 2>/dev/null || true
+        # Move all outputs to current directory
+        mv vadr/* . 2>/dev/null || true
         """
     } else {
         """
