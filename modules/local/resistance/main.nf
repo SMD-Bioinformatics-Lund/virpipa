@@ -19,7 +19,18 @@ process ANNOTATE_RESISTANCE {
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
     
     script:
+    def container_dir = params.container_dir
+    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
+    
+    def bcftools = container_dir ? 
+        "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
+        'bcftools'
+    def python = container_dir ?
+        "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
+        'python3'
+    
     """
-    python3 /fs1/jonas/src/virpipa/scripts/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir .
+    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir .
     """
 }

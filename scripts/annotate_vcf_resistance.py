@@ -14,15 +14,70 @@ This script:
 import argparse
 import csv
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
 
-try:
-    import pysam
-except ImportError:
-    sys.stderr.write("Error: pysam not installed. Install with: pip install pysam\n")
-    sys.exit(1)
+
+def parse_vcf(vcf_file):
+    """Parse VCF file using bcftools query."""
+    variants = []
+    
+    cmd = [
+        'bcftools', 'query',
+        '-f', '%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/DP\t%FORMAT/AD\t%INFO/AF\n',
+        vcf_file
+    ]
+    
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        lines = result.stdout.strip().split('\n')
+    except subprocess.CalledProcessError as e:
+        sys.stderr.write(f"Error running bcftools query: {e}\n")
+        sys.stderr.write(f"stderr: {e.stderr}\n")
+        return []
+    
+    for line in lines:
+        if not line.strip():
+            continue
+        
+        parts = line.strip().split('\t')
+        if len(parts) < 9:
+            continue
+        
+        chrom = parts[0]
+        pos = int(parts[1])
+        ref = parts[2]
+        alt = parts[3]
+        qual = float(parts[4]) if parts[4] != '.' else 0
+        filter_status = parts[5] if parts[5] != '.' else 'PASS'
+        dp = int(parts[6]) if parts[6] != '.' else None
+        ad_str = parts[7] if parts[7] != '.' else None
+        af_str = parts[8] if parts[8] != '.' else None
+        
+        freq = None
+        if ad_str and dp and dp > 0:
+            ad_vals = [int(x) for x in ad_str.split(',')]
+            total_alt = sum(ad_vals[1:]) if len(ad_vals) > 1 else 0
+            freq = total_alt / dp
+        elif af_str:
+            freq = float(af_str)
+        
+        for alt_allele in alt.split(','):
+            variants.append({
+                'chrom': chrom,
+                'pos': pos,
+                'ref': ref,
+                'alt': alt_allele,
+                'qual': qual,
+                'filter': filter_status,
+                'dp': dp,
+                'af': freq,
+                'info': {}
+            })
+    
+    return variants
 
 
 IUPAC_CODE = {
@@ -145,61 +200,6 @@ def get_possible_aa(codon):
         if aa:
             aa_set.add(aa)
     return aa_set
-
-
-def parse_vcf(vcf_file):
-    """Parse VCF file and return list of variants."""
-    variants = []
-    
-    vcf = pysam.VariantFile(vcf_file)
-    
-    for record in vcf:
-        chrom = record.contig
-        pos = record.pos
-        
-        ref = record.ref
-        alts = record.alts
-        
-        if alts is None:
-            continue
-        
-        for alt in alts:
-            if alt is None:
-                continue
-            
-            qual = record.qual if record.qual else 0
-            filter_status = 'PASS' if record.filter is None or len(record.filter) == 0 else ';'.join(record.filter)
-            
-            info = {}
-            if record.info:
-                for key in record.info:
-                    info[key] = record.info[key]
-            
-            ad = None
-            dp = None
-            if 'AD' in record.samples[0]:
-                ad = record.samples[0]['AD']
-            if 'DP' in record.samples[0]:
-                dp = record.samples[0]['DP']
-            
-            freq = None
-            if ad is not None and dp is not None and dp > 0:
-                total_alt = sum(ad[1:]) if len(ad) > 1 else 0
-                freq = total_alt / dp
-            
-            variants.append({
-                'chrom': chrom,
-                'pos': pos,
-                'ref': ref,
-                'alt': alt,
-                'qual': qual,
-                'filter': filter_status,
-                'dp': dp,
-                'af': freq,
-                'info': info
-            })
-    
-    return variants
 
 
 def find_gene_for_position(pos, genes):
