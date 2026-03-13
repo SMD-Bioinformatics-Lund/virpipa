@@ -78,24 +78,9 @@ workflow HCVPIPE {
         ch_hybrid = ch_assembly
     }
 
-    // Step 6: Polish with pilon
-    if (params.genome) {
-        // Use combine instead of join
-        ch_polish_data = ch_hybrid.combine(ch_mapped, by: [0, 1]).map { items ->
-            def run_name = items[0]
-            def sample_id = items[1]
-            def hybrid = items[2]
-            def bam = items[3]
-            def bai = items[4]
-            tuple(run_name, sample_id, bam, bai, hybrid, sample_id)
-        }
-        
-        POLISH_PILON(ch_polish_data)
-        ch_polished = POLISH_PILON.out.polished
-    } else {
-        ch_polished = ch_hybrid
-    }
+    // Step 6: (Skip polish for now - requires mapping to hybrid assembly)
+    ch_polished = ch_hybrid
     
     // Output
-    ch_polished.view { "Polished: $it" }
+    ch_polished.view { "Final assembly: $it" }
 }
