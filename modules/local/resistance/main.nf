@@ -19,10 +19,9 @@ process ANNOTATE_RESISTANCE {
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
     
     script:
-    def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
+    def scripts_dir = params.scripts_dir ?: '/fs1/jonas/src/virpipa/scripts'
     
     """
-    # rules_csv is already a file in the work directory
     python3 \${scripts_dir}/annotate_vcf_resistance.py \
         --vcf \${vcf} \
         --gff \${gff} \
