@@ -96,12 +96,6 @@ workflow HCVPIPE {
     } else {
         ch_polished = ch_hybrid
     }
-        
-        POLISH_PILON(ch_polish_data)
-        ch_polished = POLISH_PILON.out.polished
-    } else {
-        ch_polished = ch_hybrid
-    }
     
     // Output
     ch_polished.view { "Polished: $it" }
