@@ -93,10 +93,16 @@ workflow HCVPIPE {
     SELECT_BEST_REFERENCE(ch_best_ref_input)
     ch_best_ref = SELECT_BEST_REFERENCE.out.best_ref
 
+    // Extract ref name from the fasta filename (e.g., 3a-D17763.fa -> 3a-D17763)
+    ch_best_ref_with_name = ch_best_ref.map { run_name, sample_id, fasta_file ->
+        def ref_name = fasta_file.baseName
+        [run_name, sample_id, ref_name, fasta_file]
+    }
+
     // Step 5b: Hybrid assembly with best reference
     // Combine assembly with best ref
-    ch_hybrid_input = ch_assembly.combine(ch_best_ref).map { run_name, sample_id, contigs, best_ref_name, best_ref_file ->
-        [ [run_name, sample_id, contigs], best_ref_file, best_ref_name ]
+    ch_hybrid_input = ch_assembly.combine(ch_best_ref_with_name).map { run_name, sample_id, contigs, ref_name, ref_file ->
+        [ [run_name, sample_id, contigs], ref_file, ref_name ]
     }
     
     // Split the tuple into 3 separate channels for the process
@@ -111,8 +117,8 @@ workflow HCVPIPE {
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
     // Filter mapped bams to only keep those matching best reference
-    ch_mapped_best = ch_mapped.join(ch_best_ref).map { run_name, sample_id, bam, bai, best_ref_name, best_ref_file ->
-        [run_name, sample_id, bam, bai, best_ref_file, best_ref_name]
+    ch_mapped_best = ch_mapped.join(ch_best_ref_with_name).map { run_name, sample_id, bam, bai, ref_name, ref_file ->
+        [run_name, sample_id, bam, bai, ref_file, ref_name]
     }
     
     VARIANT_CALLING(ch_mapped_best)
@@ -122,8 +128,8 @@ workflow HCVPIPE {
     ch_consensus_input = ch_vcf.map { run_name, sample_id, vcf, vcf_idx ->
         // We need the best ref file - join with best_ref
         [run_name, sample_id, vcf]
-    }.join(ch_best_ref).map { run_name, sample_id, vcf, best_ref_name, best_ref_file ->
-        [run_name, sample_id, vcf, best_ref_file, file(best_ref_file.toString() + '.fai')]
+    }.join(ch_best_ref_with_name).map { run_name, sample_id, vcf, ref_name, ref_file ->
+        [run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai')]
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")

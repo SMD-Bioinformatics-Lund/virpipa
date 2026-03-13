@@ -10,7 +10,7 @@ process SELECT_BEST_REFERENCE {
         tuple val(run_name), val(sample_id), path(stats_files), val(ref_dir)
     
     output:
-        tuple val(run_name), val(sample_id), val(best_ref_name), path("*.fa"), emit: best_ref
+        tuple val(run_name), val(sample_id), path("*.fa"), emit: best_ref
         path "*.txt", emit: log
     
     script:
