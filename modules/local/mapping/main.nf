@@ -27,13 +27,16 @@ process MAP_READS {
         def sentieon = "apptainer exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
         
         """
+        # Use absolute path for genome to ensure bwa index is found
+        genome_path=\$(readlink -f ${genome})
+        
         # UMI extraction -> bwa mem -> umi consensus
         ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
         ${sentieon} bwa mem \\
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
             -k 11 -B 2 -L 25 \\
-            -p -C ${genome} - | \\
+            -p -C \${genome_path} - | \\
         ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
         
         # Align consensus reads
@@ -41,7 +44,7 @@ process MAP_READS {
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
             -k 11 -B 2 -L 25 \\
-            -p -C ${genome} consensus.fastq.gz | \\
+            -p -C \${genome_path} consensus.fastq.gz | \\
         ${sentieon} util sort -i - --sam2bam --umi_post_process -o ${sample_id}-${genome_name}.bam
         
         # Index
