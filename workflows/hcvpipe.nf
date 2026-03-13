@@ -135,8 +135,9 @@ workflow HCVPIPE {
     // Step 6b: Create CRAM from polished BAM
     // Get the pilon BAM (final mapping to polished assembly)
     ch_cram_input = ch_pilon_bams.map { run_name, sample_id, bam_files ->
-        def pilon_bam = bam_files.find { it.name.contains('-pilon.bam') && !it.name.contains('.bai') }
-        def pilon_bai = bam_files.find { it.name.contains('-pilon.bam.bai') }
+        def bam_list = bam_files instanceof List ? bam_files : [bam_files]
+        def pilon_bam = bam_list.find { it.toString().contains('-pilon.bam') && !it.toString().contains('.bai') }
+        def pilon_bai = bam_list.find { it.toString().contains('-pilon.bam.bai') }
         tuple(run_name, sample_id, pilon_bam, pilon_bai)
     }
     
@@ -222,8 +223,8 @@ workflow HCVPIPE {
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
-    // Use the 0.15 filtered VCF for resistance annotation
-    def rules_csv = params.resistance_rules ? file(params.resistance_rules) : file("${params.ref_dir}/../assets/resistance_rules.csv")
+    // Use hbv_result_rules.csv from assets as default
+    def rules_csv = params.resistance_rules ? file(params.resistance_rules) : file("${projectDir}/assets/hbv_result_rules.csv")
     
     if (rules_csv.exists()) {
         // Get subtype from BLAST results - for now use a placeholder or extract from consensus header
