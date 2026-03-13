@@ -82,12 +82,14 @@ workflow HCVPIPE {
     // Group stats by sample
     ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
     
-    // Add ref_dir to the channel
+    // Split into tuple and separate value
     ch_best_ref_input = ch_stats_per_sample.map { run_name, sample_id, stats_list ->
-        [run_name, sample_id, stats_list, params.ref_dir]
+        [ [run_name, sample_id, stats_list], params.ref_dir ]
     }
+    ch_best_ref_tuple = ch_best_ref_input.map { it[0] }
+    ch_best_ref_dir = ch_best_ref_input.map { it[1] }
     
-    SELECT_BEST_REFERENCE(ch_best_ref_input)
+    SELECT_BEST_REFERENCE(ch_best_ref_tuple, ch_best_ref_dir)
     ch_best_ref = SELECT_BEST_REFERENCE.out.best_ref
 
     // Step 5b: Hybrid assembly with best reference
