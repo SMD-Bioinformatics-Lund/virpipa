@@ -135,25 +135,26 @@ workflow HCVPIPE {
     }
 
     // Step 9: Subtype with BLAST
-    // Get blast db from params or use default
-    def blast_db = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
-    ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
-        [ [run_name, sample_id, fasta], blast_db ]
-    }
-    ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
-    ch_subtype_db = ch_subtype_tuple.map { it[1] }
-    
-    SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+    // TODO: Fix BLAST - container not available
+    // def blast_db = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
+    // ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+    //     [ [run_name, sample_id, fasta], blast_db ]
+    // }
+    // ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
+    // ch_subtype_db = ch_subtype_tuple.map { it[1] }
+    // 
+    // SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
 
     // Step 10: Annotate with VADR
-    def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
-    ch_vadr_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
-        [ [run_name, sample_id, fasta], vadr_model ]
-    }
-    ch_vadr_fasta = ch_vadr_tuple.map { it[0] }
-    ch_vadr_model = ch_vadr_tuple.map { it[1] }
-    
-    ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
+    // TODO: Fix VADR - container not available
+    // def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
+    // ch_vadr_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+    //     [ [run_name, sample_id, fasta], vadr_model ]
+    // }
+    // ch_vadr_fasta = ch_vadr_tuple.map { it[0] }
+    // ch_vadr_model = ch_vadr_tuple.map { it[1] }
+    // 
+    // ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
 
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype)
     // For now, skip as it requires more complex input handling
