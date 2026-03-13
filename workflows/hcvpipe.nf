@@ -80,16 +80,15 @@ workflow HCVPIPE {
 
     // Step 6: Polish with pilon
     if (params.genome) {
-        // Debug: check channel structures
-        ch_hybrid.view { "HYBRID: $it" }
-        ch_mapped.view { "MAPPED: $it" }
-        
-        // Combine hybrid assembly with mapped BAM
-        ch_polish_data = ch_hybrid.join(ch_mapped).map { run_name, sample_id, hybrid, bam, bai ->
-            [run_name, sample_id, bam, bai, hybrid, sample_id]
+        // Map hybrid to include dummy bai for join compatibility
+        ch_hybrid_for_join = ch_hybrid.map { run_name, sample_id, hybrid ->
+            [run_name, sample_id, hybrid, []]
         }
         
-        ch_polish_data.view { "POLISH_INPUT: $it" }
+        // Combine hybrid assembly with mapped BAM
+        ch_polish_data = ch_hybrid_for_join.join(ch_mapped).map { run_name, sample_id, hybrid, dummy_bai, bam, bai ->
+            [run_name, sample_id, bam, bai, hybrid, sample_id]
+        }
         
         POLISH_PILON(ch_polish_data)
         ch_polished = POLISH_PILON.out.polished
