@@ -28,25 +28,23 @@ process SUBSAMPLE_READS {
     // Otherwise use direct commands (assumes tools in PATH)
     if (container_dir) {
         def seqtk = "apptainer exec -B ${bind_paths} ${container_dir}/seqtk_1.3.sif seqtk"
-        def pigz = "apptainer exec -B ${bind_paths} ${container_dir}/pigz-2.3.4.sif pigz"
+        def pigz_cmd = file("${container_dir}/pigz-2.3.4.sif").exists() ? 
+            "apptainer exec -B ${bind_paths} ${container_dir}/pigz-2.3.4.sif pigz" : 
+            "pigz"
         
         """
         echo "Subsampling to ${nreads} reads" > subsample.log
         echo "Input R1: ${read1}" >> subsample.log
         echo "Input R2: ${read2}" >> subsample.log
         
-        ${seqtk} sample -s100 ${read1} ${nreads} | ${pigz} -p 4 -c > ${sample_id}_R1_001.fastq.gz
-        ${r2_arg ? "${seqtk} sample -s100 ${read2} ${nreads} | ${pigz} -p 4 -c > ${sample_id}_R2_001.fastq.gz" : "touch ${sample_id}_R2_001.fastq.gz"}
+        ${seqtk} sample -s100 ${read1} ${nreads} | ${pigz_cmd} -p 4 -c > ${sample_id}_R1_001.fastq.gz
+        ${r2_arg ? "${seqtk} sample -s100 ${read2} ${nreads} | ${pigz_cmd} -p 4 -c > ${sample_id}_R2_001.fastq.gz" : "touch ${sample_id}_R2_001.fastq.gz"}
         
         echo "Output R1: ${sample_id}_R1_001.fastq.gz" >> subsample.log
         echo "Output R2: ${sample_id}_R2_001.fastq.gz" >> subsample.log
         """
     } else {
-        // Direct execution - use full path to mamba environment
-        def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
         """
-        export PATH="${mamba_env}/bin:\$PATH"
-        
         echo "Subsampling to ${nreads} reads" > subsample.log
         echo "Input R1: ${read1}" >> subsample.log
         echo "Input R2: ${read2}" >> subsample.log

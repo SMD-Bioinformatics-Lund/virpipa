@@ -4,6 +4,7 @@ nextflow.enable.dsl = 2
 
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
+include { MAP_READS } from '../modules/local/mapping/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -45,6 +46,20 @@ workflow HCVPIPE {
         ch_prepped = ch_subsampled
     }
 
+    // Step 3: Map reads
+    if (params.genome) {
+        def genome_file = file(params.genome)
+        def genome_name = genome_file.simpleName
+        // Use absolute path to genome for bwa to find index
+        ch_for_mapping = ch_prepped.map { run_name, sample_id, read1, read2 -> 
+            [run_name, sample_id, read1, read2, genome_file, genome_name]
+        }
+        MAP_READS(ch_for_mapping)
+        ch_mapped = MAP_READS.out.bams
+    } else {
+        ch_mapped = ch_prepped
+    }
+
     // Output - just publish the preprocessed reads
-    ch_prepped.view { "Final reads: $it" }
+    ch_mapped.view { "Final bams: $it" }
 }

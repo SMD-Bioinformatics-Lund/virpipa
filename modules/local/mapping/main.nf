@@ -1,16 +1,16 @@
 process MAP_READS {
-    tag { "${sample_id}:${genome}" }
-    label 'process_high'
+    tag { "${sample_id}:${genome_name}" }
+    // Use process_medium for local testing, process_high for HPC with sentieon
     
-    cpus 16
-    memory '32 GB'
+    cpus { params.use_sentieon ? 16 : 8 }
+    memory { params.use_sentieon ? '32 GB' : '8 GB' }
     time '8h'
     
     publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam'
     publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bai'
     
     input:
-        tuple val(run_name), val(sample_id), path(read1), path(read2), path(genome), val(genome)
+        tuple val(run_name), val(sample_id), path(read1), path(read2), path(genome), val(genome_name)
     
     output:
         tuple val(run_name), val(sample_id), path("*.bam"), path("*.bai"), emit: bams
@@ -45,30 +45,23 @@ process MAP_READS {
         ${sentieon} util stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
         """
     } else if (container_dir) {
-        // Use fgbio + bwa (alternative without sentieon)
-        def fgbio = "apptainer exec -B ${bind_paths} ${container_dir}/fgbio_latest.sif fgbio"
-        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa_latest.sif bwa"
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_latest.sif samtools"
+        // Use bwa + samtools (alternative without sentieon)
+        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
+        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
+        def cpus = task.cpus
+        def rg = "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tPL:illumina"
         
         """
-        # Extract UMI from read names (fgbio)
-        ${fgbio} ExtractUmisFromBam -i ${read1} -o unmapped.bam --read-name-in
-		
-        # Group by UMI
-        ${fgbio} GroupReadsByUmi -i unmapped.bam -o grouped.bam --strategy directional
-		
-        # Call consensus
-        ${fgbio} CallConsensus -i grouped.bam -o consensus.bam --min-reads 3
-		
-        # Align consensus
-        ${bwa} mem -t ${task.cpus} -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tPL:illumina" ${genome} consensus.bam | \\
+        # Resolve actual genome path (handles both symlinks and regular files)
+        actual_path=\$(readlink -f ${genome})
+        base=\$(basename \${actual_path})
+        
+        ${bwa} mem -t ${cpus} -R "${rg}" \${actual_path} ${read1} ${read2} | \\
         ${samtools} view -bS - | \\
         ${samtools} sort -o ${sample_id}-${genome_name}.bam
-		
-        # Index
+        
         ${samtools} index ${sample_id}-${genome_name}.bam
-		
-        # Stats
+        
         ${samtools} stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
         """
     } else {
