@@ -11,6 +11,7 @@ include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
 include { ANNOTATE_VADR } from '../modules/local/annotate_vadr/main'
 include { SUBTYPE_BLAST } from '../modules/local/subtype/main'
 include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
+include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -52,39 +53,45 @@ workflow HCVPIPE {
         ch_prepped = ch_subsampled
     }
 
-    // Step 3: Map reads
+    // Determine references: single genome or all in ref_dir
+    def ch_references
     if (params.genome) {
+        // Single genome specified
         def genome_file = file(params.genome)
-        def genome_name = genome_file.simpleName
-        // Add genome to each sample tuple
-        ch_for_mapping = ch_prepped.map { run_name, sample_id, read1, read2 ->
-            [run_name, sample_id, read1, read2, genome_file, genome_name]
-        }
-        MAP_READS(ch_for_mapping)
-        ch_mapped = MAP_READS.out.bams
+        ch_references = Channel.value([tuple(genome_file.simpleName, genome_file)])
+    } else if (params.ref_dir) {
+        // Use all genomes in ref_dir
+        def ref_dir = file(params.ref_dir)
+        ch_references = Channel.fromPath("${ref_dir}/*.fa")
+            .map { it -> [it.simpleName, it] }
     } else {
-        ch_mapped = ch_prepped
+        error "Must specify either --genome or --ref_dir"
     }
+
+    // Step 3: Map to each reference
+    ch_mapped_all = ch_references.combine(ch_prepped).map { ref_name, ref_file, run_name, sample_id, read1, read2 ->
+        [run_name, sample_id, read1, read2, ref_file, ref_name]
+    }
+    MAP_READS(ch_mapped_all)
+    ch_mapped = MAP_READS.out.bams
 
     // Step 4: Spades assembly
     ASSEMBLE_SPADES(ch_prepped)
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
     // Step 5: Hybrid assembly with mummer
-    if (params.genome) {
-        def genome_file = file(params.genome)
-        def genome_name = genome_file.simpleName
-        
-        ASSEMBLE_HYBRID(ch_assembly, genome_file, genome_name)
-        ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
-    } else {
-        ch_hybrid = ch_assembly
+    // Map each assembly to each reference
+    ch_hybrid_all = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
+        [run_name, sample_id, contigs, ref_file, ref_name]
+    }.combine(ch_references).map { run_name, sample_id, contigs, ref_file, ref_name, ref_file2, ref_name2 ->
+        [run_name, sample_id, contigs, ref_file, ref_name]
     }
+    
+    ASSEMBLE_HYBRID(ch_hybrid_all)
+    ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
-    // Step 6: (Polishing - to be implemented)
-    // Would need to: 1) index hybrid assembly with bwa, 2) map reads to hybrid, 3) run pilon
-    ch_polished = ch_hybrid
+    // (Polishing - to be implemented)
     
     // Output
-    ch_polished.view { "Final assembly: $it" }
+    ch_hybrid.view { "Final hybrid assemblies: $it" }
 }
