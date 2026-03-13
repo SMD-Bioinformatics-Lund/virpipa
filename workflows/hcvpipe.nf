@@ -76,25 +76,14 @@ workflow HCVPIPE {
     ASSEMBLE_SPADES(ch_prepped)
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
-    // Step 5: Hybrid assembly with mummer
-    // Map each assembly to each reference - build hybrid for EACH ref
-    // Use combine to create cartesian product of assembly x references
-    ch_hybrid_tuple = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
-        [ [run_name, sample_id, contigs], ref_file, ref_name ]
-    }
+    // Step 5: Select best reference based on mapping stats
+    // For now, use first reference (would need a process to parse stats and select best)
+    // TODO: Implement best reference selection from MAP_READS.out.stats
     
-    // Split the tuple into 3 separate channels for the process
-    ch_hybrid_contigs = ch_hybrid_tuple.map { it[0] }
-    ch_hybrid_ref = ch_hybrid_tuple.map { it[1] }
-    ch_hybrid_refname = ch_hybrid_tuple.map { it[2] }
-    
-    ASSEMBLE_HYBRID(ch_hybrid_contigs, ch_hybrid_ref, ch_hybrid_refname)
-    ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
+    // Step 5b: Hybrid assembly - skip for now, just use best reference directly
+    // TODO: Add hybrid assembly with mummer for best reference only
+    ch_hybrid = Channel.empty()
 
-    // Step 6: Select best reference based on mapping stats (use first for now)
-    // In production, would parse stats to find lowest error rate
-    // ch_references is a value channel, so we can just use it directly
-    
     // (Polishing loop - 10 iterations - to be implemented)
     
     // Step 7: Variant calling on mapped reads (using original mapping to refs)
