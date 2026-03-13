@@ -31,7 +31,7 @@ process POLISH_PILON_LOOP {
         def maxpolish = 10
         
         """
-        # Write shell script to file to avoid Nextflow $() conflicts
+        # Write shell script to file
         cat > polish.sh << 'SCRIPT'
         #!/bin/bash
         set -e
