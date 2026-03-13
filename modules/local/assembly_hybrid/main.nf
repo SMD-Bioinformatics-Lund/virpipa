@@ -26,20 +26,18 @@ process ASSEMBLE_HYBRID {
     
     if (container_dir) {
         def mummer = "apptainer exec -B ${bind_paths} ${container_dir}/mummer3.23.sif"
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_latest.sif samtools"
-        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa_latest.sif bwa"
+        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
+        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
         def python = "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python"
         
         """
-        cd ${task.workDir}
-        
         # Align contigs to reference with mummer
         ${mummer} nucmer --maxmatch -p ${sample_id} ${ref_genome} ${contigs}
         ${mummer} delta-filter -q ${sample_id}.delta > ${sample_id}.delta-filter
         ${mummer} show-tiling ${sample_id}.delta-filter > ${sample_id}.tiling
         
         # Build hybrid reference
-        python ${scripts_dir}/build_hybrid_reference.py \\
+        ${python} ${scripts_dir}/build_hybrid_reference.py \\
             ${ref_genome} ${contigs} ${sample_id}.tiling ${sample_id} \\
             2> ${sample_id}-hybrid-ref.log
         
@@ -51,7 +49,6 @@ process ASSEMBLE_HYBRID {
         def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
         
         """
-        cd ${task.workDir}
         export PATH="${mamba_env}/bin:\$PATH"
         
         # Align contigs to reference with mummer
