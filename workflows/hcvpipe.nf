@@ -224,7 +224,8 @@ workflow HCVPIPE {
     
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
     // Use hbv_result_rules.csv from assets as default
-    def rules_csv = params.resistance_rules ? file(params.resistance_rules) : file("${projectDir}/assets/hbv_result_rules.csv")
+    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
+    def rules_csv = file(rules_path, checkIfExists: true)
     
     if (rules_csv.exists()) {
         // Get subtype from BLAST results - for now use a placeholder or extract from consensus header
