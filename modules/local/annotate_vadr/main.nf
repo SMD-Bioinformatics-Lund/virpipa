@@ -25,10 +25,21 @@ process ANNOTATE_VADR {
     def vadr_container = params.vadr_container ?: "${container_dir}/vadr_164.sif"
     
     if (container_dir) {
-        def vadr = "apptainer exec -B ${bind_paths} ${vadr_container} vadr"
+        // Try both vadr and run_vadr - need to find correct executable
+        def vadr = "apptainer exec -B ${bind_paths} ${vadr_container} bash -c 'vadr --version >/dev/null 2>&1 && vadr || run_vadr'"
         
         """
-        ${vadr} -i ${fasta} -o vadr_out --ncpu ${task.cpus} --fvadr_models ${vadr_model}
+        # Try vadr first, if not found try run_vadr
+        if apptainer exec -B ${bind_paths} ${vadr_container} which vadr; then
+            VADR_CMD=vadr
+        elif apptainer exec -B ${bind_paths} ${vadr_container} which run_vadr; then
+            VADR_CMD=run_vadr
+        else
+            echo "ERROR: vadr not found in container"
+            exit 1
+        fi
+        
+        apptainer exec -B ${bind_paths} ${vadr_container} \$VADR_CMD -i ${fasta} -o vadr_out --ncpu ${task.cpus} --fvadr_models ${vadr_model}
         
         mv vadr_out/*_mod.gff ${sample_id}_vadr_mod.gff 2>/dev/null || true
         mv vadr_out/*.bed ${sample_id}_vadr.bed 2>/dev/null || true
