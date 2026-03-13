@@ -7,6 +7,7 @@ include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
 include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
 include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
+include { POLISH_PILON } from '../modules/local/polish/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -76,7 +77,19 @@ workflow HCVPIPE {
     } else {
         ch_hybrid = ch_assembly
     }
+
+    // Step 6: Polish with pilon
+    if (params.genome) {
+        // Combine hybrid assembly with mapped BAM - join on sample_id
+        ch_hybrid.join(ch_mapped).map { run_name, sample_id, hybrid, bam, bai ->
+            [run_name, sample_id, bam, bai, hybrid, sample_id]
+        }.set { ch_polish_input }
+        POLISH_PILON(ch_polish_input)
+        ch_polished = POLISH_PILON.out.polished
+    } else {
+        ch_polished = ch_hybrid
+    }
     
     // Output
-    ch_hybrid.view { "Hybrid assembly: $it" }
+    ch_polished.view { "Polished: $it" }
 }

@@ -14,7 +14,7 @@ process ASSEMBLE_HYBRID {
         val genome_name
     
     output:
-        path "*.hybrid.fasta", emit: hybrid_assembly
+        tuple val(run_name), val(sample_id), path("*.hybrid.fasta"), emit: hybrid_assembly
         path "*.delta", emit: delta
         path "*.tiling", emit: tiling
         path "*.log", emit: logs

@@ -23,7 +23,7 @@ process POLISH_PILON {
     
     if (container_dir) {
         def pilon = "apptainer exec -B ${bind_paths} ${container_dir}/pilon-1.24.sif pilon"
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_latest.sif samtools"
+        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
         ${pilon} --genome ${assembly} --bam ${bam} --output ${sample_id}-${assembly_name} --threads ${task.cpus}
