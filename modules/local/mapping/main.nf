@@ -25,6 +25,7 @@ process MAP_READS {
     if (use_sentieon && container_dir) {
         // Use sentieon (production)
         def sentieon = "apptainer exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
+        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
         # Copy genome and index to work dir (bwa inside container can't follow symlinks)
@@ -55,8 +56,8 @@ process MAP_READS {
         # Index using bwa index (not sentieon util index)
         ${sentieon} bwa index ref_copy/\${ref_base}
         
-        # Stats
-        ${sentieon} util stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
+        # Stats using samtools (not sentieon util stats)
+        ${samtools} stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
         """
     } else if (container_dir) {
         // Use bwa + samtools (alternative without sentieon)
