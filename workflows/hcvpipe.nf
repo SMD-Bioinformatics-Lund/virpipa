@@ -96,13 +96,15 @@ workflow HCVPIPE {
     // Extract ref name from the fasta filename (e.g., 3a-D17763.fa -> 3a-D17763)
     ch_best_ref_with_name = ch_best_ref.map { run_name, sample_id, fasta_file ->
         def ref_name = fasta_file.baseName
-        [run_name, sample_id, ref_name, fasta_file]
+        tuple(run_name, sample_id, ref_name, fasta_file)
     }
 
     // Step 5b: Hybrid assembly with best reference
-    // Combine assembly with best ref
-    ch_hybrid_input = ch_assembly.combine(ch_best_ref_with_name).map { run_name, sample_id, contigs, ref_name, ref_file ->
-        [ [run_name, sample_id, contigs], ref_file, ref_name ]
+    // Join assembly with best ref by sample
+    ch_assembly_for_join = ch_assembly.map { it -> tuple(it[0], it[1], it[2]) }
+    
+    ch_hybrid_input = ch_assembly_for_join.join(ch_best_ref_with_name).map { run_name, sample_id, contigs, ref_name, ref_file ->
+        tuple(tuple(run_name, sample_id, contigs), ref_file, ref_name)
     }
     
     // Split the tuple into 3 separate channels for the process
