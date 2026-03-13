@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
+include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -54,13 +55,16 @@ workflow HCVPIPE {
         ch_for_mapping = ch_prepped.map { run_name, sample_id, read1, read2 ->
             [run_name, sample_id, read1, read2, genome_file, genome_name]
         }
-        ch_for_mapping.view { "MAP_INPUT: $it" }
         MAP_READS(ch_for_mapping)
         ch_mapped = MAP_READS.out.bams
     } else {
         ch_mapped = ch_prepped
     }
 
-    // Output - just publish the preprocessed reads
-    ch_mapped.view { "Final bams: $it" }
+    // Step 4: Spades assembly
+    ASSEMBLE_SPADES(ch_prepped)
+    ch_assembly = ASSEMBLE_SPADES.out.contigs
+    
+    // Output
+    ch_assembly.view { "Assembly: $it" }
 }
