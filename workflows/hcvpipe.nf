@@ -54,16 +54,13 @@ workflow HCVPIPE {
     }
 
     // Determine references: single genome or all in ref_dir
-    def ch_references
     if (params.genome) {
-        // Single genome specified
         def genome_file = file(params.genome)
-        ch_references = Channel.value([tuple(genome_file.simpleName, genome_file)])
+        ch_references = Channel.value(tuple(genome_file.simpleName, genome_file))
     } else if (params.ref_dir) {
-        // Use all genomes in ref_dir
         def ref_dir = file(params.ref_dir)
         ch_references = Channel.fromPath("${ref_dir}/*.fa")
-            .map { it -> [it.simpleName, it] }
+            .map { tuple(it.simpleName, it) }
     } else {
         error "Must specify either --genome or --ref_dir"
     }
@@ -80,16 +77,68 @@ workflow HCVPIPE {
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
     // Step 5: Hybrid assembly with mummer
-    // Map each assembly to each reference
-    ch_hybrid_input = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
-        [run_name, sample_id, contigs, ref_file, ref_name]
+    // Map each assembly to each reference - build hybrid for EACH ref
+    // Create separate channels for each input
+    ch_references_list = ch_references.collect()
+    
+    ch_hybrid_tuple = ch_assembly.combine(ch_references_list).map { run_name, sample_id, contigs, ref_name, ref_file ->
+        [ [run_name, sample_id, contigs], ref_file, ref_name ]
     }
     
-    ASSEMBLE_HYBRID(ch_hybrid_input)
+    // Split the tuple into 3 separate channels for the process
+    ch_hybrid_contigs = ch_hybrid_tuple.map { it[0] }
+    ch_hybrid_ref = ch_hybrid_tuple.map { it[1] }
+    ch_hybrid_refname = ch_hybrid_tuple.map { it[2] }
+    
+    ASSEMBLE_HYBRID(ch_hybrid_contigs, ch_hybrid_ref, ch_hybrid_refname)
     ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
-    // (Polishing - to be implemented)
+    // Step 6: Select best reference based on mapping stats (use first for now)
+    // In production, would parse stats to find lowest error rate
+    // ch_references is a value channel, so we can just use it directly
     
-    // Output
-    ch_hybrid.view { "Final hybrid assemblies: $it" }
+    // (Polishing loop - 10 iterations - to be implemented)
+    
+    // Step 7: Variant calling on mapped reads (using original mapping to refs)
+    ch_variant_input = ch_mapped.map { run_name, sample_id, bam, bai, ref_file, ref_name ->
+        [run_name, sample_id, bam, bai, ref_file, ref_name]
+    }
+    
+    VARIANT_CALLING(ch_variant_input)
+    ch_vcf = VARIANT_CALLING.out.vcf
+
+    // Step 8: Create consensus from VCF
+    ch_consensus_input = ch_vcf.combine(ch_references).map { run_name, sample_id, vcf, vcf_idx, ref_file, ref_name ->
+        [run_name, sample_id, vcf, ref_file, file(ref_file + '.fai')]
+    }
+    
+    CREATE_CONSENSUS(ch_consensus_input, "0.15")
+    ch_consensus = CREATE_CONSENSUS.out.fasta
+
+    // Step 9: Subtype with BLAST
+    // Get blast db from params or use default
+    def blast_db = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
+    ch_subtype_tuple = ch_consensus.map { run_name, sample_id, fasta ->
+        [ [run_name, sample_id, fasta], blast_db ]
+    }
+    ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
+    ch_subtype_db = ch_subtype_tuple.map { it[1] }
+    
+    SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+
+    // Step 10: Annotate with VADR
+    def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
+    ch_vadr_tuple = ch_consensus.map { run_name, sample_id, fasta ->
+        [ [run_name, sample_id, fasta], vadr_model ]
+    }
+    ch_vadr_fasta = ch_vadr_tuple.map { it[0] }
+    ch_vadr_model = ch_vadr_tuple.map { it[1] }
+    
+    ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
+
+    // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype)
+    // For now, skip as it requires more complex input handling
+    
+    // Output final results
+    ch_consensus.view { "Final consensus: $it" }
 }
