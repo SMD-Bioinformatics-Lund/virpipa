@@ -52,8 +52,8 @@ process MAP_READS {
             -p -C ref_copy/\${ref_base} consensus.fastq.gz | \\
         ${sentieon} util sort -i - --sam2bam --umi_post_process -o ${sample_id}-${genome_name}.bam
         
-        # Index
-        ${sentieon} util index -a bwa ${sample_id}-${genome_name}.bam
+        # Index using bwa index (not sentieon util index)
+        ${sentieon} bwa index ref_copy/\${ref_base}
         
         # Stats
         ${sentieon} util stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
