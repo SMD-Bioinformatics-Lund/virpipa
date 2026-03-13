@@ -9,9 +9,7 @@ process POLISH_PILON {
     publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy'
     
     input:
-        tuple val(run_name), val(sample_id), path(bam), path(bai)
-        path assembly
-        val assembly_name
+        tuple val(run_name), val(sample_id), path(bam), path(bai), path(assembly), val(assembly_name)
     
     output:
         path "*.fasta", emit: polished
