@@ -80,7 +80,11 @@ workflow HCVPIPE {
 
     // Step 6: Polish with pilon
     if (params.genome) {
-        // Combine hybrid assembly with mapped BAM
+        // Combine hybrid assembly with mapped BAM: join on [run_name, sample_id]
+        // ch_hybrid: [run_name, sample_id, hybrid_fasta]
+        // ch_mapped: [run_name, sample_id, bam, bai]
+        // After join: [run_name, sample_id, hybrid_fasta, bam, bai]
+        // Need: [run_name, sample_id, bam, bai, hybrid_fasta, assembly_name]
         ch_polish_data = ch_hybrid.join(ch_mapped).map { run_name, sample_id, hybrid, bam, bai ->
             [run_name, sample_id, bam, bai, hybrid, sample_id]
         }
