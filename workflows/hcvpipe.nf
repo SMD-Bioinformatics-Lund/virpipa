@@ -135,7 +135,9 @@ workflow HCVPIPE {
     // Step 6b: Create CRAM from polished BAM
     ch_cram_input = ch_pilon_bam_with_index.combine(ch_best_ref_with_name)
         .map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
-            [run_name, sample_id, bam, bai, ref_fasta]
+            // Get absolute path for ref_fasta
+            def ref_abs = ref_fasta.toAbsolutePath()
+            [run_name, sample_id, bam, bai, ref_abs]
         }
     
     CREATE_CRAM(ch_cram_input, "pilon")
@@ -144,7 +146,8 @@ workflow HCVPIPE {
     ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices).map { run_name, sample_id, cram, crai ->
         [run_name, sample_id, cram, crai]
     }.combine(ch_best_ref_with_name).map { run_name, sample_id, cram, crai, ref_run, ref_sample, ref_name, ref_fasta ->
-        [run_name, sample_id, cram, crai, ref_fasta]
+        def ref_abs = ref_fasta.toAbsolutePath()
+        [run_name, sample_id, cram, crai, ref_abs]
     }
     
     LOG_COVERAGE(ch_coverage_input)
