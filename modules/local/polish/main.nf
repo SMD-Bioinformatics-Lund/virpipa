@@ -31,11 +31,6 @@ process POLISH_PILON_LOOP {
         def maxpolish = 10
         
         """
-        # Write shell script to file
-        cat > polish.sh << 'SCRIPT'
-        #!/bin/bash
-        set -e
-        
         hybrid_fa="${hybrid_assembly}"
         sample="${sample}"
         run_name="${run_name}"
@@ -49,9 +44,17 @@ process POLISH_PILON_LOOP {
             local name=\$2
             
             ref_base=\$(basename \${ref})
+            ref_dir=\$(dirname \${ref})
             mkdir -p ref_\${name}
             cp -L \${ref} ref_\${name}/
+            cp \${ref_dir}/\${ref_base}.* ref_\${name}/ 2>/dev/null || true
             
+            # Create index if not exists
+            if [[ ! -f ref_\${name}/\${ref_base}.bwt ]]; then
+                ${sentieon} bwa index ref_\${name}/\${ref_base}
+            fi
+            
+            # Map using sentieon UMI workflow
             ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
             ${sentieon} bwa mem \\
                 -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
@@ -130,10 +133,6 @@ process POLISH_PILON_LOOP {
         cp \${sample}-pilon.bam.bai \${outdir}/\${sample}-pilon.bam.bai
         cp \${outdir}/\${sample}.fasta ./
         cp \${outdir}/\${sample}.fasta.fai ./
-        SCRIPT
-        
-        chmod +x polish.sh
-        ./polish.sh
         """
     } else {
         error "POLISH_PILON_LOOP requires use_sentieon=true and container_dir"
