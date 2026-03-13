@@ -23,7 +23,7 @@ process ASSEMBLE_SPADES {
         def spades = "apptainer exec -B ${bind_paths} ${container_dir}/spades_3.15.5.sif spades.py"
         
         """
-        ${spades} -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
+        ${spades} --rnaviral -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
         mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
         """
@@ -34,7 +34,7 @@ process ASSEMBLE_SPADES {
         """
         export PATH="${mamba_env}/bin:\$PATH"
         
-        spades.py -k 21,33,55,77,99,127 --careful -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
+        spades.py --rnaviral -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
         mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
         """
