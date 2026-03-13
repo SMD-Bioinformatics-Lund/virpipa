@@ -12,7 +12,7 @@ process ASSEMBLE_SPADES {
         tuple val(run_name), val(sample_id), path(read1), path(read2)
     
     output:
-        tuple val(run_name), val(sample_id), path("${sample_id}.spades"), emit: contigs
+        tuple val(run_name), val(sample_id), path("${sample_id}.spades.fasta"), emit: contigs
         path "${sample_id}.spades/*.txt", emit: logs
     
     script:
@@ -25,7 +25,7 @@ process ASSEMBLE_SPADES {
         """
         ${spades} --rnaviral -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
-        mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
+        cp ${sample_id}.spades/contigs.fasta ${sample_id}.spades.fasta
         """
     } else {
         // Direct execution (local testing with mamba)
@@ -36,7 +36,7 @@ process ASSEMBLE_SPADES {
         
         spades.py --rnaviral -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
         
-        mv ${sample_id}.spades/contigs.fasta ${sample_id}.spades 2>/dev/null || true
+        cp ${sample_id}.spades/contigs.fasta ${sample_id}.spades.fasta
         """
     }
 }
