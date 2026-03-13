@@ -134,20 +134,21 @@ workflow HCVPIPE {
     ch_pilon_bai = POLISH_PILON_LOOP.out.final_bai
     
     // Step 6b: Create CRAM from polished BAM
-    ch_cram_input = ch_pilon_bam.join(ch_pilon_bai)
-        .combine(ch_best_ref_with_name)
-        .map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
-            [run_name, sample_id, bam, bai, ref_fasta]
-        }
+    // Combine bam+bai with best_ref to get ref_fasta
+    ch_cram_input = ch_pilon_bam.join(ch_pilon_bai).map { run_name, sample_id, bam, bai ->
+        [run_name, sample_id, bam, bai]
+    }.combine(ch_best_ref_with_name).map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
+        [run_name, sample_id, bam, bai, ref_fasta]
+    }
     
     CREATE_CRAM(ch_cram_input, "pilon")
     
     // Step 6c: Log coverage from CRAM
-    ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
-        .combine(ch_best_ref_with_name)
-        .map { run_name, sample_id, cram, crai, ref_run, ref_sample, ref_name, ref_fasta ->
-            [run_name, sample_id, cram, crai, ref_fasta]
-        }
+    ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices).map { run_name, sample_id, cram, crai ->
+        [run_name, sample_id, cram, crai]
+    }.combine(ch_best_ref_with_name).map { run_name, sample_id, cram, crai, ref_run, ref_sample, ref_name, ref_fasta ->
+        [run_name, sample_id, cram, crai, ref_fasta]
+    }
     
     LOG_COVERAGE(ch_coverage_input)
     
