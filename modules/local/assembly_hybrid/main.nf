@@ -41,9 +41,9 @@ process ASSEMBLE_HYBRID {
             ${ref_genome} ${contigs} ${sample_id}.tiling ${sample_id} \\
             2> ${sample_id}-hybrid-ref.log
         
-        # Index hybrid
+        # Index hybrid (bwa index optional - container may not exist on HPC)
         ${samtools} faidx ${sample_id}.hybrid.fasta
-        ${bwa} index ${sample_id}.hybrid.fasta
+        ${bwa} index ${sample_id}.hybrid.fasta 2>/dev/null || true
         """
     } else {
         def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
