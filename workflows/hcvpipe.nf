@@ -101,7 +101,12 @@ workflow HCVPIPE {
         [ [run_name, sample_id, contigs], best_ref_file, best_ref_name ]
     }
     
-    ASSEMBLE_HYBRID(ch_hybrid_input)
+    // Split the tuple into 3 separate channels for the process
+    ch_hybrid_contigs = ch_hybrid_input.map { it[0] }
+    ch_hybrid_ref = ch_hybrid_input.map { it[1] }
+    ch_hybrid_refname = ch_hybrid_input.map { it[2] }
+    
+    ASSEMBLE_HYBRID(ch_hybrid_contigs, ch_hybrid_ref, ch_hybrid_refname)
     ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
     // (Polishing loop - 10 iterations - to be implemented)
