@@ -70,20 +70,21 @@ ns3startpos=$(grep 'ID:NS3' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | he
 ns5astartpos=$(grep 'ID:NS5A' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | head -n 1)
 ns5bstartpos=$(grep 'ID:NS5B' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | head -n 1)
 
-# Create/overwrite bed file
+# Create vadr subdirectory and bed file
+mkdir -p "${resultsdir}/vadr"
 > "${resultsdir}/vadr/${id}.vadr.bed"
 
 for i in "${ns3mut[@]}" ; do
 	pos=$(( i*3+ns3startpos-3 ))
-	printf "%s\t%s\t%s\tNS3-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" | tee -a "${resultsdir}/vadr/${id}.vadr.bed"
+	printf "%s\t%s\t%s\tNS3-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" >> "${resultsdir}/vadr/${id}.vadr.bed"
 done
 
 for i in "${ns5amut[@]}" ; do
 	pos=$(( i*3+ns5astartpos-3 ))
-	printf "%s\t%s\t%s\tNS5A-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" | tee -a "${resultsdir}/vadr/${id}.vadr.bed"
+	printf "%s\t%s\t%s\tNS5A-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" >> "${resultsdir}/vadr/${id}.vadr.bed"
 done
 
 for i in "${ns5bmut[@]}" ; do
 	pos=$(( i*3+ns5bstartpos-3 ))
-	printf "%s\t%s\t%s\tNS5B-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" | tee -a "${resultsdir}/vadr/${id}.vadr.bed"
+	printf "%s\t%s\t%s\tNS5B-%s\n" "$id" "$((pos-1))" "$((pos+2))" "$i" >> "${resultsdir}/vadr/${id}.vadr.bed"
 done
