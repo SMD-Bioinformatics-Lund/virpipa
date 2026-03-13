@@ -100,11 +100,13 @@ workflow HCVPIPE {
     }
 
     // Step 5b: Hybrid assembly with best reference
-    // Join assembly with best ref by sample
+    // Join assembly with best ref by sample (run_name, sample_id)
     ch_assembly_for_join = ch_assembly.map { it -> tuple(it[0], it[1], it[2]) }
     
-    ch_hybrid_input = ch_assembly_for_join.join(ch_best_ref_with_name).map { run_name, sample_id, contigs, ref_name, ref_file ->
-        tuple(tuple(run_name, sample_id, contigs), ref_file, ref_name)
+    ch_hybrid_input = ch_assembly_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, contigs, ref_info ->
+        def ref_name = ref_info[0]
+        def ref_file = ref_info[1]
+        tuple(tuple(key[0], key[1], contigs), ref_file, ref_name)
     }
     
     // Split the tuple into 3 separate channels for the process
@@ -118,17 +120,15 @@ workflow HCVPIPE {
     // (Polishing loop - 10 iterations - to be implemented)
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
-    // Filter mapped bams to only keep those matching best reference
-    // ch_mapped: (run_name, sample_id, bam, bai)
-    // ch_best_ref_with_name: (run_name, sample_id, ref_name, ref_file)
-    // Use join to get matching samples
-    ch_mapped_for_var = ch_mapped.map { it -> tuple(it[0], it[1], it[2], it[3]) }
-    ch_ref_for_join = ch_best_ref_with_name.map { it -> tuple(it[0], it[1], it[2], it[3]) }
+    // Join on (run_name, sample_id)
+    ch_mapped_for_join = ch_mapped.map { it -> tuple(it[0], it[1], it[2], it[3]) }
     
-    ch_mapped_best = ch_mapped_for_var.join(ch_ref_for_join).map { run_name, sample_id, bam_bai, ref_name, ref_file ->
+    ch_mapped_best = ch_mapped_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, bam_bai, ref_info ->
+        def ref_name = ref_info[0]
+        def ref_file = ref_info[1]
         def bam = bam_bai[0]
         def bai = bam_bai[1]
-        tuple(run_name, sample_id, bam, bai, ref_file, ref_name)
+        tuple(key[0], key[1], bam, bai, ref_file, ref_name)
     }
     
     VARIANT_CALLING(ch_mapped_best)
@@ -138,16 +138,18 @@ workflow HCVPIPE {
     // ch_vcf has: (run_name, sample_id, vcf, vcf_idx)
     ch_vcf_for_join = ch_vcf.map { it -> tuple(it[0], it[1], it[2]) }
     
-    ch_consensus_input = ch_vcf_for_join.join(ch_ref_for_join).map { run_name, sample_id, vcf, ref_name, ref_file ->
-        tuple(run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai'))
+    ch_consensus_input = ch_vcf_for_join.join(ch_best_ref_with_name, by: [0,1]).map { key, vcf, ref_info ->
+        def ref_name = ref_info[0]
+        def ref_file = ref_info[1]
+        tuple(key[0], key[1], vcf, ref_file, file(ref_file.toString() + '.fai'))
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
     // Get consensus with sample metadata
     ch_consensus_with_meta = ch_consensus_input.map { run_name, sample_id, vcf, ref_file, fai ->
-        [run_name, sample_id]
+        tuple(run_name, sample_id)
     }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, fasta ->
-        [run_name, sample_id, fasta]
+        tuple(run_name, sample_id, fasta)
     }
 
     // Step 9: Subtype with BLAST
