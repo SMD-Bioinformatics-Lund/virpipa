@@ -14,21 +14,26 @@ process ANNOTATE_RESISTANCE {
         path rules_csv
     
     output:
-        path "*_resistance.tsv", emit: tsv
-        path "*_resistance.bed", emit: bed
-        path "*_resistance_by_drug.tsv", emit: drug_tsv
+        path "*_resistance.tsv", emit: tsv, optional: true
+        path "*_resistance.bed", emit: bed, optional: true  
+        path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
     
     script:
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
     """
-    python ${scripts_dir}/annotate_vcf_resistance.py \\
-        --vcf ${vcf} \\
-        --gff ${gff} \\
-        --fasta ${fasta} \\
-        --subtype ${subtype} \\
-        --sample-name ${sample_id} \\
-        --rules ${rules_csv} \\
-        --output-dir .
+    if [[ -f "${rules_csv}" ]]; then
+        python ${scripts_dir}/annotate_vcf_resistance.py \
+            --vcf ${vcf} \
+            --gff ${gff} \
+            --fasta ${fasta} \
+            --subtype ${subtype} \
+            --sample-name ${sample_id} \
+            --rules ${rules_csv} \
+            --output-dir .
+    else
+        echo "WARNING: Resistance rules not found at ${rules_csv}, skipping"
+        touch ${sample_id}_skipped.txt
+    fi
     """
 }

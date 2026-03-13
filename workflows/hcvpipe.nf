@@ -224,36 +224,31 @@ workflow HCVPIPE {
     
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
     // Use hbv_result_rules.csv from assets as default
-    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
-    def rules_csv = file(rules_path, checkIfExists: true)
+    rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
+    rules_csv = file(rules_path)
     
-    if (rules_csv.exists()) {
-        // Get subtype from BLAST results - for now use a placeholder or extract from consensus header
-        // TODO: Connect BLAST subtype to resistance annotation
-        ch_resistance_input = ch_vcf.cross(ch_vadr_gff)
-            .filter { vcf, gff -> vcf[1] == gff[1] }
-            .map { vcf, gff ->
-                tuple(vcf[0], vcf[1], vcf[2], gff[2])
-            }
-        
-        // Add consensus fasta and placeholder subtype
-        ch_resistance_with_fasta = ch_resistance_input.combine(ch_consensus_with_meta)
-            .map { run_name, sample_id, vcf, gff, consensus ->
-                tuple(run_name, sample_id, vcf, gff, consensus)
-            }
-        
-        // For now, use a default subtype - in production this would come from BLAST
-        ch_resistance_full = ch_resistance_with_fasta.map { run_name, sample_id, vcf, gff, fasta ->
-            tuple(tuple(run_name, sample_id, vcf, gff, fasta), '1a')
+    // Get VCF, GFF, consensus fasta and combine
+    ch_resistance_input = ch_vcf.cross(ch_vadr_gff)
+        .filter { vcf, gff -> vcf[1] == gff[1] }
+        .map { vcf, gff ->
+            tuple(vcf[0], vcf[1], vcf[2], gff[2])
         }
-        
-        ch_resistance_vcf = ch_resistance_full.map { it[0] }
-        ch_resistance_subtype = ch_resistance_full.map { it[1] }
-        
-        ANNOTATE_RESISTANCE(ch_resistance_vcf, ch_resistance_subtype, rules_csv)
-    } else {
-        println "WARNING: Resistance rules not found at ${rules_csv}, skipping ANNOTATE_RESISTANCE"
+    
+    // Add consensus fasta and placeholder subtype
+    ch_resistance_with_fasta = ch_resistance_input.combine(ch_consensus_with_meta)
+        .map { run_name, sample_id, vcf, gff, consensus ->
+            tuple(run_name, sample_id, vcf, gff, consensus)
+        }
+    
+    // For now, use a default subtype - in production this would come from BLAST
+    ch_resistance_full = ch_resistance_with_fasta.map { run_name, sample_id, vcf, gff, fasta ->
+        tuple(tuple(run_name, sample_id, vcf, gff, fasta), '1a')
     }
+    
+    ch_resistance_vcf = ch_resistance_full.map { it[0] }
+    ch_resistance_subtype = ch_resistance_full.map { it[1] }
+    
+    ANNOTATE_RESISTANCE(ch_resistance_vcf, ch_resistance_subtype, rules_csv)
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }
