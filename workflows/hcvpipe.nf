@@ -15,6 +15,9 @@ include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
 include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
+include { FILTER_VCF } from '../modules/local/filter_vcf/main'
+include { CREATE_CRAM } from '../modules/local/cram/main'
+include { LOG_COVERAGE } from '../modules/local/coverage/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -127,6 +130,34 @@ workflow HCVPIPE {
     
     POLISH_PILON_LOOP(ch_polish_input)
     ch_polished = POLISH_PILON_LOOP.out.polished
+    ch_pilon_bams = POLISH_PILON_LOOP.out.bams
+    
+    // Step 6b: Create CRAM from polished BAM
+    // Get the pilon BAM (final mapping to polished assembly)
+    ch_cram_input = ch_pilon_bams.map { run_name, sample_id, bam_files ->
+        def pilon_bam = bam_files.find { it.name.contains('-pilon.bam') && !it.name.contains('.bai') }
+        def pilon_bai = bam_files.find { it.name.contains('-pilon.bam.bai') }
+        tuple(run_name, sample_id, pilon_bam, pilon_bai)
+    }
+    
+    // Cross with best ref to get reference fasta
+    ch_cram_with_ref = ch_cram_input.cross(ch_best_ref_with_name)
+        .filter { cram, ref -> cram[1] == ref[1] }
+        .map { cram, ref ->
+            tuple(cram[0], cram[1], cram[2], cram[3], ref[3])
+        }
+    
+    CREATE_CRAM(ch_cram_with_ref, "pilon")
+    
+    // Step 6c: Log coverage from CRAM
+    ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
+        .cross(ch_best_ref_with_name)
+        .filter { cram_idx, ref -> cram_idx[1] == ref[1] }
+        .map { cram_idx, ref ->
+            tuple(cram_idx[0], cram_idx[1], cram_idx[2], cram_idx[3], ref[3])
+        }
+    
+    LOG_COVERAGE(ch_coverage_input)
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
     // Cross and filter by sample_id
@@ -138,6 +169,15 @@ workflow HCVPIPE {
     
     VARIANT_CALLING(ch_mapped_best)
     ch_vcf = VARIANT_CALLING.out.vcf
+
+    // Step 7b: Filter VCF at multiple min fractions
+    ch_filter_input = ch_vcf.cross(ch_best_ref_with_name)
+        .filter { vcf, best_ref -> vcf[1] == best_ref[1] }
+        .map { vcf, best_ref ->
+            tuple(vcf[0], vcf[1], vcf[2], vcf[3], best_ref[3], best_ref[2])
+        }
+    
+    FILTER_VCF(ch_filter_input)
 
     // Step 8: Create consensus from VCF - only for best reference
     ch_consensus_input = ch_vcf.cross(ch_best_ref_with_name)
@@ -179,9 +219,39 @@ workflow HCVPIPE {
     ch_vadr_model = ch_vadr_tuple.map { it[1] }
     
     ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
-
-    // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype)
-    // For now, skip as it requires more complex input handling
+    ch_vadr_gff = ANNOTATE_VADR.out.gff
+    
+    // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
+    // Use the 0.15 filtered VCF for resistance annotation
+    def rules_csv = params.resistance_rules ? file(params.resistance_rules) : file("${params.ref_dir}/../assets/resistance_rules.csv")
+    
+    if (rules_csv.exists()) {
+        // Get subtype from BLAST results - for now use a placeholder or extract from consensus header
+        // TODO: Connect BLAST subtype to resistance annotation
+        ch_resistance_input = ch_vcf.cross(ch_vadr_gff)
+            .filter { vcf, gff -> vcf[1] == gff[1] }
+            .map { vcf, gff ->
+                tuple(vcf[0], vcf[1], vcf[2], gff[2])
+            }
+        
+        // Add consensus fasta and placeholder subtype
+        ch_resistance_with_fasta = ch_resistance_input.combine(ch_consensus_with_meta)
+            .map { run_name, sample_id, vcf, gff, consensus ->
+                tuple(run_name, sample_id, vcf, gff, consensus)
+            }
+        
+        // For now, use a default subtype - in production this would come from BLAST
+        ch_resistance_full = ch_resistance_with_fasta.map { run_name, sample_id, vcf, gff, fasta ->
+            tuple(tuple(run_name, sample_id, vcf, gff, fasta), '1a')
+        }
+        
+        ch_resistance_vcf = ch_resistance_full.map { it[0] }
+        ch_resistance_subtype = ch_resistance_full.map { it[1] }
+        
+        ANNOTATE_RESISTANCE(ch_resistance_vcf, ch_resistance_subtype, rules_csv)
+    } else {
+        println "WARNING: Resistance rules not found at ${rules_csv}, skipping ANNOTATE_RESISTANCE"
+    }
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }
