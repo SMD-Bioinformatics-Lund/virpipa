@@ -15,7 +15,6 @@ process SELECT_BEST_REFERENCE {
         path "*.txt", emit: log
     
     script:
-    def ref_dir_param = params.ref_dir ?: ref_dir
     """
     # Find the reference with lowest error rate from stats files
     
@@ -29,8 +28,8 @@ process SELECT_BEST_REFERENCE {
         # Extract ref name - the stats file has pattern: SAMPLE001-1a-AF009606.bwa.umi.filter.sort.bam.stats
         refname=\$(basename "\$stats" | sed 's/.*-\\([^.]*\\).bwa.umi.filter.sort.bam.stats/\\1/')
         
-        # Get error rate from stats file
-        errrate=\$(awk '\$1=="SN" && \$2=="error" && \$3=="rate:" { print \$4; exit }' "\$stats")
+        # Get error rate from stats file (convert scientific notation to decimal for bc)
+        errrate=\$(awk '\$1=="SN" && \$2=="error" && \$3=="rate:" { printf "%.6f", \$4; exit }' "\$stats")
         
         [[ -z "\$errrate" ]] && continue
         
@@ -45,7 +44,7 @@ process SELECT_BEST_REFERENCE {
     echo "Best reference: \$best_ref with error rate \$best_err" > best_ref.log
     
     # Find the reference file in ref_dir
-    best_file="\${ref_dir_param}/\${best_ref}.fa"
+    best_file="${ref_dir}/\${best_ref}.fa"
     
     if [[ ! -f "\$best_file" ]]; then
         echo "ERROR: Could not find ref file: \$best_file"
