@@ -133,31 +133,28 @@ workflow HCVPIPE {
     ch_pilon_bam_with_index = POLISH_PILON_LOOP.out.final_bam_with_index
     
     // Step 6b: Create CRAM from polished BAM
-    // Since there's one sample, just collect and combine
-    ch_polished_list = ch_polished.collect()
-    ch_pilon_list = ch_pilon_bam_with_index.collect()
+    // Use cross and filter since join is not working well
+    ch_polished_simple = ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
+    ch_pilon_simple = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
     
-    ch_cram_input = ch_polished_list.join(ch_pilon_list)
-        .map { run_name, sample_id, fasta, bam, bai ->
-            def fasta_abs = fasta.toAbsolutePath()
-            [run_name, sample_id, bam, bai, fasta_abs]
+    ch_cram_input = ch_polished_simple.cross(ch_pilon_simple)
+        .filter { polish, bam -> polish[0] == bam[0] }
+        .map { polish, bam ->
+            def fasta_abs = polish[2].toAbsolutePath()
+            [polish[1], polish[0], bam[2], bam[3], fasta_abs]
         }
     
     CREATE_CRAM(ch_cram_input, "pilon")
     
     // Step 6c: Log coverage from CRAM - use polished fasta as reference
-    ch_cram_output = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
-        .map { run_name, sample_id, cram, crai ->
-            [run_name, sample_id, cram, crai]
-        }
-    ch_polished_for_cov = ch_polished.map { run_name, sample_id, fasta, fai ->
-        [run_name, sample_id, fasta]
-    }
+    ch_cram_out_simple = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
+        .map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] }
     
-    ch_coverage_input = ch_cram_output.join(ch_polished_for_cov)
-        .map { run_name, sample_id, cram, crai, fasta ->
-            def fasta_abs = fasta.toAbsolutePath()
-            [run_name, sample_id, cram, crai, fasta_abs]
+    ch_coverage_input = ch_cram_out_simple.cross(ch_polished_simple)
+        .filter { cram, polish -> cram[0] == polish[0] }
+        .map { cram, polish ->
+            def fasta_abs = polish[2].toAbsolutePath()
+            [cram[1], cram[0], cram[2], cram[3], fasta_abs]
         }
     
     LOG_COVERAGE(ch_coverage_input)
