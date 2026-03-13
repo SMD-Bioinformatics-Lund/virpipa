@@ -145,9 +145,10 @@ workflow HCVPIPE {
         }
     
     CREATE_CRAM(ch_cram_input, "pilon")
+    ch_cram_output = CREATE_CRAM.out.cram_with_index
     
     // Step 6c: Log coverage from CRAM - use polished fasta as reference
-    ch_cram_out_simple = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
+    ch_cram_out_simple = ch_cram_output
         .map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] }
     
     ch_coverage_input = ch_cram_out_simple.cross(ch_polished_simple)

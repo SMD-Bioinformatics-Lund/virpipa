@@ -13,8 +13,7 @@ process CREATE_CRAM {
         val(bam_base)
     
     output:
-        path "*.cram", emit: crams
-        path "*.cram.crai", emit: indices
+        tuple val(run_name), val(sample_id), path("*.cram"), path("*.cram.crai"), emit: cram_with_index
     
     script:
     def container_dir = params.container_dir
