@@ -78,7 +78,8 @@ workflow HCVPIPE {
         ch_hybrid = ch_assembly
     }
 
-    // Step 6: (Skip polish for now - requires mapping to hybrid assembly)
+    // Step 6: (Polishing - to be implemented)
+    // Would need to: 1) index hybrid assembly with bwa, 2) map reads to hybrid, 3) run pilon
     ch_polished = ch_hybrid
     
     // Output
