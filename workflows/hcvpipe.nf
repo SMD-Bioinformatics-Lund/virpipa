@@ -223,32 +223,31 @@ workflow HCVPIPE {
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
-    // Use hbv_result_rules.csv from assets as default
     rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
     rules_csv = file(rules_path)
     
-    // Get VCF, GFF, consensus fasta and combine
-    ch_resistance_input = ch_vcf.cross(ch_vadr_gff)
+    // Debug: print channel contents
+    // ch_vcf.view { "VCF: $it" }
+    // ch_vadr_gff.view { "GFF: $it" }
+    // ch_consensus_with_meta.view { "Consensus: $it" }
+    
+    // Combine VCF with GFF by sample_id
+    ch_vcf_gff = ch_vcf.cross(ch_vadr_gff)
         .filter { vcf, gff -> vcf[1] == gff[1] }
-        .map { vcf, gff ->
-            tuple(vcf[0], vcf[1], vcf[2], gff[2])
+        .map { vcf, gff -> [vcf[0], vcf[1], vcf[2], gff[2]] }
+    
+    // Add consensus fasta 
+    ch_resistance_input = ch_vcf_gff.combine(ch_consensus_with_meta)
+        .map { run_name, sample_id, vcf, gff, cons_run, cons_sample, cons_fasta ->
+            [run_name, sample_id, vcf, gff, cons_fasta]
         }
     
-    // Add consensus fasta and placeholder subtype
-    ch_resistance_with_fasta = ch_resistance_input.combine(ch_consensus_with_meta)
-        .map { run_name, sample_id, vcf, gff, consensus ->
-            tuple(run_name, sample_id, vcf, gff, consensus)
-        }
-    
-    // For now, use a default subtype - in production this would come from BLAST
-    ch_resistance_full = ch_resistance_with_fasta.map { run_name, sample_id, vcf, gff, fasta ->
-        tuple(tuple(run_name, sample_id, vcf, gff, fasta), '1a')
+    // Add placeholder subtype
+    ch_resistance_full = ch_resistance_input.map { run_name, sample_id, vcf, gff, fasta ->
+        [tuple(run_name, sample_id, vcf, gff, fasta), '1a']
     }
     
-    ch_resistance_vcf = ch_resistance_full.map { it[0] }
-    ch_resistance_subtype = ch_resistance_full.map { it[1] }
-    
-    ANNOTATE_RESISTANCE(ch_resistance_vcf, ch_resistance_subtype, rules_csv)
+    ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_csv)
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }
