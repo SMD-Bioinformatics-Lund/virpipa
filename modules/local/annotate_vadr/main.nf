@@ -13,7 +13,7 @@ process ANNOTATE_VADR {
         val vadr_model
     
     output:
-        path "*_mod.gff", emit: gff
+        tuple val(run_name), val(sample_id), path("*_mod.gff"), emit: gff
         path "*.bed", emit: bed
         path "*.tbl", emit: logs
     
