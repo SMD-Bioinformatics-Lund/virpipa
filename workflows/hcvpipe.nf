@@ -54,6 +54,7 @@ workflow HCVPIPE {
         ch_for_mapping = ch_prepped.map { run_name, sample_id, read1, read2 ->
             [run_name, sample_id, read1, read2, genome_file, genome_name]
         }
+        ch_for_mapping.view { "MAP_INPUT: $it" }
         MAP_READS(ch_for_mapping)
         ch_mapped = MAP_READS.out.bams
     } else {
