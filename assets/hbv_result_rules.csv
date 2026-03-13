@@ -1,5 +1,5 @@
 # Downloaded from: https://hcv.geno2pheno.org/index.php?page=Rules
-# Last updated: 2026-03-12 20:32:47
+# Last updated: 2026-03-13 17:54:55
 #
 Drugs,Region,Rule Definitions,Rule for Subtype,Drug licensed for genotype,Predictions,Reference
 Asunaprevir,NS3,155K,1a,1,resistant,McPhee et al. 2013;Jensen et al. 2015
