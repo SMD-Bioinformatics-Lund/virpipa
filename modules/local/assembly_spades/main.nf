@@ -12,8 +12,8 @@ process ASSEMBLE_SPADES {
         tuple val(run_name), val(sample_id), path(read1), path(read2)
     
     output:
-        path "*.spades", emit: contigs
-        path "*.txt", emit: logs
+        path "${sample_id}.spades", emit: contigs
+        path "${sample_id}.spades/*.txt", emit: logs
     
     script:
     def container_dir = params.container_dir
