@@ -130,16 +130,13 @@ workflow HCVPIPE {
     
     POLISH_PILON_LOOP(ch_polish_input)
     ch_polished = POLISH_PILON_LOOP.out.polished
-    ch_pilon_bam = POLISH_PILON_LOOP.out.final_bam
-    ch_pilon_bai = POLISH_PILON_LOOP.out.final_bai
+    ch_pilon_bam_with_index = POLISH_PILON_LOOP.out.final_bam_with_index
     
     // Step 6b: Create CRAM from polished BAM
-    // Combine bam+bai with best_ref to get ref_fasta
-    ch_cram_input = ch_pilon_bam.join(ch_pilon_bai).map { run_name, sample_id, bam, bai ->
-        [run_name, sample_id, bam, bai]
-    }.combine(ch_best_ref_with_name).map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
-        [run_name, sample_id, bam, bai, ref_fasta]
-    }
+    ch_cram_input = ch_pilon_bam_with_index.combine(ch_best_ref_with_name)
+        .map { run_name, sample_id, bam, bai, ref_run, ref_sample, ref_name, ref_fasta ->
+            [run_name, sample_id, bam, bai, ref_fasta]
+        }
     
     CREATE_CRAM(ch_cram_input, "pilon")
     

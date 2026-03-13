@@ -13,8 +13,7 @@ process POLISH_PILON_LOOP {
     
     output:
         tuple val(run_name), val(sample_id), path("*.fasta"), path("*.fai"), emit: polished
-        path "*pilon.bam", emit: final_bam
-        path "*pilon.bam.bai", emit: final_bai
+        tuple val(run_name), val(sample_id), path("*pilon.bam"), path("*pilon.bam.bai"), emit: final_bam_with_index
     
     script:
     def container_dir = params.container_dir
