@@ -170,6 +170,9 @@ workflow HCVPIPE {
     
     VARIANT_CALLING(ch_mapped_best)
     ch_vcf = VARIANT_CALLING.out.vcf
+    
+    // Save copy for resistance before using
+    ch_vcf_for_resistance = ch_vcf
 
     // Step 7b: Filter VCF at multiple min fractions
     ch_filter_input = ch_vcf.cross(ch_best_ref_with_name)
@@ -194,10 +197,16 @@ workflow HCVPIPE {
     }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, fasta ->
         tuple(run_name, sample_id, fasta)
     }
+    
+    // Save copy for resistance annotation (channels can only be used once)
+    ch_consensus_for_resistance = ch_consensus_with_meta
 
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default (directory containing hcvgluerefs)
     def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
+    
+    // Save consensus for resistance before using for BLAST
+    ch_consensus_for_blast = ch_consensus_with_meta
     
     if (blast_db_path.exists()) {
         ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
@@ -222,24 +231,27 @@ workflow HCVPIPE {
     ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
+    // Save GFF for resistance before using
+    ch_vadr_gff_for_resistance = ch_vadr_gff
+    
     // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
     rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
     rules_csv = file(rules_path)
     
     // Debug: print channel contents
-    ch_vcf.view { "VCF channel: $it" }
-    ch_vadr_gff.view { "GFF channel: $it" }
-    ch_consensus_with_meta.view { "Consensus channel: $it" }
+    ch_vcf_for_resistance.view { "VCF channel: $it" }
+    ch_vadr_gff_for_resistance.view { "GFF channel: $it" }
+    ch_consensus_for_resistance.view { "Consensus channel: $it" }
     
     // Combine VCF with GFF by sample_id
-    ch_vcf_gff = ch_vcf.cross(ch_vadr_gff)
+    ch_vcf_gff = ch_vcf_for_resistance.cross(ch_vadr_gff_for_resistance)
         .filter { vcf, gff -> vcf[1] == gff[1] }
         .map { vcf, gff -> [vcf[0], vcf[1], vcf[2], gff[2]] }
     
     ch_vcf_gff.view { "VCF+GFF combined: $it" }
     
     // Add consensus fasta 
-    ch_resistance_input = ch_vcf_gff.combine(ch_consensus_with_meta)
+    ch_resistance_input = ch_vcf_gff.combine(ch_consensus_for_resistance)
         .map { run_name, sample_id, vcf, gff, cons_run, cons_sample, cons_fasta ->
             [run_name, sample_id, vcf, gff, cons_fasta]
         }
