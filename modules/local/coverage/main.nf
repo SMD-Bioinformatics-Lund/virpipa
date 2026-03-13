@@ -27,27 +27,26 @@ process LOG_COVERAGE {
         ${samtools} coverage ${cram} > coverage_data.tsv
         
         # Transpose and format
-        awk 'NR==1 {for(i=1;i<=NF;i++) h[i]=\$i; next} {for(i=1;i<=NF;i++) d[i]=d[i] (d[i]?FS:"") \$i} END {for(i=1;i<=NF;i++) print h[i] FS d[i]}' coverage_data.tsv > ${sample_id}.coverage.tsv
+        awk 'NR==1 {for(i=1;i<=NF;i++) h[i]=\$i; next} {for(i=1;i<=NF;i++) d[i]=d[i] (d[i]?FS:"") \$i} END {for(i=1;i<=NF;i++) print h[i] FS d[i]}' coverage_data.tsv > \${sample_id}.coverage.tsv
         
-        # Calculate coverage at different thresholds
-        # Columns: coverage, bases, fraction
+        # Calculate coverage at different thresholds as percentages
+        # Columns in samtools coverage: rname,startpos,endpos,numreads,covbases,coverage,meandepth,meanbaseq,meanmapq
         awk '
         NR>1 {
-            cov=\$3
-            if (cov >= 1) c1++
-            if (cov >= 10) c10++
-            if (cov >= 100) c100++
-            if (cov >= 1000) c1000++
-            total++
+            covbases=\$5
+            total=\$3
+            if (covbases >= 1) c1+=covbases
+            if (covbases >= 10) c10+=covbases
+            if (covbases >= 100) c100+=covbases
+            if (covbases >= 1000) c1000+=covbases
+            total_len+=\$3
         }
         END {
-            if (total > 0) {
-                print "1x\t" c1/total
-                print "10x\t" c10/total  
-                print "100x\t" c100/total
-                print "1000x\t" c1000/total
+            if (total_len > 0) {
+                printf "id\t1x\t10x\t100x\t1000x\n"
+                printf "%s\t%.2f\t%.2f\t%.2f\t%.2f\n", "\${sample_id}", (c1/total_len)*100, (c10/total_len)*100, (c100/total_len)*100, (c1000/total_len)*100
             }
-        }' coverage_data.tsv > ${sample_id}-coverage.tsv
+        }' coverage_data.tsv > \${sample_id}-coverage.tsv
         
         rm coverage_header.tsv coverage_data.tsv
         """
