@@ -132,7 +132,6 @@ workflow HCVPIPE {
     }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, fasta ->
         [run_name, sample_id, fasta]
     }
-    }
 
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default
