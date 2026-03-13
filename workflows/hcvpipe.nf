@@ -82,11 +82,9 @@ workflow HCVPIPE {
     // Group stats by sample
     ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
     
-    // Collect refs
-    ch_refs_per_sample = ch_references.collect()
-    
-    ch_best_ref_input = ch_stats_per_sample.combine(ch_refs_per_sample).map { run_name, sample_id, stats_list, refs ->
-        [run_name, sample_id, stats_list, refs]
+    // Add ref_dir to the channel
+    ch_best_ref_input = ch_stats_per_sample.map { run_name, sample_id, stats_list ->
+        [run_name, sample_id, stats_list, params.ref_dir]
     }
     
     SELECT_BEST_REFERENCE(ch_best_ref_input)

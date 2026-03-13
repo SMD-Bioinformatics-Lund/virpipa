@@ -7,19 +7,17 @@ process SELECT_BEST_REFERENCE {
     time '10m'
     
     input:
-        tuple val(run_name), val(sample_id), path(stats_files), path(ref_files)
+        tuple val(run_name), val(sample_id), path(stats_files)
+        val ref_dir
     
     output:
         tuple val(run_name), val(sample_id), val(best_ref_name), path(best_ref_file), emit: best_ref
         path "*.txt", emit: log
     
     script:
+    def ref_dir_param = params.ref_dir ?: ref_dir
     """
-    # Copy ref files to work dir
-    cp *.fa . 2>/dev/null || true
-    
     # Find the reference with lowest error rate from stats files
-    # Stats file pattern: sample-refname.bwa.umi.filter.sort.bam.stats
     
     best_err=""
     best_ref=""
@@ -46,21 +44,15 @@ process SELECT_BEST_REFERENCE {
     
     echo "Best reference: \$best_ref with error rate \$best_err" > best_ref.log
     
-    # Find the actual reference file
-    for f in *.fa; do
-        base=\$(basename "\$f" .fa)
-        if [[ "\$base" == "\$best_ref" ]]; then
-            best_file="\$f"
-            break
-        fi
-    done
+    # Find the reference file in ref_dir
+    best_file="\${ref_dir_param}/\${best_ref}.fa"
     
-    if [[ -z "\$best_file" ]]; then
-        echo "ERROR: Could not find ref file for \$best_ref"
+    if [[ ! -f "\$best_file" ]]; then
+        echo "ERROR: Could not find ref file: \$best_file"
         exit 1
     fi
     
     echo "Best ref file: \$best_file"
-    echo "\$best_ref" > ref_name.txt
+    cp "\$best_file" .
     """
 }
