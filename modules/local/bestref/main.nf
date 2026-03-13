@@ -14,7 +14,11 @@ process SELECT_BEST_REFERENCE {
         path "*.txt", emit: log
     
     script:
+    def refDir = ref_dir
     """
+    # Get absolute path to ref_dir
+    REF_DIR=\$(readlink -f "${refDir}")
+    
     # Find the reference with lowest error rate from stats files
     
     best_err=""
@@ -44,11 +48,11 @@ process SELECT_BEST_REFERENCE {
     echo "Best reference: \$best_ref with error rate \$best_err" > best_ref.log
     
     # Find the reference file in ref_dir
-    best_file="\${ref_dir}/\${best_ref}.fa"
+    best_file="\${REF_DIR}/\${best_ref}.fa"
     
     if [[ ! -f "\$best_file" ]]; then
         echo "ERROR: Could not find ref file: \$best_file"
-        ls -la "\${ref_dir}/"*.fa | head -5
+        ls -la "\${REF_DIR}/"*.fa | head -5
         exit 1
     fi
     
