@@ -70,7 +70,8 @@ ns3startpos=$(grep 'ID:NS3' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | he
 ns5astartpos=$(grep 'ID:NS5A' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | head -n 1)
 ns5bstartpos=$(grep 'ID:NS5B' "${resultsdir}"/vadr/"${id}"*_mod.gff | cut -f4 | head -n 1)
 
-[[ -f ${resultsdir}/vadr/${id}.vadr.bed ]] && rm "${resultsdir}/vadr/${id}.vadr.bed"
+# Create/overwrite bed file
+> "${resultsdir}/vadr/${id}.vadr.bed"
 
 for i in "${ns3mut[@]}" ; do
 	pos=$(( i*3+ns3startpos-3 ))
