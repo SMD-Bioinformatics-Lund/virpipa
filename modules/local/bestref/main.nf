@@ -7,8 +7,7 @@ process SELECT_BEST_REFERENCE {
     time '10m'
     
     input:
-        tuple val(run_name), val(sample_id), path(stats_files)
-        val ref_dir
+        tuple val(run_name), val(sample_id), path(stats_files), val(ref_dir)
     
     output:
         tuple val(run_name), val(sample_id), val(best_ref_name), path(best_ref_file), emit: best_ref
