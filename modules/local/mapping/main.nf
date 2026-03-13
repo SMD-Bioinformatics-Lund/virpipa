@@ -27,16 +27,22 @@ process MAP_READS {
         def sentieon = "apptainer exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
         
         """
-        # UMI extraction and consensus
-        ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} -o umi_r1.fq.gz -O umi_r2.fq.gz
-        
-        # BWA alignment with UMI
+        # UMI extraction -> bwa mem -> umi consensus
+        ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
         ${sentieon} bwa mem \\
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
             -k 11 -B 2 -L 25 \\
-            -p -C ${genome} umi_r1.fq.gz umi_r2.fq.gz | \\
-        ${sentieon} util sort -i - --sam2bam -o ${sample_id}-${genome_name}.bam
+            -p -C ${genome} - | \\
+        ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
+        
+        # Align consensus reads
+        ${sentieon} bwa mem \\
+            -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
+            -t ${task.cpus} \\
+            -k 11 -B 2 -L 25 \\
+            -p -C ${genome} consensus.fastq.gz | \\
+        ${sentieon} util sort -i - --sam2bam --umi_post_process -o ${sample_id}-${genome_name}.bam
         
         # Index
         ${sentieon} util index -a bwa ${sample_id}-${genome_name}.bam
