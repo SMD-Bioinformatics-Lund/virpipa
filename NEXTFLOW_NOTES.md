@@ -13,21 +13,16 @@ Pipeline runs end-to-end with verified identical output to bash pipeline.
 - ASSEMBLE_HYBRID (mummer) ✅
 - POLISH_PILON_LOOP (10 iterations, convergence check) ✅
 - VARIANT_CALLING (bcftools) ✅
+- FILTER_VCF (0.01, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4) ✅
 - CREATE_CONSENSUS (bcftools + awk) ✅
+- CREATE_CRAM ✅
+- LOG_COVERAGE ✅
 - SUBTYPE_BLAST ✅
 - ANNOTATE_VADR ✅
+- ANNOTATE_RESISTANCE ✅
 
-### Verified Output (vs bash pipeline)
-- Polished assembly: 9456 bp (identical)
-- Pilon rounds: converges correctly
-- BAM, VCF, VADR, BLAST outputs: all present ✅
-
-### Missing vs Original Bash Pipeline
-1. ~~**Pilon polishing**~~ - Now implemented!
-2. **Multiple VCF filtering** - different min fractions (0.01, 0.05, 0.1, etc.)
-3. **CRAM file creation**
-4. **Coverage logging**
-5. **ANNOTATE_RESISTANCE** module exists but not connected
+### Feature Parity Status
+All major features from bash pipeline now implemented ✅
 
 ### Key Technical Notes
 
