@@ -12,7 +12,7 @@ process VARIANT_CALLING {
         tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta), val(ref_name)
     
     output:
-        tuple val(run_name), val(sample_id), path("*.vcf.gz"), path("*.vcf.gz.tbi"), emit: vcf
+        tuple val(run_name), val(sample_id), path("*.vcf.gz"), path("*.vcf.gz.csi"), emit: vcf
         path "*.vcf.gz.stats", emit: stats
     
     script:
@@ -20,23 +20,22 @@ process VARIANT_CALLING {
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     
     if (container_dir) {
-        def freebayes = "apptainer exec -B ${bind_paths} ${container_dir}/freebayes_1.3.8.sif freebayes"
         def bcftools = "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools"
         
         """
-        # Variant calling with freebayes
-        ${freebayes} -f ${ref_fasta} --ploidy 1 ${bam} > ${sample_id}-${ref_name}.vcf
+        # Generate pileup
+        ${bcftools} mpileup -Ou -f ${ref_fasta} -d 1000000 -a AD,DP ${bam} | \\
+        ${bcftools} call -Oz -m -A --ploidy 1 -o ${sample_id}-${ref_name}.vcf.gz -
         
-        # Compress and index
-        ${bcftools} view -Oz ${sample_id}-${ref_name}.vcf > ${sample_id}-${ref_name}.vcf.gz
-        ${bcftools} index -t ${sample_id}-${ref_name}.vcf.gz
+        # Index
+        ${bcftools} index ${sample_id}-${ref_name}.vcf.gz
         
         # Stats
         ${bcftools} stats ${sample_id}-${ref_name}.vcf.gz > ${sample_id}-${ref_name}.vcf.gz.stats
         """
     } else {
         """
-        echo "VARIANT_CALLING requires container with freebayes and bcftools"
+        echo "VARIANT_CALLING requires container with bcftools"
         exit 1
         """
     }
