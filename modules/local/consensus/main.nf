@@ -26,6 +26,10 @@ process CREATE_CONSENSUS {
         "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
         "bcftools"
     
+    def samtools = container_dir ? 
+        "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
+        "samtools"
+    
     """
     # Decompress VCF to uncompressed format
     ${bcftools} view -O v ${vcf} > ${vcf.baseName}
@@ -33,7 +37,7 @@ process CREATE_CONSENSUS {
     # Use AWK script to create IUPAC consensus
     awk -v MIN_AF=${min_freq} -v MIN_DP=5 -f ${scripts_dir}/vcf_to_iupac.awk ${vcf.baseName} ${fasta} > ${sample_id}_consensus_iupac.fasta
     
-    # Index the fasta
-    ${bcftools} faidx ${sample_id}_consensus_iupac.fasta
+    # Index the fasta using samtools
+    ${samtools} faidx ${sample_id}_consensus_iupac.fasta
     """
 }
