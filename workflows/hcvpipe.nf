@@ -70,9 +70,8 @@ workflow HCVPIPE {
     if (params.genome) {
         def genome_file = file(params.genome)
         def genome_name = genome_file.simpleName
-        def build_script = file("${projectDir}/scripts/build_hybrid_reference.py")
         
-        ASSEMBLE_HYBRID(ch_assembly, genome_file, genome_name, build_script)
+        ASSEMBLE_HYBRID(ch_assembly, genome_file, genome_name)
         ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
     } else {
         ch_hybrid = ch_assembly

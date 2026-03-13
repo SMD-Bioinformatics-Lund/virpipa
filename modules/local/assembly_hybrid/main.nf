@@ -12,7 +12,6 @@ process ASSEMBLE_HYBRID {
         tuple val(run_name), val(sample_id), path(contigs)
         path ref_genome
         val genome_name
-        path(build_script)
     
     output:
         path "*.hybrid.fasta", emit: hybrid_assembly
