@@ -83,7 +83,7 @@ workflow HCVPIPE {
     ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
     
     // Get ref_dir - convert to absolute path to handle both relative and absolute
-    def ref_dir = file(params.ref_dir).absolutePath
+    def ref_dir = file(params.ref_dir).toAbsolutePath()
     
     // Add ref_dir to each entry as part of the tuple  
     ch_best_ref_input = ch_stats_per_sample.map { run_name, sample_id, stats_list ->
