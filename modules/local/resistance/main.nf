@@ -22,7 +22,7 @@ process ANNOTATE_RESISTANCE {
     def scripts_dir = params.scripts_dir ?: '/fs1/jonas/src/virpipa/scripts'
     
     """
-    python3 \${scripts_dir}/annotate_vcf_resistance.py \
+    python3 ${scripts_dir}/annotate_vcf_resistance.py \
         --vcf \${vcf} \
         --gff \${gff} \
         --fasta \${fasta} \
