@@ -78,10 +78,8 @@ workflow HCVPIPE {
 
     // Step 5: Hybrid assembly with mummer
     // Map each assembly to each reference - build hybrid for EACH ref
-    // Create separate channels for each input
-    ch_references_list = ch_references.collect()
-    
-    ch_hybrid_tuple = ch_assembly.combine(ch_references_list).map { run_name, sample_id, contigs, ref_name, ref_file ->
+    // Use combine to create cartesian product of assembly x references
+    ch_hybrid_tuple = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
         [ [run_name, sample_id, contigs], ref_file, ref_name ]
     }
     
