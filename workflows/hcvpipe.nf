@@ -227,20 +227,24 @@ workflow HCVPIPE {
     rules_csv = file(rules_path)
     
     // Debug: print channel contents
-    // ch_vcf.view { "VCF: $it" }
-    // ch_vadr_gff.view { "GFF: $it" }
-    // ch_consensus_with_meta.view { "Consensus: $it" }
+    ch_vcf.view { "VCF channel: $it" }
+    ch_vadr_gff.view { "GFF channel: $it" }
+    ch_consensus_with_meta.view { "Consensus channel: $it" }
     
     // Combine VCF with GFF by sample_id
     ch_vcf_gff = ch_vcf.cross(ch_vadr_gff)
         .filter { vcf, gff -> vcf[1] == gff[1] }
         .map { vcf, gff -> [vcf[0], vcf[1], vcf[2], gff[2]] }
     
+    ch_vcf_gff.view { "VCF+GFF combined: $it" }
+    
     // Add consensus fasta 
     ch_resistance_input = ch_vcf_gff.combine(ch_consensus_with_meta)
         .map { run_name, sample_id, vcf, gff, cons_run, cons_sample, cons_fasta ->
             [run_name, sample_id, vcf, gff, cons_fasta]
         }
+    
+    ch_resistance_input.view { "Resistance input: $it" }
     
     // Add placeholder subtype
     ch_resistance_full = ch_resistance_input.map { run_name, sample_id, vcf, gff, fasta ->
