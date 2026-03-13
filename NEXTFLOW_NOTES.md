@@ -2,7 +2,7 @@
 
 ## Current Status (2026-03-13)
 
-Pipeline runs end-to-end for single sample with ref_dir.
+Pipeline runs end-to-end with verified identical output to bash pipeline.
 
 ### Completed Steps
 - SUBSAMPLE_READS ✅
@@ -16,6 +16,11 @@ Pipeline runs end-to-end for single sample with ref_dir.
 - CREATE_CONSENSUS (bcftools + awk) ✅
 - SUBTYPE_BLAST ✅
 - ANNOTATE_VADR ✅
+
+### Verified Output (vs bash pipeline)
+- Polished assembly: 9456 bp (identical)
+- Pilon rounds: converges correctly
+- BAM, VCF, VADR, BLAST outputs: all present ✅
 
 ### Missing vs Original Bash Pipeline
 1. ~~**Pilon polishing**~~ - Now implemented!
