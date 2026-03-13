@@ -109,8 +109,11 @@ workflow HCVPIPE {
     ch_vcf = VARIANT_CALLING.out.vcf
 
     // Step 8: Create consensus from VCF
-    ch_consensus_input = ch_vcf.combine(ch_references).map { run_name, sample_id, vcf, vcf_idx, ref_file, ref_name ->
-        [run_name, sample_id, vcf, ref_file, file(ref_file + '.fai')]
+    // ch_vcf has: (run_name, sample_id, vcf, vcf_idx)
+    // ch_references has: (ref_name, ref_file)
+    // combine creates: (run_name, sample_id, vcf, vcf_idx, ref_name, ref_file)
+    ch_consensus_input = ch_vcf.combine(ch_references).map { run_name, sample_id, vcf, vcf_idx, ref_name, ref_file ->
+        [run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai')]
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
