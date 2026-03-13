@@ -1,5 +1,5 @@
 process ASSEMBLE_HYBRID {
-    tag { "${sample_id}:${genome}" }
+    tag { "${sample_id}:${genome_name}" }
     label 'process_high'
     
     cpus 16
