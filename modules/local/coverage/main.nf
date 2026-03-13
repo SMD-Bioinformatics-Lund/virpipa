@@ -17,6 +17,7 @@ process LOG_COVERAGE {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def sample = sample_id
     
     if (container_dir) {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
@@ -27,11 +28,11 @@ process LOG_COVERAGE {
         ${samtools} coverage ${cram} > coverage_data.tsv
         
         # Transpose and format
-        awk 'NR==1 {for(i=1;i<=NF;i++) h[i]=\$i; next} {for(i=1;i<=NF;i++) d[i]=d[i] (d[i]?FS:"") \$i} END {for(i=1;i<=NF;i++) print h[i] FS d[i]}' coverage_data.tsv > \${sample_id}.coverage.tsv
+        awk 'NR==1 {for(i=1;i<=NF;i++) h[i]=\$i; next} {for(i=1;i<=NF;i++) d[i]=d[i] (d[i]?FS:"") \$i} END {for(i=1;i<=NF;i++) print h[i] FS d[i]}' coverage_data.tsv > ${sample}.coverage.tsv
         
         # Calculate coverage at different thresholds as percentages
         # Columns in samtools coverage: rname,startpos,endpos,numreads,covbases,coverage,meandepth,meanbaseq,meanmapq
-        awk '
+        awk -v sample="${sample}" '
         NR>1 {
             covbases=\$5
             total=\$3
@@ -44,9 +45,9 @@ process LOG_COVERAGE {
         END {
             if (total_len > 0) {
                 printf "id\t1x\t10x\t100x\t1000x\n"
-                printf "%s\t%.2f\t%.2f\t%.2f\t%.2f\n", "\${sample_id}", (c1/total_len)*100, (c10/total_len)*100, (c100/total_len)*100, (c1000/total_len)*100
+                printf "%s\t%.2f\t%.2f\t%.2f\t%.2f\n", sample, (c1/total_len)*100, (c10/total_len)*100, (c100/total_len)*100, (c1000/total_len)*100
             }
-        }' coverage_data.tsv > \${sample_id}-coverage.tsv
+        }' coverage_data.tsv > ${sample}-coverage.tsv
         
         rm coverage_header.tsv coverage_data.tsv
         """
