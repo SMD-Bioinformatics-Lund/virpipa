@@ -22,7 +22,11 @@ process CREATE_CONSENSUS {
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
+    def python_cmd = container_dir ? 
+        "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
+        "python3"
+    
     """
-    python ${scripts_dir}/consensus_fasta_iupac.py ${fasta} ${vcf} ${min_freq}
+    ${python_cmd} ${scripts_dir}/consensus_fasta_iupac.py ${fasta} ${vcf} ${min_freq}
     """
 }
