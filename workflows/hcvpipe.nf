@@ -81,13 +81,11 @@ workflow HCVPIPE {
 
     // Step 5: Hybrid assembly with mummer
     // Map each assembly to each reference
-    ch_hybrid_all = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
-        [run_name, sample_id, contigs, ref_file, ref_name]
-    }.combine(ch_references).map { run_name, sample_id, contigs, ref_file, ref_name, ref_file2, ref_name2 ->
+    ch_hybrid_input = ch_assembly.combine(ch_references).map { run_name, sample_id, contigs, ref_name, ref_file ->
         [run_name, sample_id, contigs, ref_file, ref_name]
     }
     
-    ASSEMBLE_HYBRID(ch_hybrid_all)
+    ASSEMBLE_HYBRID(ch_hybrid_input)
     ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
     // (Polishing - to be implemented)
