@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
+include { SELECT_BEST_REFERENCE } from '../modules/local/bestref/main'
 include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
 include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
 include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
@@ -71,18 +72,37 @@ workflow HCVPIPE {
     }
     MAP_READS(ch_mapped_all)
     ch_mapped = MAP_READS.out.bams
+    ch_stats = MAP_READS.out.stats
 
     // Step 4: Spades assembly
     ASSEMBLE_SPADES(ch_prepped)
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
     // Step 5: Select best reference based on mapping stats
-    // For now, use first reference (would need a process to parse stats and select best)
-    // TODO: Implement best reference selection from MAP_READS.out.stats
+    // Collect all stats and refs per sample
+    ch_stats_per_sample = ch_stats.map { run_name, sample_id, stats ->
+        [run_name, sample_id, stats]
+    }.groupTuple(by: [0, 1])
     
-    // Step 5b: Hybrid assembly - skip for now, just use best reference directly
-    // TODO: Add hybrid assembly with mummer for best reference only
-    ch_hybrid = Channel.empty()
+    ch_refs_per_sample = ch_references.map { ref_name, ref_file ->
+        [ref_name, ref_file]
+    }.collect()
+    
+    ch_best_ref_input = ch_stats_per_sample.combine(ch_refs_per_sample).map { run_name, sample_id, stats_list, refs ->
+        [run_name, sample_id, stats_list, refs]
+    }
+    
+    SELECT_BEST_REFERENCE(ch_best_ref_input)
+    ch_best_ref = SELECT_BEST_REFERENCE.out.best_ref
+
+    // Step 5b: Hybrid assembly with best reference
+    // Combine assembly with best ref
+    ch_hybrid_input = ch_assembly.combine(ch_best_ref).map { run_name, sample_id, contigs, best_ref_name, best_ref_file ->
+        [ [run_name, sample_id, contigs], best_ref_file, best_ref_name ]
+    }
+    
+    ASSEMBLE_HYBRID(ch_hybrid_input)
+    ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
     // (Polishing loop - 10 iterations - to be implemented)
     
