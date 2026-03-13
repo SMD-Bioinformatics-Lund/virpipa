@@ -133,9 +133,16 @@ workflow HCVPIPE {
     ch_pilon_bam_with_index = POLISH_PILON_LOOP.out.final_bam_with_index
     
     // Step 6b: Create CRAM from polished BAM
-    // Use the polished fasta as reference (not the original reference)
-    ch_cram_input = ch_polished.combine(ch_pilon_bam_with_index)
-        .map { run_name, sample_id, fasta, fai, bam, bai ->
+    // Combine polished fasta with BAM using sample_id
+    ch_polished_for_cram = ch_polished.map { run_name, sample_id, fasta, fai ->
+        [run_name, sample_id, fasta]
+    }
+    ch_pilon_for_cram = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
+        [run_name, sample_id, bam, bai]
+    }
+    
+    ch_cram_input = ch_polished_for_cram.join(ch_pilon_for_cram)
+        .map { run_name, sample_id, fasta, bam, bai ->
             def fasta_abs = fasta.toAbsolutePath()
             [run_name, sample_id, bam, bai, fasta_abs]
         }
@@ -143,12 +150,18 @@ workflow HCVPIPE {
     CREATE_CRAM(ch_cram_input, "pilon")
     
     // Step 6c: Log coverage from CRAM - use polished fasta as reference
-    ch_coverage_input = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices).map { run_name, sample_id, cram, crai ->
-        [run_name, sample_id, cram, crai]
-    }.combine(ch_polished).map { run_name, sample_id, cram, crai, fasta, fai ->
-        def fasta_abs = fasta.toAbsolutePath()
-        [run_name, sample_id, cram, crai, fasta_abs]
+    ch_cram_output = CREATE_CRAM.out.crams.join(CREATE_CRAM.out.indices)
+        .map { run_name, sample_id, cram, crai ->
+            [run_name, sample_id, cram, crai]
+        }
+    ch_polished_for_cov = ch_polished.map { run_name, sample_id, fasta, fai ->
+        [run_name, sample_id, fasta]
     }
+    ch_coverage_input = ch_cram_output.join(ch_polished_for_cov)
+        .map { run_name, sample_id, cram, crai, fasta ->
+            def fasta_abs = fasta.toAbsolutePath()
+            [run_name, sample_id, cram, crai, fasta_abs]
+        }
     
     LOG_COVERAGE(ch_coverage_input)
     
