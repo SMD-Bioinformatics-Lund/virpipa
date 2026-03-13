@@ -10,7 +10,7 @@ process SELECT_BEST_REFERENCE {
         tuple val(run_name), val(sample_id), path(stats_files), val(ref_dir)
     
     output:
-        tuple val(run_name), val(sample_id), val(best_ref_name), path(best_ref_file), emit: best_ref
+        tuple val(run_name), val(sample_id), val(best_ref_name), path("*.fa"), emit: best_ref
         path "*.txt", emit: log
     
     script:
@@ -58,5 +58,8 @@ process SELECT_BEST_REFERENCE {
     
     echo "Best ref file: \$best_file"
     cp "\$best_file" .
+    
+    # Write best ref name to file for Nextflow output
+    echo "\$best_ref" > best_ref_name.txt
     """
 }
