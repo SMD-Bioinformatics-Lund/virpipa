@@ -22,18 +22,20 @@ process ANNOTATE_RESISTANCE {
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
     """
+    # Copy rules to work dir if it exists
     if [[ -f "${rules_csv}" ]]; then
-        python ${scripts_dir}/annotate_vcf_resistance.py \
-            --vcf ${vcf} \
-            --gff ${gff} \
-            --fasta ${fasta} \
-            --subtype ${subtype} \
-            --sample-name ${sample_id} \
-            --rules ${rules_csv} \
+        cp "${rules_csv}" ./
+        python3 \${scripts_dir}/annotate_vcf_resistance.py \
+            --vcf \${vcf} \
+            --gff \${gff} \
+            --fasta \${fasta} \
+            --subtype \${subtype} \
+            --sample-name \${sample_id} \
+            --rules ./hbv_result_rules.csv \
             --output-dir .
     else
-        echo "WARNING: Resistance rules not found at ${rules_csv}, skipping"
-        touch ${sample_id}_skipped.txt
+        echo "WARNING: Resistance rules not found at \${rules_csv}, skipping"
+        touch \${sample_id}_skipped.txt
     fi
     """
 }
