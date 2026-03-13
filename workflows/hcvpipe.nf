@@ -100,7 +100,8 @@ workflow HCVPIPE {
     // (Polishing loop - 10 iterations - to be implemented)
     
     // Step 7: Variant calling on mapped reads (using original mapping to refs)
-    ch_variant_input = ch_mapped.map { run_name, sample_id, bam, bai, ref_file, ref_name ->
+    // Combine bams with references
+    ch_variant_input = ch_mapped.combine(ch_references).map { run_name, sample_id, bam, bai, ref_name, ref_file ->
         [run_name, sample_id, bam, bai, ref_file, ref_name]
     }
     
