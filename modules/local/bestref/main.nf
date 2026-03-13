@@ -25,8 +25,8 @@ process SELECT_BEST_REFERENCE {
     for stats in *.stats; do
         [[ -e "\$stats" ]] || continue
         
-        # Extract ref name - the stats file has pattern: SAMPLE001-1a-AF009606.bwa.umi.filter.sort.bam.stats
-        refname=\$(basename "\$stats" | sed 's/.*-\\([^.]*\\).bwa.umi.filter.sort.bam.stats/\\1/')
+        # Extract ref name - the stats file has pattern: SAMPLE001-3a-D17763.bam.stats
+        refname=\$(basename "\$stats" | sed 's/.*-\\(.*\\)\\.bam.stats/\\1/')
         
         # Get error rate from stats file (convert scientific notation to decimal for bc)
         errrate=\$(awk '\$1=="SN" && \$2=="error" && \$3=="rate:" { printf "%.6f", \$4; exit }' "\$stats")
