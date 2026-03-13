@@ -22,27 +22,14 @@ process ANNOTATE_RESISTANCE {
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
     """
-    # Check if rules file exists and copy if it's a path
-    if [[ -f "${rules_csv}" ]]; then
-        # Check if rules file is already in current directory
-        rules_filename=\$(basename "${rules_csv}")
-        if [[ "\${rules_filename}" != "\${rules_csv}" ]]; then
-            cp "${rules_csv}" ./
-            rules_arg="./\${rules_filename}"
-        else
-            rules_arg="${rules_csv}"
-        fi
-        python3 \${scripts_dir}/annotate_vcf_resistance.py \
-            --vcf \${vcf} \
-            --gff \${gff} \
-            --fasta \${fasta} \
-            --subtype \${subtype} \
-            --sample-name \${sample_id} \
-            --rules "\${rules_arg}" \
-            --output-dir .
-    else
-        echo "WARNING: Resistance rules not found at \${rules_csv}, skipping"
-        touch \${sample_id}_skipped.txt
-    fi
+    # rules_csv is already a file in the work directory
+    python3 \${scripts_dir}/annotate_vcf_resistance.py \
+        --vcf \${vcf} \
+        --gff \${gff} \
+        --fasta \${fasta} \
+        --subtype \${subtype} \
+        --sample-name \${sample_id} \
+        --rules \${rules_csv} \
+        --output-dir .
     """
 }
