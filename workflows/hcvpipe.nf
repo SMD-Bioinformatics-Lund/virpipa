@@ -10,7 +10,7 @@ include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
 include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
 include { ANNOTATE_VADR } from '../modules/local/annotate_vadr/main'
 include { SUBTYPE_BLAST } from '../modules/local/subtype/main'
-include { RESISTANCE } from '../modules/local/resistance/main'
+include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 
 workflow HCVPIPE {
     if (!params.input) {
