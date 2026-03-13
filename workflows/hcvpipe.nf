@@ -50,10 +50,9 @@ workflow HCVPIPE {
     if (params.genome) {
         def genome_file = file(params.genome)
         def genome_name = genome_file.simpleName
-        // Create channel with genome info
-        ch_genome = Channel.value([genome_file, genome_name])
-        ch_for_mapping = ch_prepped.combine(ch_genome).map { run_name, sample_id, read1, read2, genome, gname ->
-            [run_name, sample_id, read1, read2, genome, gname]
+        // Add genome to each sample tuple
+        ch_for_mapping = ch_prepped.map { run_name, sample_id, read1, read2 ->
+            [run_name, sample_id, read1, read2, genome_file, genome_name]
         }
         MAP_READS(ch_for_mapping)
         ch_mapped = MAP_READS.out.bams
