@@ -115,12 +115,18 @@ workflow HCVPIPE {
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
-    ch_consensus = CREATE_CONSENSUS.out.fasta
+    // ch_consensus_input has: (run_name, sample_id, vcf, ref_file, fai)
+    // We need to preserve sample_id for downstream
+    ch_consensus_with_meta = ch_consensus_input.map { run_name, sample_id, vcf, ref_file, fai ->
+        [run_name, sample_id, ref_file]
+    }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, ref_file, fasta ->
+        [run_name, sample_id, fasta]
+    }
 
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default
     def blast_db = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue/hcvgluerefs")
-    ch_subtype_tuple = ch_consensus.map { run_name, sample_id, fasta ->
+    ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
         [ [run_name, sample_id, fasta], blast_db ]
     }
     ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
@@ -130,7 +136,7 @@ workflow HCVPIPE {
 
     // Step 10: Annotate with VADR
     def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
-    ch_vadr_tuple = ch_consensus.map { run_name, sample_id, fasta ->
+    ch_vadr_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
         [ [run_name, sample_id, fasta], vadr_model ]
     }
     ch_vadr_fasta = ch_vadr_tuple.map { it[0] }
@@ -142,5 +148,5 @@ workflow HCVPIPE {
     // For now, skip as it requires more complex input handling
     
     // Output final results
-    ch_consensus.view { "Final consensus: $it" }
+    ch_consensus_with_meta.view { "Final consensus: $it" }
 }
