@@ -108,30 +108,30 @@ workflow HCVPIPE {
 
     // (Polishing loop - 10 iterations - to be implemented)
     
-    // Step 7: Variant calling on mapped reads (using original mapping to refs)
-    // Combine bams with references
-    ch_variant_input = ch_mapped.combine(ch_references).map { run_name, sample_id, bam, bai, ref_name, ref_file ->
-        [run_name, sample_id, bam, bai, ref_file, ref_name]
+    // Step 7: Variant calling on mapped reads - use ONLY best reference
+    // Filter mapped bams to only keep those matching best reference
+    ch_mapped_best = ch_mapped.join(ch_best_ref).map { run_name, sample_id, bam, bai, best_ref_name, best_ref_file ->
+        [run_name, sample_id, bam, bai, best_ref_file, best_ref_name]
     }
     
-    VARIANT_CALLING(ch_variant_input)
+    VARIANT_CALLING(ch_mapped_best)
     ch_vcf = VARIANT_CALLING.out.vcf
 
-    // Step 8: Create consensus from VCF
-    // ch_vcf has: (run_name, sample_id, vcf, vcf_idx)
-    // ch_references has: (ref_name, ref_file)
-    // combine creates: (run_name, sample_id, vcf, vcf_idx, ref_name, ref_file)
-    ch_consensus_input = ch_vcf.combine(ch_references).map { run_name, sample_id, vcf, vcf_idx, ref_name, ref_file ->
-        [run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai')]
+    // Step 8: Create consensus from VCF - only for best reference
+    ch_consensus_input = ch_vcf.map { run_name, sample_id, vcf, vcf_idx ->
+        // We need the best ref file - join with best_ref
+        [run_name, sample_id, vcf]
+    }.join(ch_best_ref).map { run_name, sample_id, vcf, best_ref_name, best_ref_file ->
+        [run_name, sample_id, vcf, best_ref_file, file(best_ref_file.toString() + '.fai')]
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
-    // ch_consensus_input has: (run_name, sample_id, vcf, ref_file, fai)
-    // We need to preserve sample_id for downstream
+    // Get consensus with sample metadata
     ch_consensus_with_meta = ch_consensus_input.map { run_name, sample_id, vcf, ref_file, fai ->
-        [run_name, sample_id, ref_file]
-    }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, ref_file, fasta ->
+        [run_name, sample_id]
+    }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, fasta ->
         [run_name, sample_id, fasta]
+    }
     }
 
     // Step 9: Subtype with BLAST
