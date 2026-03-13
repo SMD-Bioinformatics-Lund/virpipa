@@ -159,5 +159,5 @@ workflow HCVPIPE {
     // For now, skip as it requires more complex input handling
     
     // Output final results
-    ch_consensus_with_meta.view { "Final consensus: $it" }
+    // ch_consensus_with_meta.view { "Final consensus: $it" }
 }
