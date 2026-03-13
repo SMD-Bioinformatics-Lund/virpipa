@@ -117,19 +117,27 @@ workflow HCVPIPE {
     
     // Step 7: Variant calling on mapped reads - use ONLY best reference
     // Filter mapped bams to only keep those matching best reference
-    ch_mapped_best = ch_mapped.join(ch_best_ref_with_name).map { run_name, sample_id, bam, bai, ref_name, ref_file ->
-        [run_name, sample_id, bam, bai, ref_file, ref_name]
+    // ch_mapped: (run_name, sample_id, bam, bai)
+    // ch_best_ref_with_name: (run_name, sample_id, ref_name, ref_file)
+    // Use join to get matching samples
+    ch_mapped_for_var = ch_mapped.map { it -> tuple(it[0], it[1], it[2], it[3]) }
+    ch_ref_for_join = ch_best_ref_with_name.map { it -> tuple(it[0], it[1], it[2], it[3]) }
+    
+    ch_mapped_best = ch_mapped_for_var.join(ch_ref_for_join).map { run_name, sample_id, bam_bai, ref_name, ref_file ->
+        def bam = bam_bai[0]
+        def bai = bam_bai[1]
+        tuple(run_name, sample_id, bam, bai, ref_file, ref_name)
     }
     
     VARIANT_CALLING(ch_mapped_best)
     ch_vcf = VARIANT_CALLING.out.vcf
 
     // Step 8: Create consensus from VCF - only for best reference
-    ch_consensus_input = ch_vcf.map { run_name, sample_id, vcf, vcf_idx ->
-        // We need the best ref file - join with best_ref
-        [run_name, sample_id, vcf]
-    }.join(ch_best_ref_with_name).map { run_name, sample_id, vcf, ref_name, ref_file ->
-        [run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai')]
+    // ch_vcf has: (run_name, sample_id, vcf, vcf_idx)
+    ch_vcf_for_join = ch_vcf.map { it -> tuple(it[0], it[1], it[2]) }
+    
+    ch_consensus_input = ch_vcf_for_join.join(ch_ref_for_join).map { run_name, sample_id, vcf, ref_name, ref_file ->
+        tuple(run_name, sample_id, vcf, ref_file, file(ref_file.toString() + '.fai'))
     }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
