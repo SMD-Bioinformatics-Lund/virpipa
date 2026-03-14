@@ -170,13 +170,12 @@ workflow HCVPIPE {
     ch_pilon_for_varcall.view { "PILON_VAR: ${it}" }
     ch_best_ref_with_name.view { "BEST_REF: ${it}" }
     
-    def cross_ch = ch_pilon_for_varcall.cross(ch_best_ref_with_name)
-    cross_ch.view { "CROSS: ${it}" }
-    
-    ch_variant_input = cross_ch
-        .filter { bam, best_ref -> bam[0] == best_ref[1] }
-        .map { bam, best_ref ->
-            tuple(bam[1], bam[0], bam[2], bam[3], best_ref[3], best_ref[2])
+    // Try using join instead of cross
+    ch_variant_input = ch_pilon_for_varcall
+        .map { it -> [it[0], it] }  // key by sample_id
+        .join(ch_best_ref_with_name.map { it -> [it[1], it] })  // join on sample_id
+        .map { sample_id, pilon, best_ref ->
+            tuple(pilon[1], pilon[0], pilon[2], pilon[3], best_ref[3], best_ref[2])
         }
     
     ch_variant_input.view { "VARIANT_INPUT: ${it}" }
