@@ -45,15 +45,19 @@ process MAP_READS {
         ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
         
         # Align consensus reads
-        ${sentieon} bwa mem \\
-            -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
-            -t ${task.cpus} \\
-            -k 11 -B 2 -L 25 \\
-            -p -C ref_copy/\${ref_base} consensus.fastq.gz | \\
+        ${sentieon} bwa mem \
+            -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \
+            -t ${task.cpus} \
+            -k 11 -B 2 -L 25 \
+            -p -C ref_copy/\${ref_base} consensus.fastq.gz | \
         ${sentieon} util sort -i - --sam2bam --umi_post_process -o ${sample_id}-${genome_name}.bam
         
-        # Index using bwa index (not sentieon util index)
-        ${sentieon} bwa index ref_copy/\${ref_base}
+        # Filter BAM: remove reads with soft clip length < 30 (matching bash pipeline)
+        ${samtools} view -@ ${task.cpus} -e "sclen < 30" --with-header -b -o ${sample_id}-${genome_name}.filter.bam ${sample_id}-${genome_name}.bam
+        mv ${sample_id}-${genome_name}.filter.bam ${sample_id}-${genome_name}.bam
+        
+        # Index
+        ${samtools} index ${sample_id}-${genome_name}.bam
         
         # Stats using samtools (not sentieon util stats)
         ${samtools} stats ${sample_id}-${genome_name}.bam > ${sample_id}-${genome_name}.bam.stats
@@ -70,9 +74,13 @@ process MAP_READS {
         actual_path=\$(readlink -f ${genome})
         base=\$(basename \${actual_path})
         
-        ${bwa} mem -t ${cpus} -R "${rg}" \${actual_path} ${read1} ${read2} | \\
-        ${samtools} view -bS - | \\
+        ${bwa} mem -t ${cpus} -R "${rg}" \${actual_path} ${read1} ${read2} | \
+        ${samtools} view -bS - | \
         ${samtools} sort -o ${sample_id}-${genome_name}.bam
+        
+        # Filter BAM: remove reads with soft clip length < 30 (matching bash pipeline)
+        ${samtools} view -@ ${cpus} -e "sclen < 30" --with-header -b -o ${sample_id}-${genome_name}.filter.bam ${sample_id}-${genome_name}.bam
+        mv ${sample_id}-${genome_name}.filter.bam ${sample_id}-${genome_name}.bam
         
         ${samtools} index ${sample_id}-${genome_name}.bam
         
