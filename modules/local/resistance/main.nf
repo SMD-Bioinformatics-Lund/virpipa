@@ -31,6 +31,6 @@ process ANNOTATE_RESISTANCE {
         'python3'
     
     """
-    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir .
+    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir . --bcftools '${bcftools}'
     """
 }

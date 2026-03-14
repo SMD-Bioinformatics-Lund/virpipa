@@ -20,12 +20,12 @@ from collections import defaultdict
 from pathlib import Path
 
 
-def parse_vcf(vcf_file):
+def parse_vcf(vcf_file, bcftools_cmd='bcftools'):
     """Parse VCF file using bcftools query."""
     variants = []
     
     cmd = [
-        'bcftools', 'query',
+        bcftools_cmd, 'query',
         '-f', '%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/DP\t%FORMAT/AD\t%INFO/AF\n',
         vcf_file
     ]
@@ -438,6 +438,11 @@ def main():
         default='assets',
         help='Directory for reference files (default: assets)'
     )
+    parser.add_argument(
+        '--bcftools',
+        default='bcftools',
+        help='Path to bcftools command (default: bcftools)'
+    )
     
     args = parser.parse_args()
     
@@ -488,7 +493,7 @@ def main():
         print(f"Reference BED written with {len(rules)} entries")
     
     print(f"Parsing VCF: {args.vcf}")
-    variants = parse_vcf(args.vcf)
+    variants = parse_vcf(args.vcf, args.bcftools)
     print(f"Found {len(variants)} variants with ALT alleles")
     
     print(f"\nAnalyzing variants for subtype {args.subtype}...")
