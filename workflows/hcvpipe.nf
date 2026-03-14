@@ -173,6 +173,8 @@ workflow HCVPIPE {
             tuple(bam[1], bam[0], bam[2], bam[3], best_ref[3], best_ref[2])
         }
     
+    ch_variant_input.view { "VARIANT_INPUT: ${it}" }
+    
     VARIANT_CALLING(ch_variant_input)
     ch_vcf = VARIANT_CALLING.out.vcf
     
