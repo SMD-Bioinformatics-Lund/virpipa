@@ -23,7 +23,8 @@ process LOG_COVERAGE {
         
         """
         # Get coverage stats per position using depth
-        ${samtools} depth -a ${cram} | awk -v sample="${sample_id}" '
+        # Bash pipeline uses region 100-9600 (9501 positions)
+        ${samtools} depth -r ${sample_id}:100-9600 ${cram} | awk -v sample="${sample_id}" '
         {
             if (\$3 >= 1) c1++
             if (\$3 >= 10) c10++
