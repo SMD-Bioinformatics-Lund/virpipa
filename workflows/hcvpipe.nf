@@ -173,11 +173,14 @@ workflow HCVPIPE {
     }
     
     // Join pilon BAM with polished fasta
+    // Also join with best reference to get the ref name
     ch_variant_input = ch_pilon_for_varcall
         .map { it -> [it[0], it] }  // key by sample_id
         .join(ch_polished_for_varcall.map { it -> [it[0], it] })
-        .map { sample_id, pilon, polished ->
-            tuple(pilon[1], pilon[0], pilon[2], pilon[3], polished[2], polished[2].baseName)
+        .join(ch_best_ref_with_name.map { it -> [it[1], it] })  // key by sample_id
+        .map { sample_id, pilon, polished, best_ref ->
+            // best_ref = [run_name, sample_id, ref_name, fasta_file]
+            tuple(pilon[1], pilon[0], pilon[2], pilon[3], polished[2], best_ref[2])
         }
     
     ch_variant_input.view { "VARIANT_INPUT: ${it}" }
