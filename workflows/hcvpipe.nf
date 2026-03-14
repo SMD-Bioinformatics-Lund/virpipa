@@ -160,15 +160,20 @@ workflow HCVPIPE {
     
     LOG_COVERAGE(ch_coverage_input)
     
-    // Step 7: Variant calling on mapped reads - use ONLY best reference
-    // Cross and filter by sample_id
-    ch_mapped_best = ch_mapped.cross(ch_best_ref_with_name)
-        .filter { bam, best_ref -> bam[1] == best_ref[1] }
+    // Step 7: Variant calling on pilon-polished BAM (matching bash pipeline)
+    // Use pilon BAM instead of pre-pilon mapped BAM
+    // Cross pilon BAM with best reference
+    ch_pilon_for_varcall = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
+        [sample_id, run_name, bam, bai]
+    }
+    
+    ch_variant_input = ch_pilon_for_varcall.cross(ch_best_ref_with_name)
+        .filter { bam, best_ref -> bam[0] == best_ref[1] }
         .map { bam, best_ref ->
-            tuple(bam[0], bam[1], bam[2], bam[3], best_ref[3], best_ref[2])
+            tuple(bam[1], bam[0], bam[2], bam[3], best_ref[3], best_ref[2])
         }
     
-    VARIANT_CALLING(ch_mapped_best)
+    VARIANT_CALLING(ch_variant_input)
     ch_vcf = VARIANT_CALLING.out.vcf
     
     // Save copy for resistance before using
