@@ -167,6 +167,9 @@ workflow HCVPIPE {
         [sample_id, run_name, bam, bai]
     }
     
+    ch_pilon_for_varcall.view { "PILON_VAR: ${it}" }
+    ch_best_ref_with_name.view { "BEST_REF: ${it}" }
+    
     ch_variant_input = ch_pilon_for_varcall.cross(ch_best_ref_with_name)
         .filter { bam, best_ref -> bam[0] == best_ref[1] }
         .map { bam, best_ref ->
