@@ -24,8 +24,8 @@ def parse_vcf(vcf_file, bcftools_cmd='bcftools'):
     """Parse VCF file using bcftools query."""
     variants = []
     
-    cmd = [
-        bcftools_cmd, 'query',
+    cmd = bcftools_cmd.split() + [
+        'query',
         '-f', '%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%FILTER\t%INFO/DP\t%FORMAT/AD\t%INFO/AF\n',
         vcf_file
     ]
