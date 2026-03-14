@@ -161,21 +161,23 @@ workflow HCVPIPE {
     LOG_COVERAGE(ch_coverage_input)
     
     // Step 7: Variant calling on pilon-polished BAM (matching bash pipeline)
-    // Use pilon BAM instead of pre-pilon mapped BAM
-    // Cross pilon BAM with best reference
+    // Use pilon BAM and pilon FASTA as reference (like bash pipeline)
+    // Join pilon BAM with polished fasta
     ch_pilon_for_varcall = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
         [sample_id, run_name, bam, bai]
     }
     
-    ch_pilon_for_varcall.view { "PILON_VAR: ${it}" }
-    ch_best_ref_with_name.view { "BEST_REF: ${it}" }
+    // Get polished fasta for variant calling (pilon fasta)
+    ch_polished_for_varcall = ch_polished.map { run_name, sample_id, fasta, fai ->
+        [sample_id, run_name, fasta]
+    }
     
-    // Try using join instead of cross
+    // Join pilon BAM with polished fasta
     ch_variant_input = ch_pilon_for_varcall
         .map { it -> [it[0], it] }  // key by sample_id
-        .join(ch_best_ref_with_name.map { it -> [it[1], it] })  // join on sample_id
-        .map { sample_id, pilon, best_ref ->
-            tuple(pilon[1], pilon[0], pilon[2], pilon[3], best_ref[3], best_ref[2])
+        .join(ch_polished_for_varcall.map { it -> [it[0], it] })
+        .map { sample_id, pilon, polished ->
+            tuple(pilon[1], pilon[0], pilon[2], pilon[3], polished[2], polished[2].baseName)
         }
     
     ch_variant_input.view { "VARIANT_INPUT: ${it}" }
