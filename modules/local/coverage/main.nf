@@ -38,13 +38,13 @@ process LOG_COVERAGE {
                 pct10 = (c10/total)*100
                 pct100 = (c100/total)*100
                 pct1000 = (c1000/total)*100
-                print "id\t1x\t10x\t100x\t1000x" > "coverage.tmp"
-                printf "%s\t%.2f\t%.2f\t%.2f\t%.2f\\n", sample, pct1, pct10, pct100, pct1000 >> "coverage.tmp"
+            } else {
+                pct1 = pct10 = pct100 = pct1000 = 0
             }
+            print "id\\t1x\\t10x\\t100x\\t1000x"
+            printf "%s\\t%.2f\\t%.2f\\t%.2f\\t%.2f\\n", sample, pct1, pct10, pct100, pct1000
         }
         ' > ${sample_id}-coverage.tsv
-        
-        rm coverage.tmp
         """
     } else {
         """
