@@ -65,7 +65,6 @@ process POLISH_PILON_LOOP {
             ${sentieon} bwa mem \\
                 -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
                 -t ${task.cpus} \\
-                -k 11 -B 2 -L 25 \\
                 -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \\
             ${sentieon} util sort -i - --sam2bam --umi_post_process -o \${sample}-\${name}.bam
             
