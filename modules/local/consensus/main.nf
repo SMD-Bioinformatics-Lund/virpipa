@@ -35,7 +35,7 @@ process CREATE_CONSENSUS {
     ${bcftools} view -O v ${vcf} > ${vcf.baseName}
     
     # Use AWK script to create IUPAC consensus
-    awk -v MIN_AF=${min_freq} -v MIN_DP=5 -f ${scripts_dir}/vcf_to_iupac.awk ${vcf.baseName} ${fasta} > ${sample_id}_consensus_iupac.fasta
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${scripts_dir}/vcf_to_iupac.awk ${vcf.baseName} ${fasta} > ${sample_id}_consensus_iupac.fasta
     
     # Index the fasta using samtools
     ${samtools} faidx ${sample_id}_consensus_iupac.fasta
