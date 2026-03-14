@@ -23,24 +23,20 @@ process LOG_COVERAGE {
         
         """
         # Get coverage stats per position using depth
-        # Bash pipeline uses region 100-9600 (9501 positions)
+        # Bash pipeline uses region 100-9600 (9501 positions) with fixed total
         ${samtools} depth -r ${sample_id}:100-9600 ${cram} | awk -v sample="${sample_id}" '
+        BEGIN { total=9501; cov1=0; cov10=0; cov100=0; cov1000=0 }
         {
-            if (\$3 >= 1) c1++
-            if (\$3 >= 10) c10++
-            if (\$3 >= 100) c100++
-            if (\$3 >= 1000) c1000++
-            total++
+            if (\$3 >= 1) cov1++
+            if (\$3 >= 10) cov10++
+            if (\$3 >= 100) cov100++
+            if (\$3 >= 1000) cov1000++
         }
         END {
-            if (total > 0) {
-                pct1 = (c1/total)*100
-                pct10 = (c10/total)*100
-                pct100 = (c100/total)*100
-                pct1000 = (c1000/total)*100
-            } else {
-                pct1 = pct10 = pct100 = pct1000 = 0
-            }
+            pct1 = (cov1/total)*100
+            pct10 = (cov10/total)*100
+            pct100 = (cov100/total)*100
+            pct1000 = (cov1000/total)*100
             print "id\\t1x\\t10x\\t100x\\t1000x"
             printf "%s\\t%.2f\\t%.2f\\t%.2f\\t%.2f\\n", sample, pct1, pct10, pct100, pct1000
         }
