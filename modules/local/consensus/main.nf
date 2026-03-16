@@ -31,9 +31,12 @@ process CREATE_CONSENSUS {
         "samtools"
     
     """
-    set -e
-    echo "sample_id is: ${sample_id}"
-    echo "fasta is: ${fasta}"
+    set -x
+    echo "sample_id: ${sample_id}"
+    echo "run_name: ${run_name}"
+    echo "vcf: ${vcf}"
+    echo "fasta: ${fasta}"
+    echo "fai: ${fai}"
     ls -la
     """
 }
