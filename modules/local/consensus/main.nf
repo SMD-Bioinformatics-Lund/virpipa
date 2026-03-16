@@ -31,20 +31,25 @@ process CREATE_CONSENSUS {
         "samtools"
     
     """
+    sample=\${sample_id}
+    fasta_src=\${fasta}
+    fai_src=\${fai}
+    vcf_file=\${vcf}
+    
     # Copy pilon fasta to sample name
-    cp ${fasta} \${sample_id}.fasta
-    cp ${fai} \${sample_id}.fasta.fai
+    cp \${fasta_src} \${sample}.fasta
+    cp \${fai_src} \${sample}.fasta.fai
     
     # Decompress VCF
-    ${bcftools} view -O v ${vcf} > input.vcf
+    ${bcftools} view -O v \${vcf_file} > input.vcf
     
     # Create IUPAC consensus
-    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${fasta} > \${sample_id}-0.15-iupac.fasta
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf \${fasta_src} > \${sample}-0.15-iupac.fasta
     
     # Fix header
-    sed -i 's/>.*/>SAMPLE001-0.15-iupac/' \${sample_id}-0.15-iupac.fasta
+    sed -i 's/>.*/>\${sample}-0.15-iupac/' \${sample}-0.15-iupac.fasta
     
     # Index
-    ${samtools} faidx \${sample_id}-0.15-iupac.fasta
+    ${samtools} faidx \${sample}-0.15-iupac.fasta
     """
 }
