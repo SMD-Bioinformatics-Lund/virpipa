@@ -208,7 +208,7 @@ workflow HCVPIPE {
     }
     
     ch_consensus_input = ch_vcf_keyed.join(ch_polished_keyed).map { key, vcf_data, polished_data ->
-        [vcf_data[0], vcf_data[1], vcf_data[2], polished_data[0], polished_data[1]]
+        [vcf_data[0], key, vcf_data[1], vcf_data[2], polished_data[0], polished_data[1]]
     }
     
     ch_consensus_input.view { "CONSENSUS_INPUT: ${it}" }
