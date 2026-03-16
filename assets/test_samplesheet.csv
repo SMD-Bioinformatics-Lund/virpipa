@@ -1,2 +1,2 @@
 clarity_sample_id,read1,read2,sample_name,run_name
-SAMPLE001,/mnt/fs1/jonas/hcv/test_data/SAMPLE001_122-634521_S26_R1_001.fastq.gz,/mnt/fs1/jonas/hcv/test_data/SAMPLE001_122-634521_S26_R2_001.fastq.gz,TEST001,test_run
+SAMPLE001,/fs1/jonas/hcv/test_data/SAMPLE001_122-634521_S26_R1_001.fastq.gz,/fs1/jonas/hcv/test_data/SAMPLE001_122-634521_S26_R2_001.fastq.gz,TEST001,test_run
