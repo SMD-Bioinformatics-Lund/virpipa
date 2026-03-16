@@ -198,20 +198,13 @@ workflow HCVPIPE {
     
     FILTER_VCF(ch_filter_input)
 
-    // Step 8: Create consensus from VCF - use pilon polished FASTA as reference
-    // Join VCF with polished fasta
-    def ch_vcf_keyed = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> 
-        [sample_id, run_name, vcf, vcf_idx] 
-    }
-    def ch_polished_keyed = ch_polished.map { run_name, sample_id, fasta, fai -> 
-        [sample_id, fasta, fai] 
-    }
-    
-    ch_consensus_input = ch_vcf_keyed.join(ch_polished_keyed).map { key, vcf_data, polished_data ->
-        [vcf_data[0], key, vcf_data[1], vcf_data[2], polished_data[0], polished_data[1]]
-    }
-    
-    ch_consensus_input.view { "CONSENSUS_INPUT: ${it}" }
+    // Step 8: Create consensus from VCF - use best reference
+    // For now, keep using original reference (was working before)
+    ch_consensus_input = ch_vcf.cross(ch_best_ref_with_name)
+        .filter { vcf, best_ref -> vcf[1] == best_ref[1] }
+        .map { vcf, best_ref ->
+            tuple(vcf[0], vcf[1], vcf[2], best_ref[3], file(best_ref[3].toString() + '.fai'))
+        }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
     // Get consensus with sample metadata
