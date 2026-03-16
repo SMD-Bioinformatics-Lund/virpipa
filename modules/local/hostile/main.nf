@@ -27,7 +27,7 @@ process REMOVE_HOSTILE {
         """
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        ${hostile} clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir .
+        ${hostile} clean --fastq1 ${read1} --fastq2 ${read2} --out-dir .
         
         mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
         mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
@@ -38,7 +38,7 @@ process REMOVE_HOSTILE {
         """
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        hostile clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir .
+        hostile clean --fastq1 ${read1} --fastq2 ${read2} --out-dir .
         
         mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
         mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
