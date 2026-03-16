@@ -49,7 +49,7 @@ process CREATE_CONSENSUS {
     awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf \${fasta_src} > \${sample}-0.15-iupac.fasta
     
     # Fix header
-    sed -i 's/>.*/>\${sample}-0.15-iupac/' \${sample}-0.15-iupac.fasta
+    sed -i "s/>.*/>\${sample}-0.15-iupac/" \${sample}-0.15-iupac.fasta
     
     # Index
     ${samtools} faidx \${sample}-0.15-iupac.fasta
