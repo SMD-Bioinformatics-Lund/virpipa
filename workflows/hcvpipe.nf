@@ -46,18 +46,18 @@ workflow HCVPIPE {
         }
         .set { ch_samples }
 
-    // Step 1: Subsample reads
-    SUBSAMPLE_READS(ch_samples, params.subsample_reads)
-    ch_subsampled = SUBSAMPLE_READS.out.reads
-
-    // Step 2: Remove human reads (optional)
+    // Step 1: Remove human reads first (to match bash pipeline)
     if (params.remove_human) {
         def cache_dir = params.hostile_cache_dir ?: ''
-        REMOVE_HOSTILE(ch_subsampled, cache_dir)
+        REMOVE_HOSTILE(ch_samples, cache_dir)
         ch_prepped = REMOVE_HOSTILE.out.reads
     } else {
-        ch_prepped = ch_subsampled
+        ch_prepped = ch_samples
     }
+
+    // Step 2: Subsample reads (after hostile filtering to match bash pipeline)
+    SUBSAMPLE_READS(ch_prepped, params.subsample_reads)
+    ch_subsampled = SUBSAMPLE_READS.out.reads
 
     // Determine references: single genome or all in ref_dir
     if (params.genome) {
@@ -72,7 +72,7 @@ workflow HCVPIPE {
     }
 
     // Step 3: Map to each reference
-    ch_mapped_all = ch_references.combine(ch_prepped).map { ref_name, ref_file, run_name, sample_id, read1, read2 ->
+    ch_mapped_all = ch_references.combine(ch_subsampled).map { ref_name, ref_file, run_name, sample_id, read1, read2 ->
         [run_name, sample_id, read1, read2, ref_file, ref_name]
     }
     MAP_READS(ch_mapped_all)
@@ -80,7 +80,7 @@ workflow HCVPIPE {
     ch_stats = MAP_READS.out.stats
 
     // Step 4: Spades assembly
-    ASSEMBLE_SPADES(ch_prepped)
+    ASSEMBLE_SPADES(ch_subsampled)
     ch_assembly = ASSEMBLE_SPADES.out.contigs
 
     // Step 5: Select best reference based on mapping stats
@@ -122,7 +122,7 @@ workflow HCVPIPE {
 
     // Step 6: Polishing loop (10 iterations with convergence check)
     // Prepare input: combine reads with hybrid assembly
-    ch_polish_input = ch_hybrid.cross(ch_prepped)
+    ch_polish_input = ch_hybrid.cross(ch_subsampled)
         .filter { hybrid, reads -> hybrid[1] == reads[1] }
         .map { hybrid, reads ->
             tuple(hybrid[0], hybrid[1], reads[2], reads[3], hybrid[2])
