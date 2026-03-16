@@ -31,6 +31,9 @@ process CREATE_CONSENSUS {
         "samtools"
     
     """
+    set -e
+    set -x
+    
     # Copy pilon fasta to sample name
     cp ${fasta} \${sample_id}.fasta
     cp ${fai} \${sample_id}.fasta.fai
