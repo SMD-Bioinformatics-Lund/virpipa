@@ -206,9 +206,7 @@ workflow HCVPIPE {
     ch_consensus_input = ch_vcf_for_consensus.cross(ch_polished_for_consensus)
         .filter { vcf_data, polished_data -> vcf_data[0] == polished_data[0] }
         .map { vcf_data, polished_data ->
-            def out = [vcf_data[1], vcf_data[0], vcf_data[2], polished_data[2], polished_data[3]]
-            println "Creating consensus input: ${out}"
-            return out
+            tuple(vcf_data[1], vcf_data[0], vcf_data[2], polished_data[2], polished_data[3])
         }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
