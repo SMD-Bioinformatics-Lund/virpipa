@@ -204,8 +204,10 @@ workflow HCVPIPE {
         .map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
         .join(ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] })
         .map { sample_id, run_name, vcf, vcf_idx, fasta, fai ->
-            tuple(run_name, sample_id, vcf, fasta, fai)
+            [sample_id, run_name, vcf, fasta, fai]
         }
+    
+    ch_consensus_input.view { "CONSENSUS_INPUT: ${it}" }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
     // Get consensus with sample metadata
