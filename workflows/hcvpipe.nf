@@ -200,12 +200,16 @@ workflow HCVPIPE {
 
     // Step 8: Create consensus from VCF - use pilon polished FASTA as reference
     // Join VCF with polished fasta
-    ch_consensus_input = ch_vcf
-        .map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
-        .join(ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] })
-        .map { sample_id, run_name, vcf, vcf_idx, fasta, fai ->
-            [sample_id, run_name, vcf, fasta, fai]
-        }
+    def ch_vcf_keyed = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> 
+        [sample_id, [run_name, sample_id, vcf]] 
+    }
+    def ch_polished_keyed = ch_polished.map { run_name, sample_id, fasta, fai -> 
+        [sample_id, [fasta, fai]] 
+    }
+    
+    ch_consensus_input = ch_vcf_keyed.join(ch_polished_keyed).map { key, vcf_data, polished_data ->
+        [vcf_data[0], vcf_data[1], vcf_data[2], polished_data[0], polished_data[1]]
+    }
     
     ch_consensus_input.view { "CONSENSUS_INPUT: ${it}" }
     
