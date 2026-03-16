@@ -31,20 +31,25 @@ process CREATE_CONSENSUS {
         "samtools"
     
     """
-    # Copy pilon FASTA to results with sample name (non-iupac version)
-    cp ${fasta} ${sample_id}.fasta
-    cp ${fai} ${sample_id}.fasta.fai
+    # Input fasta is pilon-polished 
+    # Results need: \${sample_id}.fasta (non-iupac) and \${sample_id}-0.15-iupac.fasta (iupac)
+    
+    # Copy pilon fasta to sample name (only if different)
+    if [[ "\$(basename ${fasta})" != "\${sample_id}.fasta" ]]; then
+        cp ${fasta} \${sample_id}.fasta
+        cp ${fai} \${sample_id}.fasta.fai
+    fi
     
     # Decompress VCF to uncompressed format
     ${bcftools} view -O v ${vcf} > \${vcf.baseName}
     
     # Use AWK script to create IUPAC consensus
-    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f \${scripts_dir}/vcf_to_iupac.awk \${vcf.baseName} ${fasta} > ${sample_id}-0.15-iupac.fasta
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f \${scripts_dir}/vcf_to_iupac.awk \${vcf.baseName} ${fasta} > \${sample_id}-0.15-iupac.fasta
     
     # Fix header to include sample name and iupac suffix
-    sed -i 's/>.*/>'${sample_id}'-0.15-iupac/' ${sample_id}-0.15-iupac.fasta
+    sed -i 's/>.*/>'${sample_id}'-0.15-iupac/' \${sample_id}-0.15-iupac.fasta
     
     # Index the fasta using samtools
-    ${samtools} faidx ${sample_id}-0.15-iupac.fasta
+    ${samtools} faidx \${sample_id}-0.15-iupac.fasta
     """
 }
