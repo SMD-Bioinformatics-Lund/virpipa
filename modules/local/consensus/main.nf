@@ -36,9 +36,11 @@ process CREATE_CONSENSUS {
     fai_src='${fai}'
     vcf_file='${vcf}'
     
-    # Copy pilon fasta to sample name
-    cp \${fasta_src} \${sample}.fasta
-    cp \${fai_src} \${sample}.fasta.fai
+    # Copy pilon fasta to sample name (if different)
+    if [[ "\${fasta_src}" != "\${sample}.fasta" ]]; then
+        cp \${fasta_src} \${sample}.fasta
+        cp \${fai_src} \${sample}.fasta.fai
+    fi
     
     # Decompress VCF
     ${bcftools} view -O v \${vcf_file} > input.vcf
