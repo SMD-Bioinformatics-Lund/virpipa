@@ -31,10 +31,10 @@ process CREATE_CONSENSUS {
         "samtools"
     
     """
-    sample=\${sample_id}
-    fasta_src=\${fasta}
-    fai_src=\${fai}
-    vcf_file=\${vcf}
+    sample='${sample_id}'
+    fasta_src='${fasta}'
+    fai_src='${fai}'
+    vcf_file='${vcf}'
     
     # Copy pilon fasta to sample name
     cp \${fasta_src} \${sample}.fasta
