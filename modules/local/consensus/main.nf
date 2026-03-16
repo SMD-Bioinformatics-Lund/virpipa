@@ -32,11 +32,20 @@ process CREATE_CONSENSUS {
     
     """
     set -x
-    echo "sample_id: ${sample_id}"
-    echo "run_name: ${run_name}"
-    echo "vcf: ${vcf}"
-    echo "fasta: ${fasta}"
-    echo "fai: ${fai}"
-    ls -la
+    # Copy pilon fasta to sample name
+    cp ${fasta} \${sample_id}.fasta
+    cp ${fai} \${sample_id}.fasta.fai
+    
+    # Decompress VCF
+    ${bcftools} view -O v ${vcf} > input.vcf
+    
+    # Create IUPAC consensus using projectDir
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${fasta} > \${sample_id}-0.15-iupac.fasta
+    
+    # Fix header
+    sed -i 's/>.*/>'${sample_id}'-0.15-iupac/' \${sample_id}-0.15-iupac.fasta
+    
+    # Index
+    ${samtools} faidx \${sample_id}-0.15-iupac.fasta
     """
 }
