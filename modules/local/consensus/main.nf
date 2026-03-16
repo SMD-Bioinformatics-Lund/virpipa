@@ -36,10 +36,10 @@ process CREATE_CONSENSUS {
     cp ${fai} \${sample_id}.fasta.fai
     
     # Decompress VCF
-    ${bcftools} view -O v ${vcf} > \${vcf.baseName}
+    ${bcftools} view -O v ${vcf} > input.vcf
     
     # Create IUPAC consensus
-    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f \${scripts_dir}/vcf_to_iupac.awk \${vcf.baseName} ${fasta} > \${sample_id}-0.15-iupac.fasta
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f \${scripts_dir}/vcf_to_iupac.awk input.vcf ${fasta} > \${sample_id}-0.15-iupac.fasta
     
     # Fix header
     sed -i 's/>.*/>'${sample_id}'-0.15-iupac/' \${sample_id}-0.15-iupac.fasta
