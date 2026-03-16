@@ -22,7 +22,7 @@ process REMOVE_HOSTILE {
     def hostile_cache = params.hostile_cache_dir ?: '/fs1/resources/ref/micro/hostile'
     
     if (container_dir) {
-        def hostile = "apptainer exec -B ${bind_paths} ${container_dir}/hostile_1.1.0.sif hostile"
+        def hostile = "apptainer exec -B ${bind_paths} ${container_dir}/hostile.sif hostile"
         
         """
         export HOSTILE_CACHE_DIR=${hostile_cache}
