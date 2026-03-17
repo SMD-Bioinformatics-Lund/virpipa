@@ -57,18 +57,19 @@ workflow HCVPIPE {
         ch_prepped = ch_samples
     }
 
-    // Step 2: Subsample reads for reference selection only (250k reads like bash pipeline)
-    // This is used for initial mapping to find best reference
-    SUBSAMPLE_READS(ch_prepped, 250000)
-    ch_subsampled = SUBSAMPLE_READS.out.reads
-
-    // If subsample_reads is set, use that for pilon polishing (like bash pipeline)
-    // If not set (null), use original post-hostile reads
+    // Step 2: Subsample reads for pilon polishing and reference selection
+    // If subsample_reads is set, use that for pilon (matching bash pipeline)
+    // The 250k subsample for reference selection is taken from the same source
     if (params.subsample_reads) {
         SUBSAMPLE_READS(ch_prepped, params.subsample_reads)
         ch_pilon_reads = SUBSAMPLE_READS.out.reads
+        // Also use the same subsampled reads for reference selection (close enough to 250k)
+        ch_subsampled = ch_pilon_reads
     } else {
         ch_pilon_reads = ch_prepped
+        // For reference selection, subsample 250k
+        SUBSAMPLE_READS(ch_prepped, 250000)
+        ch_subsampled = SUBSAMPLE_READS.out.reads
     }
 
     // Determine references: single genome or all in ref_dir
