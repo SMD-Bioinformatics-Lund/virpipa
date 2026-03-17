@@ -14,8 +14,8 @@ process CREATE_CONSENSUS {
     
     output:
         path "*iupac.fasta", emit: consensus
-        path "*.fasta", emit: fasta
-        path "*.fai", emit: fai
+        path "${sample_id}*.fasta", emit: fasta
+        path "${sample_id}*.fai", emit: fai
     
     script:
     def container_dir = params.container_dir
