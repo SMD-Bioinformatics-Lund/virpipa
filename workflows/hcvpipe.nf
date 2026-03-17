@@ -223,10 +223,10 @@ workflow HCVPIPE {
     
     FILTER_VCF(ch_filter_input)
 
-    // Step 8: Create consensus from VCF - use bam2fasta regenerated FASTA as reference
-    // Use cross and filter like other processes
+    // Step 8: Create consensus from VCF - use pilon FASTA (not bam2fasta output) as reference
+    // This matches bash pipeline which uses ${outdir}/pilon/${id}.fasta for 0.15-iupac
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
-    ch_polished_for_consensus = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
+    ch_polished_for_consensus = ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
     
     // ch_vcf_for_consensus: [sample_id, run_name, vcf, vcf_idx]
     // ch_polished_for_consensus: [sample_id, run_name, fasta, fai]
