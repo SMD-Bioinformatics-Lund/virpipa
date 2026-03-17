@@ -57,9 +57,14 @@ workflow HCVPIPE {
         ch_prepped = ch_samples
     }
 
-    // Step 2: Subsample reads (after hostile filtering to match bash pipeline)
-    SUBSAMPLE_READS(ch_prepped, params.subsample_reads)
+    // Step 2: Subsample reads for reference selection only (250k reads like bash pipeline)
+    // This is used for initial mapping to find best reference
+    SUBSAMPLE_READS(ch_prepped, 250000)
     ch_subsampled = SUBSAMPLE_READS.out.reads
+
+    // Keep original (post-hostile) reads for pilon polishing
+    // This matches bash pipeline which restores r1nosub/r2nosub after reference selection
+    ch_original_reads = ch_prepped
 
     // Determine references: single genome or all in ref_dir
     if (params.genome) {
@@ -124,7 +129,8 @@ workflow HCVPIPE {
 
     // Step 6: Polishing loop (10 iterations with convergence check)
     // Prepare input: combine reads with hybrid assembly
-    ch_polish_input = ch_hybrid.cross(ch_subsampled)
+    // Use ORIGINAL reads (not subsampled) for pilon - matching bash pipeline
+    ch_polish_input = ch_hybrid.cross(ch_original_reads)
         .filter { hybrid, reads -> hybrid[1] == reads[1] }
         .map { hybrid, reads ->
             tuple(hybrid[0], hybrid[1], reads[2], reads[3], hybrid[2])
