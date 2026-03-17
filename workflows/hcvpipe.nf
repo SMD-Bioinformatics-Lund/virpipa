@@ -227,12 +227,20 @@ workflow HCVPIPE {
         }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
-    // Get consensus with sample metadata
-    ch_consensus_with_meta = ch_consensus_input.map { run_name, sample_id, vcf, ref_file, fai ->
-        tuple(run_name, sample_id)
-    }.combine(CREATE_CONSENSUS.out.fasta).map { run_name, sample_id, fasta ->
-        tuple(run_name, sample_id, fasta)
+    // Get consensus with sample metadata - use consensus output which emits *iupac.fasta files
+    // Need to match back the consensus files to sample metadata
+    ch_consensus_keyed = ch_consensus_input.map { run_name, sample_id, vcf, fasta, fai ->
+        [sample_id, run_name, sample_id]
     }
+    ch_consensus_files = CREATE_CONSENSUS.out.consensus.map { fasta ->
+        def fname = fasta.baseName.replaceAll('-0.15-iupac$', '')
+        [fname, fasta]
+    }
+    ch_consensus_with_meta = ch_consensus_keyed.cross(ch_consensus_files)
+        .filter { key, fasta -> key[2] == fasta[0] }
+        .map { key, fasta ->
+            tuple(key[0], key[1], fasta[1])
+        }
     
     // Save copy for resistance annotation (channels can only be used once)
     ch_consensus_for_resistance = ch_consensus_with_meta
