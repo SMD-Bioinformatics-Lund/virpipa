@@ -19,6 +19,8 @@ include { FILTER_VCF } from '../modules/local/filter_vcf/main'
 include { CREATE_CRAM } from '../modules/local/cram/main'
 include { LOG_COVERAGE } from '../modules/local/coverage/main'
 
+include { BAM2FASTA } from '../modules/local/bam2fasta/main'
+
 workflow HCVPIPE {
     if (!params.input) {
         error "Missing required parameter: --input <samplesheet.csv>"
@@ -132,7 +134,21 @@ workflow HCVPIPE {
     ch_polished = POLISH_PILON_LOOP.out.polished
     ch_pilon_bam_with_index = POLISH_PILON_LOOP.out.final_bam_with_index
     
-    // Step 6b: Create CRAM from polished BAM
+    // Step 6b: Regenerate consensus from pilon BAM (matching bash pipeline)
+    // This uses bam2fasta to create a consensus at 100% IUPAC from the pilon BAM
+    ch_bam2fasta_input = ch_pilon_bam_with_index.cross(ch_polished)
+        .filter { bam, fasta -> bam[1] == fasta[1] }
+        .map { bam, fasta ->
+            tuple(bam[0], bam[1], bam[2], bam[3], fasta[2], fasta[3])
+        }
+        .map { run_name, sample_id, bam, bai, fasta, fai ->
+            [run_name, sample_id, bam, bai, fasta, sample_id]
+        }
+    
+    BAM2FASTA(ch_bam2fasta_input, "1.0")
+    ch_pilon_regenerated = BAM2FASTA.out.fasta
+    
+    // Step 6c: Create CRAM from polished BAM
     // Use cross and filter since join is not working well
     ch_polished_simple = ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
     ch_pilon_simple = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
@@ -161,18 +177,17 @@ workflow HCVPIPE {
     LOG_COVERAGE(ch_coverage_input)
     
     // Step 7: Variant calling on pilon-polished BAM (matching bash pipeline)
-    // Use pilon BAM and pilon FASTA as reference (like bash pipeline)
-    // Join pilon BAM with polished fasta
+    // Use pilon BAM and bam2fasta-regenerated FASTA as reference
     ch_pilon_for_varcall = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
         [sample_id, run_name, bam, bai]
     }
     
-    // Get polished fasta for variant calling (pilon fasta)
-    ch_polished_for_varcall = ch_polished.map { run_name, sample_id, fasta, fai ->
+    // Get bam2fasta regenerated pilon fasta for variant calling
+    ch_polished_for_varcall = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai ->
         [sample_id, run_name, fasta]
     }
     
-    // Join pilon BAM with polished fasta
+    // Join pilon BAM with regenerated pilon fasta
     // Also join with best reference to get the ref name
     ch_variant_input = ch_pilon_for_varcall
         .map { it -> [it[0], it] }  // key by sample_id
@@ -198,10 +213,10 @@ workflow HCVPIPE {
     
     FILTER_VCF(ch_filter_input)
 
-    // Step 8: Create consensus from VCF - use pilon polished FASTA as reference
+    // Step 8: Create consensus from VCF - use bam2fasta regenerated FASTA as reference
     // Use cross and filter like other processes
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
-    ch_polished_for_consensus = ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
+    ch_polished_for_consensus = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
     
     ch_consensus_input = ch_vcf_for_consensus.cross(ch_polished_for_consensus)
         .filter { vcf_data, polished_data -> vcf_data[0] == polished_data[0] }
