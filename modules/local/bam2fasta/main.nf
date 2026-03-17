@@ -13,7 +13,7 @@ process BAM2FASTA {
         val ambiguity_threshold
     
     output:
-        tuple val(run_name), val(sample_id), path("*.fasta"), path("*.fai"), emit: fasta
+        tuple val(run_name), val(sample_id), path("*.fasta"), path("*.fasta.fai"), emit: fasta
         path "*.vcf.gz", emit: vcf
         path "*.vcf.gz.csi", emit: vcf_index
     
