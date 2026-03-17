@@ -41,6 +41,7 @@ process POLISH_PILON_LOOP {
         map_to_ref() {
             local ref=\$1
             local name=\$2
+            local use_params=\${3:-true}  # whether to use -k -B -L params (true for pilon rounds, false for final mapping)
             
             ref_base=\$(basename \${ref})
             ref_dir=\$(dirname \${ref})
@@ -53,19 +54,26 @@ process POLISH_PILON_LOOP {
                 ${sentieon} bwa index ref_\${name}/\${ref_base}
             fi
             
+            # Set bwa mem params based on use_params flag
+            if [[ "\${use_params}" == "true" ]]; then
+                bwa_params="-k 11 -B 2 -L 25"
+            else
+                bwa_params=""
+            fi
+            
             # Map using sentieon UMI workflow
             ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
             ${sentieon} bwa mem \\
                 -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
                 -t ${task.cpus} \\
-                -k 11 -B 2 -L 25 \\
+                \${bwa_params} \\
                 -p -C ref_\${name}/\${ref_base} - | \\
             ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
             
-            ${sentieon} bwa mem \\
-                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
-                -t ${task.cpus} \\
-                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \\
+            ${sentieon} bwa mem \
+                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\tPL:illumina" \
+                -t ${task.cpus} \
+                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \
             ${sentieon} util sort -i - --sam2bam --umi_post_process -o \${sample}-\${name}.bam
             
             ${samtools} index \${sample}-\${name}.bam
@@ -105,14 +113,14 @@ process POLISH_PILON_LOOP {
         
         # Round 1
         echo "=== POLISH ROUND 1 ==="
-        bam1=\$(map_to_ref "\${hybrid_fa}" "pilon-1")
+        bam1=\$(map_to_ref "\${hybrid_fa}" "pilon-1" "true")
         ref1=\$(run_pilon "\${hybrid_fa}" "\${bam1}" 1)
         prev_changes=\$(wc -l < \${outdir}/\${sample}-pilon-1.changes)
         
         # Rounds 2-10
         for round in \$(seq 2 \${maxpolish}); do
             prev_ref="\${outdir}/\${sample}-pilon-\$((round-1)).fasta"
-            bam=\$(map_to_ref "\${prev_ref}" "pilon-\${round}")
+            bam=\$(map_to_ref "\${prev_ref}" "pilon-\${round}" "true")
             current_ref=\$(run_pilon "\${prev_ref}" "\${bam}" \${round})
             
             curr_changes=\$(wc -l < \${outdir}/\${sample}-pilon-\${round}.changes)
@@ -126,10 +134,10 @@ process POLISH_PILON_LOOP {
             fi
         done
         
-        # Final mapping
+        # Final mapping - use no params (matching bash umimapnoopt)
         echo "=== Final mapping ==="
         final_ref="\${outdir}/\${sample}.fasta"
-        final_bam=\$(map_to_ref "\${final_ref}" "pilon")
+        final_bam=\$(map_to_ref "\${final_ref}" "pilon" "false")
         
         # Copy final outputs
         cp \${sample}-pilon.bam \${outdir}/\${sample}-pilon.bam
