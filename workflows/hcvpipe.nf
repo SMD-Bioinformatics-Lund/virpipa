@@ -136,13 +136,22 @@ workflow HCVPIPE {
     
     // Step 6b: Regenerate consensus from pilon BAM (matching bash pipeline)
     // This uses bam2fasta to create a consensus at 100% IUPAC from the pilon BAM
-    ch_bam2fasta_input = ch_pilon_bam_with_index.cross(ch_polished)
-        .filter { bam, fasta -> bam[1] == fasta[1] }
-        .map { bam, fasta ->
-            tuple(bam[0], bam[1], bam[2], bam[3], fasta[2], fasta[3])
-        }
-        .map { run_name, sample_id, bam, bai, fasta, fai ->
-            [run_name, sample_id, bam, bai, fasta, sample_id]
+    // Need to join with best_ref to get the actual ref_name (not just sample_id)
+    ch_pilon_for_bam2fasta = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
+        [sample_id, run_name, bam, bai]
+    }
+    ch_polished_for_bam2fasta = ch_polished.map { run_name, sample_id, fasta, fai ->
+        [sample_id, run_name, fasta, fai]
+    }
+    ch_best_ref_for_bam2fasta = ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
+        [sample_id, ref_name]
+    }
+    
+    ch_bam2fasta_input = ch_pilon_for_bam2fasta
+        .join(ch_polished_for_bam2fasta)
+        .join(ch_best_ref_for_bam2fasta)
+        .map { sample_id, run_name, bam, bai, fasta, fai, ref_name ->
+            tuple(run_name, sample_id, bam, bai, fasta, ref_name)
         }
     
     BAM2FASTA(ch_bam2fasta_input, "1.0")
