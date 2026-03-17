@@ -218,6 +218,8 @@ workflow HCVPIPE {
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
     ch_polished_for_consensus = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
     
+    // ch_vcf_for_consensus: [sample_id, run_name, vcf, vcf_idx]
+    // ch_polished_for_consensus: [sample_id, run_name, fasta, fai]
     ch_consensus_input = ch_vcf_for_consensus.cross(ch_polished_for_consensus)
         .filter { vcf_data, polished_data -> vcf_data[0] == polished_data[0] }
         .map { vcf_data, polished_data ->

@@ -13,9 +13,9 @@ process BAM2FASTA {
         val ambiguity_threshold
     
     output:
-        tuple val(run_name), val(sample_id), path("*.fasta"), path("*.fasta.fai"), emit: fasta
-        path "*.vcf.gz", emit: vcf
-        path "*.vcf.gz.csi", emit: vcf_index
+        tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.fasta"), path("${sample_id}-${ref_name}.fasta.fai"), emit: fasta
+        path "${sample_id}-${ref_name}.vcf.gz", emit: vcf
+        path "${sample_id}-${ref_name}.vcf.gz.csi", emit: vcf_index
     
     script:
     def container_dir = params.container_dir
