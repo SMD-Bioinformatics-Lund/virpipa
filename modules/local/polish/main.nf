@@ -70,10 +70,10 @@ process POLISH_PILON_LOOP {
                 -p -C ref_\${name}/\${ref_base} - | \\
             ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
             
-            ${sentieon} bwa mem \
-                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\tPL:illumina" \
-                -t ${task.cpus} \
-                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \
+            ${sentieon} bwa mem \\
+                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
+                -t ${task.cpus} \\
+                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \\
             ${sentieon} util sort -i - --sam2bam --umi_post_process -o \${sample}-\${name}.bam
             
             ${samtools} index \${sample}-\${name}.bam
