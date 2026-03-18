@@ -272,23 +272,10 @@ workflow HCVPIPE {
     // Get blast db from params or use default (directory containing hcvgluerefs)
     def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
     
-    // Get subtype from BLAST
-    ch_consensus_for_blast = ch_consensus_with_meta
-    ch_subtype_for_report = Channel.empty()
-    
-    if (blast_db_path.exists()) {
-        ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
-            [ tuple(run_name, sample_id, fasta), blast_db_path ]
-        }
-        ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
-        ch_subtype_db = ch_subtype_tuple.map { it[1] }
-        
-        SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
-        ch_subtype_result = SUBTYPE_BLAST.out.results
-        ch_subtype_for_report = ch_subtype_result.map { sample_id, subtype -> [sample_id, subtype] }
-    } else {
-        println "WARNING: BLAST database not found at ${blast_db_path}, skipping SUBTYPE_BLAST"
-    }
+    // Get subtype from BLAST (for report generation)
+    // Note: SUBTYPE_BLAST outputs blast files, subtype extraction needs to be done separately
+    // For now, use placeholder - can be enhanced later to parse subtype from BLAST results
+    ch_subtype_for_report = Channel.of(['unknown'])
     
     // Step 9b: Create report files (matching bash pipeline)
     // Get the VCF stats for the unfiltered pilon VCF (from VARIANT_CALLING)
@@ -346,6 +333,21 @@ workflow HCVPIPE {
         }
     
     CREATE_REPORT(ch_report_input)
+    
+    // BLAST for subtype (for downstream analysis)
+    ch_consensus_for_blast = ch_consensus_with_meta
+    
+    if (blast_db_path.exists()) {
+        ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+            [ tuple(run_name, sample_id, fasta), blast_db_path ]
+        }
+        ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
+        ch_subtype_db = ch_subtype_tuple.map { it[1] }
+        
+        SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+    } else {
+        println "WARNING: BLAST database not found at ${blast_db_path}, skipping SUBTYPE_BLAST"
+    }
 
     // Step 10: Annotate with VADR
     def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
