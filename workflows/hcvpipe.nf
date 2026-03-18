@@ -236,6 +236,27 @@ workflow HCVPIPE {
     
     FILTER_VCF(ch_filter_input)
 
+    // Step 7c: Create report files (matching bash pipeline)
+    // Report needs: run_name, sample_id, vcf_stats, cram, crai, ref_fasta, subtype
+    ch_vcf_stats = VARIANT_CALLING.out.stats.map { stats ->
+        [stats.baseName.replaceAll('\\.vcf\\.gz\\.stats$', ''), stats]
+    }
+    
+    ch_report_input = ch_vcf_stats
+        .map { base_name, stats -> 
+            def parts = base_name.split('-')
+            def sample_id = parts[0]
+            [sample_id, stats]
+        }
+        .join(ch_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] })
+        .join(ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
+        .map { sample_id, stats, run_name, cram, crai, fasta, ref_name ->
+            tuple(run_name, sample_id, stats, cram, crai, fasta, ref_name)
+        }
+    
+    CREATE_REPORT(ch_report_input)
+
     // Step 8: Create consensus from VCF - use bam2fasta output (100% IUPAC) as reference
     // This matches bash pipeline which replaces pilon FASTA with bam2fasta output
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }

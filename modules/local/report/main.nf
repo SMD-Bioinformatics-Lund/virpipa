@@ -13,6 +13,7 @@ process CREATE_REPORT {
     
     output:
         path "*.report.tsv", emit: report
+        path "*.fastanucfreq.tsv", emit: nucfreq
     
     script:
     def container_dir = params.container_dir
@@ -22,7 +23,7 @@ process CREATE_REPORT {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
-        ref_name=\$(echo \${ref_fasta} | xargs -I{} basename {} .fasta)
+        ref_name=\$(echo ${ref_fasta} | xargs -I{} basename {} .fasta)
         ref_name=\${ref_name#*-}
         
         echo "# VCF stats" > \${sample_id}-\${ref_name}.report.tsv
@@ -30,10 +31,10 @@ process CREATE_REPORT {
         printf "reference\t\${ref_name}\n" >> \${sample_id}-\${ref_name}.report.tsv
         printf "id\t\${sample_id}\n" >> \${sample_id}-\${ref_name}.report.tsv
         
-        snps=\$(grep "^SN.*number of SNPs" \${vcf_stats} | awk '{print \$NF}')
-        multiallelic=\$(grep "^SN.*number of multiallelic SNP sites" \${vcf_stats} | awk '{print \$NF}')
-        af0=\$(grep "^AF.*0.000000" \${vcf_stats} | awk '{print \$4}')
-        af99=\$(grep "^AF.*0.990000" \${vcf_stats} | awk '{print \$4}')
+        snps=\$(grep "^SN.*number of SNPs" ${vcf_stats} | awk '{print \$NF}')
+        multiallelic=\$(grep "^SN.*number of multiallelic SNP sites" ${vcf_stats} | awk '{print \$NF}')
+        af0=\$(grep "^AF.*0.000000" ${vcf_stats} | awk '{print \$4}')
+        af99=\$(grep "^AF.*0.990000" ${vcf_stats} | awk '{print \$4}')
         
         printf "snps\t\${snps:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
         printf "multiallelic_snps\t\${multiallelic:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
@@ -41,7 +42,9 @@ process CREATE_REPORT {
         printf "AF0.99\t\${af99:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
         
         printf "# COVERAGE\n" >> \${sample_id}-\${ref_name}.report.tsv
-        ${samtools} coverage \${cram} | awk 'NR>1 {print}' >> \${sample_id}-\${ref_name}.report.tsv
+        ${samtools} coverage ${cram} | awk 'NR>1 {print}' >> \${sample_id}-\${ref_name}.report.tsv
+        
+        awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper(\$i)]++}END{for(i in w) print i,w[i]}' ${ref_fasta} | sort -nr -k2 > \${sample_id}-\${ref_name}.fastanucfreq.tsv
         """
     } else {
         error "CREATE_REPORT requires container_dir"
