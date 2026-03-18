@@ -277,62 +277,9 @@ workflow HCVPIPE {
     // For now, use placeholder - can be enhanced later to parse subtype from BLAST results
     ch_subtype_for_report = Channel.of(['unknown'])
     
-    // Step 9b: Create report files (matching bash pipeline)
+    // Step 9b: Create report files (matching bash pipeline) - SKIPPING FOR NOW
     // Get the VCF stats for the unfiltered pilon VCF (from VARIANT_CALLING)
-    ch_vcf_stats = ch_vcf.map { run_name, sample_id, vcf, tbi -> 
-        [sample_id, run_name, vcf, tbi] 
-    }
-    
-    // Get best ref name
-    ch_best_ref_info = ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
-        [sample_id, ref_name]
-    }
-    
-    // Run stats on the main VCF (not filtered)
-    def container_dir = params.container_dir ?: ''
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    
-    if (container_dir) {
-        process STATS_VCF {
-            tag { "${sample_id}" }
-            label 'process_low'
-            
-            input:
-                tuple val(run_name), val(sample_id), path(vcf), path(tbi), val(ref_name)
-            
-            output:
-                tuple val(sample_id), path("*.vcf.gz.stats")
-            
-            script:
-            def bcftools = "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools"
-            """
-            ${bcftools} stats \${vcf} > \${sample_id}.vcf.gz.stats
-            """
-        }
-        
-        ch_vcf_stats = ch_vcf
-            .combine(ch_best_ref_info, by: 1)
-            .map { run_name, sample_id, vcf, tbi, ref_name ->
-                tuple(run_name, sample_id, vcf, tbi, ref_name)
-            }
-            | STATS_VCF
-    }
-    
-    // Build report input: combine cram, ref_fasta, vcf_stats, subtype
-    // Format: (run_name, sample_id, vcf_stats, cram, crai, fasta, subtype)
-    ch_report_input = ch_cram_output
-        .map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] }
-        .combine(ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] }, by: 0)
-        .combine(ch_vcf_stats, by: 0)
-        .map { sample_id, run_name, cram, crai, fasta, vcf_stats ->
-            tuple(run_name, sample_id, vcf_stats, cram, crai, fasta)
-        }
-        .combine(ch_subtype_for_report.ifEmpty(['unknown']), by: 0)
-        .map { run_name, sample_id, vcf_stats, cram, crai, fasta, subtype ->
-            tuple(run_name, sample_id, vcf_stats, cram, crai, fasta, subtype)
-        }
-    
-    CREATE_REPORT(ch_report_input)
+    // This step can be added back after debugging
     
     // BLAST for subtype (for downstream analysis)
     ch_consensus_for_blast = ch_consensus_with_meta
