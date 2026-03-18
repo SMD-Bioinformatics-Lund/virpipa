@@ -6,7 +6,7 @@ process CREATE_REPORT {
     memory '4 GB'
     time '10m'
     
-    beforeScript 'source /etc/profile; module load apptainer'
+    container "${params.container_dir}/samtools_1.21.sif"
     
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
@@ -18,11 +18,7 @@ process CREATE_REPORT {
         path "*.fastanucfreq.tsv", emit: nucfreq
     
     script:
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
     def ref_name = ref_fasta.baseName
-    def sub_bash = subtype
     
     """
     echo "# VCF stats" > ${sample_id}-${ref_name}.report.tsv
@@ -41,7 +37,7 @@ process CREATE_REPORT {
     printf "AF0.99\t\${af99:-0}\n" >> ${sample_id}-${ref_name}.report.tsv
     
     printf "# COVERAGE\n" >> ${sample_id}-${ref_name}.report.tsv
-    ${samtools} coverage ${cram} > coverage.tmp
+    samtools coverage ${cram} > coverage.tmp
     awk 'NR>1 {print}' coverage.tmp >> ${sample_id}-${ref_name}.report.tsv
     rm coverage.tmp
     
