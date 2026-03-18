@@ -18,18 +18,16 @@ process CREATE_REPORT {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def ref_name = ref_fasta.baseName
     
     if (container_dir) {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
-        ref_name=\$(echo ${ref_fasta} | xargs -I{} basename {} .fasta)
-        ref_name=\${ref_name#*-}
-        
         echo "# VCF stats" > ${sample_id}-\${ref_name}.report.tsv
-        printf "subtype\t${subtype%%-*}\n" >> ${sample_id}-\${ref_name}.report.tsv
+        printf "subtype\t\${subtype%%-*}\n" >> ${sample_id}-\${ref_name}.report.tsv
         printf "reference\t\${ref_name}\n" >> ${sample_id}-\${ref_name}.report.tsv
-        printf "id\t${sample_id}\n" >> ${sample_id}-\${ref_name}.report.tsv
+        printf "id\t\${sample_id}\n" >> ${sample_id}-\${ref_name}.report.tsv
         
         snps=\$(grep "^SN.*number of SNPs" ${vcf_stats} | awk '{print \$NF}')
         multiallelic=\$(grep "^SN.*number of multiallelic SNP sites" ${vcf_stats} | awk '{print \$NF}')
