@@ -6,6 +6,8 @@ process CREATE_REPORT {
     memory '4 GB'
     time '10m'
     
+    beforeScript 'source /etc/profile; module load apptainer'
+    
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
     input:
