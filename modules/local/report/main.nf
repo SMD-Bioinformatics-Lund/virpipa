@@ -22,42 +22,26 @@ process CREATE_REPORT {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
-        # Create report from VCF stats - matching bash pipeline format
-        # Extract ref name from fasta
         ref_name=\$(echo \${ref_fasta} | xargs -I{} basename {} .fasta)
         ref_name=\${ref_name#*-}
         
-        echo "# VCF stats" > \${sample_id}.report.tsv
-        echo "subtype\t${subtype}" >> \${sample_id}.report.tsv
-        echo "reference\t\${ref_name}" >> \${sample_id}.report.tsv
-        echo "id\t${sample_id}" >> \${sample_id}.report.tsv
+        echo "# VCF stats" > \${sample_id}-\${ref_name}.report.tsv
+        printf "subtype\t\${subtype%%-*}\n" >> \${sample_id}-\${ref_name}.report.tsv
+        printf "reference\t\${ref_name}\n" >> \${sample_id}-\${ref_name}.report.tsv
+        printf "id\t\${sample_id}\n" >> \${sample_id}-\${ref_name}.report.tsv
         
-        # Extract stats from VCF stats file
         snps=\$(grep "^SN.*number of SNPs" \${vcf_stats} | awk '{print \$NF}')
         multiallelic=\$(grep "^SN.*number of multiallelic SNP sites" \${vcf_stats} | awk '{print \$NF}')
         af0=\$(grep "^AF.*0.000000" \${vcf_stats} | awk '{print \$4}')
         af99=\$(grep "^AF.*0.990000" \${vcf_stats} | awk '{print \$4}')
         
-        echo "snps\t\${snps:-0}" >> \${sample_id}.report.tsv
-        echo "multiallelic_snps\t\${multiallelic:-0}" >> \${sample_id}.report.tsv
-        echo "AF0\t\${af0:-0}" >> \${sample_id}.report.tsv
-        echo "AF0.99\t\${af99:-0}" >> \${sample_id}.report.tsv
+        printf "snps\t\${snps:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
+        printf "multiallelic_snps\t\${multiallelic:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
+        printf "AF0\t\${af0:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
+        printf "AF0.99\t\${af99:-0}\n" >> \${sample_id}-\${ref_name}.report.tsv
         
-        # Add COVERAGE section - matching bash pipeline format
-        # Bash uses: samtools coverage | datamash transpose | sed -n '2,\$p'
-        echo "# COVERAGE" >> \${sample_id}.report.tsv
-        ${samtools} coverage \${cram} | \\
-            awk '{
-                for (i=1; i<=NF; i++) {
-                    rows[i] = (rows[i] ? rows[i] "\\t" : "") \$i
-                }
-            }
-            END {
-                for (i=1; i<=NF; i++) {
-                    print rows[i]
-                }
-            }' | \\
-            sed -n '2,\$p' >> \${sample_id}.report.tsv
+        printf "# COVERAGE\n" >> \${sample_id}-\${ref_name}.report.tsv
+        ${samtools} coverage \${cram} | awk 'NR>1 {print}' >> \${sample_id}-\${ref_name}.report.tsv
         """
     } else {
         error "CREATE_REPORT requires container_dir"
