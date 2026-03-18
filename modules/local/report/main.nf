@@ -5,6 +5,7 @@ process CREATE_REPORT {
     cpus 2
     memory '4 GB'
     time '10m'
+    errorStrategy 'ignore'
     
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
