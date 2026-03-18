@@ -22,17 +22,9 @@ process LOG_COVERAGE {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
-        # Get coverage stats - matching bash pipeline format
-        # Bash uses: samtools coverage \${cram} | datamash transpose | sed -n '2,\$p'
         ${samtools} coverage ${cram} | \\
             awk 'NR==1 {for (i=1;i<=NF;i++) printf "%s\\t", \$i; print ""} NR>1 {for (i=1;i<=NF;i++) printf "%s\\t", \$i; print ""}' | \\
             sed -n '2,\$p' > ${sample_id}-coverage.tsv
-        """
-        # Get coverage stats - matching bash pipeline format
-        # Bash uses: samtools coverage \${cram} | datamash transpose | sed -n '2,\$p'
-        ${samtools} coverage \${cram} | \\
-            awk 'NR==1 {for (i=1;i<=NF;i++) printf "%s\\t", \$i; print ""} NR>1 {for (i=1;i<=NF;i++) printf "%s\\t", \$i; print ""}' | \\
-            sed -n '2,\$p' > \${sample_id}-coverage.tsv
         """
     } else {
         """
