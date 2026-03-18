@@ -6,8 +6,6 @@ process CREATE_REPORT {
     memory '4 GB'
     time '10m'
     
-    container "${params.container_dir}/samtools_1.21.sif"
-    
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
     input:
@@ -35,11 +33,6 @@ process CREATE_REPORT {
     printf "multiallelic_snps\t\${multiallelic:-0}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "AF0\t\${af0:-0}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "AF0.99\t\${af99:-0}\n" >> ${sample_id}-${ref_name}.report.tsv
-    
-    printf "# COVERAGE\n" >> ${sample_id}-${ref_name}.report.tsv
-    samtools coverage ${cram} > coverage.tmp
-    awk 'NR>1 {print}' coverage.tmp >> ${sample_id}-${ref_name}.report.tsv
-    rm coverage.tmp
     
     awk -vFS="" 'NR>1 {for(i=1;i<=NF;i++)w[toupper(\$i)]++}END{for(i in w) print i,w[i]}' ${ref_fasta} | sort -nr -k2 > ${sample_id}-${ref_name}.fastanucfreq.tsv
     """
