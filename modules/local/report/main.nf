@@ -9,8 +9,7 @@ process CREATE_REPORT {
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
     input:
-        tuple val(run_name), val(sample_id), path(vcf_stats), path(cram), path(crai), path(ref_fasta)
-        val(subtype)
+        tuple val(run_name), val(sample_id), path(vcf_stats), path(cram), path(crai), path(ref_fasta), val(subtype)
     
     output:
         path "*.report.tsv", emit: report
@@ -21,7 +20,6 @@ process CREATE_REPORT {
     
     if (container_dir) {
         def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
-        def ref_name = ref_fasta.baseName
         
         """
         # Create report from VCF stats - matching bash pipeline format
