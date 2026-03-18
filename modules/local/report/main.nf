@@ -20,11 +20,12 @@ process CREATE_REPORT {
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
     def ref_name = ref_fasta.baseName
-    def st = subtype
+    def sub_bash = subtype
     
     """
+    subtype_bash="${subtype}"
     echo "# VCF stats" > ${sample_id}-${ref_name}.report.tsv
-    printf "subtype\t\${st%%-*}\n" >> ${sample_id}-${ref_name}.report.tsv
+    printf "subtype\t\${subtype_bash%%-*}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "reference\t${ref_name}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "id\t${sample_id}\n" >> ${sample_id}-${ref_name}.report.tsv
     
