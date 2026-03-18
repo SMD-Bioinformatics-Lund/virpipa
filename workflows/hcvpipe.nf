@@ -187,14 +187,15 @@ workflow HCVPIPE {
     ch_cram_output = CREATE_CRAM.out.cram_with_index
     
     // Step 6c: Log coverage from CRAM - use polished fasta as reference
-    ch_cram_out_simple = ch_cram_output
-        .map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] }
-    
-    ch_coverage_input = ch_cram_out_simple.cross(ch_polished_simple)
-        .filter { cram, polish -> cram[0] == polish[0] }
-        .map { cram, polish ->
-            def fasta_abs = polish[2].toAbsolutePath()
-            [cram[1], cram[0], cram[2], cram[3], fasta_abs]
+    // Create channel for LOG_COVERAGE: (run_name, sample_id, cram, crai, ref_fasta)
+    ch_coverage_input = ch_cram_output
+        .map { run_name, sample_id, cram, crai -> 
+            [sample_id, run_name, cram, crai]
+        }
+        .combine(ch_polished_simple.map { it -> [it[0], it[2]] }, by: 0)
+        .map { sample_id, run_name, cram, crai, fasta ->
+            def fasta_abs = file(fasta).toAbsolutePath()
+            tuple(run_name, sample_id, cram, crai, fasta_abs)
         }
     
     LOG_COVERAGE(ch_coverage_input)
