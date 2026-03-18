@@ -27,7 +27,7 @@ process CREATE_REPORT {
         ref_name=\${ref_name#*-}
         
         echo "# VCF stats" > ${sample_id}-\${ref_name}.report.tsv
-        printf "subtype\t\${subtype%%-*}\n" >> ${sample_id}-\${ref_name}.report.tsv
+        printf "subtype\t${subtype%%-*}\n" >> ${sample_id}-\${ref_name}.report.tsv
         printf "reference\t\${ref_name}\n" >> ${sample_id}-\${ref_name}.report.tsv
         printf "id\t${sample_id}\n" >> ${sample_id}-\${ref_name}.report.tsv
         
