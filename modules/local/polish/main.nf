@@ -64,7 +64,7 @@ process POLISH_PILON_LOOP {
             # Map using sentieon UMI workflow
             ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \
             ${sentieon} bwa mem \
-                -R "@RG\tID:\${sample}\tSM:\${sample}\tLB:\${sample}\tPL:illumina" \
+                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \
                 -t ${task.cpus} \
                 \${bwa_params} \
                 -p -C ref_\${name}/\${ref_base} - | \
@@ -72,7 +72,7 @@ process POLISH_PILON_LOOP {
             
             # Second mapping - also use bwa_params (matching bash umimap)
             ${sentieon} bwa mem \
-                -R "@RG\tID:\${sample}\tSM:\${sample}\tLB:\${sample}\tPL:illumina" \
+                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \
                 -t ${task.cpus} \
                 \${bwa_params} \
                 -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \
