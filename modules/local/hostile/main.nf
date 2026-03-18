@@ -6,6 +6,7 @@ process REMOVE_HOSTILE {
     memory '16 GB'
     time '2h'
     
+    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy', pattern: 'hostile.json'
     publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz'
     
     input:
@@ -14,6 +15,7 @@ process REMOVE_HOSTILE {
     
     output:
         tuple val(run_name), val(sample_id), path("*_R1_*_hostile*.fastq.gz"), path("*_R2_*_hostile*.fastq.gz"), emit: reads
+        path "hostile.json", emit: hostile_json
         path "*.log", emit: logs
     
     script:
@@ -27,7 +29,7 @@ process REMOVE_HOSTILE {
         """
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        ${hostile} clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir .
+        ${hostile} clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
         mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
         mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
@@ -38,7 +40,7 @@ process REMOVE_HOSTILE {
         """
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        hostile clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir .
+        hostile clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
         mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
         mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
