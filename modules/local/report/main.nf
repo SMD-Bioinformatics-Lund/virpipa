@@ -23,9 +23,8 @@ process CREATE_REPORT {
     def sub_bash = subtype
     
     """
-    subtype_bash="${subtype}"
     echo "# VCF stats" > ${sample_id}-${ref_name}.report.tsv
-    printf "subtype\t\${subtype_bash%%-*}\n" >> ${sample_id}-${ref_name}.report.tsv
+    printf "subtype\t${subtype.split('-')[0]}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "reference\t${ref_name}\n" >> ${sample_id}-${ref_name}.report.tsv
     printf "id\t${sample_id}\n" >> ${sample_id}-${ref_name}.report.tsv
     
