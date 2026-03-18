@@ -54,7 +54,7 @@ process POLISH_PILON_LOOP {
                 ${sentieon} bwa index ref_\${name}/\${ref_base}
             fi
             
-            # Set bwa mem params based on use_params flag
+            # Set bwa mem params based on use_params flag (matching bash umimap vs umimapnoopt)
             if [[ "\${use_params}" == "true" ]]; then
                 bwa_params="-k 11 -B 2 -L 25"
             else
@@ -62,22 +62,26 @@ process POLISH_PILON_LOOP {
             fi
             
             # Map using sentieon UMI workflow
-            ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
-            ${sentieon} bwa mem \\
-                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
-                -t ${task.cpus} \\
-                \${bwa_params} \\
-                -p -C ref_\${name}/\${ref_base} - | \\
+            ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \
+            ${sentieon} bwa mem \
+                -R "@RG\tID:\${sample}\tSM:\${sample}\tLB:\${sample}\tPL:illumina" \
+                -t ${task.cpus} \
+                \${bwa_params} \
+                -p -C ref_\${name}/\${ref_base} - | \
             ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
             
-            ${sentieon} bwa mem \\
-                -R "@RG\\tID:\${sample}\\tSM:\${sample}\\tLB:\${sample}\\tPL:illumina" \\
-                -t ${task.cpus} \\
-                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \\
+            # Second mapping - also use bwa_params (matching bash umimap)
+            ${sentieon} bwa mem \
+                -R "@RG\tID:\${sample}\tSM:\${sample}\tLB:\${sample}\tPL:illumina" \
+                -t ${task.cpus} \
+                \${bwa_params} \
+                -p -C ref_\${name}/\${ref_base} consensus.fastq.gz | \
             ${sentieon} util sort -i - --sam2bam --umi_post_process -o \${sample}-\${name}.bam
             
-            ${samtools} index \${sample}-\${name}.bam
-            echo "\${sample}-\${name}.bam"
+            # Filter reads with sclen < 30 (matching bash for both umimap and umimapnoopt)
+            ${samtools} view -@ ${task.cpus} \${sample}-\${name}.bam -e "sclen < 30" --with-header --bam -o \${sample}-\${name}.filter.bam
+            ${samtools} index \${sample}-\${name}.filter.bam
+            echo "\${sample}-\${name}.filter.bam"
         }
         
         run_pilon() {
