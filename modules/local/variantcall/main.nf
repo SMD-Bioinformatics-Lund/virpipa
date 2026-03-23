@@ -23,9 +23,9 @@ process VARIANT_CALLING {
         def bcftools = "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools"
         
         """
-        # Generate pileup
-        ${bcftools} mpileup -Ou -f ${ref_fasta} -d 1000000 -a AD,DP ${bam} | \\
-        ${bcftools} call -Oz -m -A --ploidy 1 -o ${sample_id}-${ref_name}.vcf.gz -
+        # Generate pileup (matching bash pipeline: -Ob with separate call step)
+        ${bcftools} mpileup -Ob -f ${ref_fasta} -d 1000000 -a AD,DP -o ${sample_id}-${ref_name}.bcf ${bam}
+        ${bcftools} call -Oz -m -A --ploidy 1 -o ${sample_id}-${ref_name}.vcf.gz ${sample_id}-${ref_name}.bcf
         
         # Index
         ${bcftools} index ${sample_id}-${ref_name}.vcf.gz
