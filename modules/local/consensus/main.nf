@@ -1,57 +1,44 @@
 process CREATE_CONSENSUS {
-    tag { "${sample_id}:${vcf}" }
+    tag { "${sample_id}" }
     label 'process_medium'
     
     cpus 8
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy', pattern: "*.fasta"
     
     input:
-        tuple val(run_name), val(sample_id), path(vcf), path(fasta), path(fai)
+        tuple val(run_name), val(sample_id), path(vcf), path(reference_fasta)
         val min_freq
     
     output:
-        path "*iupac.fasta", emit: consensus
-        path "${sample_id}*.fasta", emit: fasta
-        path "${sample_id}*.fai", emit: fai
+        tuple val(run_name), val(sample_id), path("${sample_id}-${min_freq}-iupac.fasta"), path("${sample_id}-${min_freq}-iupac.fasta.fai"), emit: consensus
     
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
-    
-    def bcftools = container_dir ? 
-        "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
-        "bcftools"
     
     def samtools = container_dir ? 
         "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
         "samtools"
+
+    def ref_copy = reference_fasta.getName()
+    def output_fasta = "${sample_id}-${min_freq}-iupac.fasta"
     
     """
-    sample='${sample_id}'
-    fasta_src='${fasta}'
-    fai_src='${fai}'
-    vcf_file='${vcf}'
-    
-    # Copy pilon fasta to sample name (if different)
-    if [[ "\${fasta_src}" != "\${sample}.fasta" ]]; then
-        cp \${fasta_src} \${sample}.fasta
-        cp \${fai_src} \${sample}.fasta.fai
+    set -euo pipefail
+
+    if [[ "${reference_fasta}" != "${ref_copy}" ]]; then
+        cp -L ${reference_fasta} ${ref_copy}
     fi
-    
-    # Decompress VCF
-    ${bcftools} view -O v \${vcf_file} > input.vcf
-    
-    # Create IUPAC consensus
-    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf \${fasta_src} > \${sample}-0.15-iupac.fasta
-    
-    # Fix header
-    sed -i "s/>.*/>\${sample}-0.15-iupac/" \${sample}-0.15-iupac.fasta
-    
-    # Index
-    ${samtools} faidx \${sample}-0.15-iupac.fasta
+
+    zcat ${vcf} > input.vcf
+
+    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${ref_copy} > ${output_fasta}
+
+    sed -i "s/>.*/>${sample_id}-${min_freq}-iupac/" ${output_fasta}
+
+    ${samtools} faidx ${output_fasta}
     """
 }

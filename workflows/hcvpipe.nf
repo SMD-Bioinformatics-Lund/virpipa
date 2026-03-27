@@ -157,19 +157,15 @@ workflow HCVPIPE {
     ch_polished_for_bam2fasta = ch_polished.map { run_name, sample_id, fasta, fai ->
         [sample_id, fasta, fai]
     }
-    ch_best_ref_for_bam2fasta = ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
-        [sample_id, ref_name]
-    }
     
     ch_bam2fasta_input = ch_pilon_for_bam2fasta
         .join(ch_polished_for_bam2fasta)
-        .join(ch_best_ref_for_bam2fasta)
-        .map { sample_id, run_name, bam, bai, fasta, fai, ref_name ->
-            tuple(run_name, sample_id, bam, bai, fasta, ref_name)
+        .map { sample_id, run_name, bam, bai, fasta, fai ->
+            tuple(run_name, sample_id, bam, bai, fasta, '1.0-iupac')
         }
     
     BAM2FASTA(ch_bam2fasta_input, "1.0")
-    ch_pilon_regenerated = BAM2FASTA.out.fasta
+    ch_pilon_regenerated = BAM2FASTA.out.replacement_fasta
     
     // Step 6c: Create CRAM from polished BAM
     // Use cross and filter since join is not working well
@@ -210,15 +206,12 @@ workflow HCVPIPE {
         [sample_id, run_name, fasta]
     }
     
-    // Join pilon BAM with regenerated pilon fasta
-    // Also join with best reference to get the ref name
+    // Join pilon BAM with regenerated pilon replacement fasta
     ch_variant_input = ch_pilon_for_varcall
         .map { it -> [it[0], it] }  // key by sample_id
         .join(ch_polished_for_varcall.map { it -> [it[0], it] })
-        .join(ch_best_ref_with_name.map { it -> [it[1], it] })  // key by sample_id
-        .map { sample_id, pilon, polished, best_ref ->
-            // best_ref = [run_name, sample_id, ref_name, fasta_file]
-            tuple(pilon[1], pilon[0], pilon[2], pilon[3], polished[2], best_ref[2])
+        .map { sample_id, pilon, polished ->
+            tuple(pilon[1], pilon[0], pilon[2], pilon[3], polished[2], 'pilon')
         }
     
     VARIANT_CALLING(ch_variant_input)
@@ -228,10 +221,8 @@ workflow HCVPIPE {
     ch_vcf_for_resistance = ch_vcf
 
     // Step 7b: Filter VCF at multiple min fractions
-    ch_filter_input = ch_vcf.cross(ch_best_ref_with_name)
-        .filter { vcf, best_ref -> vcf[1] == best_ref[1] }
-        .map { vcf, best_ref ->
-            tuple(vcf[0], vcf[1], vcf[2], vcf[3], best_ref[3], best_ref[2])
+    ch_filter_input = ch_vcf.map { run_name, sample_id, vcf, vcf_idx ->
+            tuple(run_name, sample_id, vcf, vcf_idx, "${sample_id}-pilon")
         }
     
     FILTER_VCF(ch_filter_input)
@@ -260,31 +251,20 @@ workflow HCVPIPE {
     // Step 8: Create consensus from VCF - use bam2fasta output (100% IUPAC) as reference
     // This matches bash pipeline which replaces pilon FASTA with bam2fasta output
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
-    ch_polished_for_consensus = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta, fai] }
+    ch_polished_for_consensus = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
     
     // ch_vcf_for_consensus: [sample_id, run_name, vcf, vcf_idx]
-    // ch_polished_for_consensus: [sample_id, run_name, fasta, fai]
+    // ch_polished_for_consensus: [sample_id, run_name, fasta]
     ch_consensus_input = ch_vcf_for_consensus.cross(ch_polished_for_consensus)
         .filter { vcf_data, polished_data -> vcf_data[0] == polished_data[0] }
         .map { vcf_data, polished_data ->
-            tuple(vcf_data[1], vcf_data[0], vcf_data[2], polished_data[2], polished_data[3])
+            tuple(vcf_data[1], vcf_data[0], vcf_data[2], polished_data[2])
         }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
-    // Get consensus with sample metadata - use consensus output which emits *iupac.fasta files
-    // Need to match back the consensus files to sample metadata
-    ch_consensus_keyed = ch_consensus_input.map { run_name, sample_id, vcf, fasta, fai ->
-        [sample_id, run_name, sample_id]
+    ch_consensus_with_meta = CREATE_CONSENSUS.out.consensus.map { run_name, sample_id, fasta, fai ->
+        tuple(run_name, sample_id, fasta)
     }
-    ch_consensus_files = CREATE_CONSENSUS.out.consensus.map { fasta ->
-        def fname = fasta.baseName.replaceAll('-0.15-iupac$', '')
-        [fname, fasta]
-    }
-    ch_consensus_with_meta = ch_consensus_keyed.cross(ch_consensus_files)
-        .filter { key, fasta -> key[2] == fasta[0] }
-        .map { key, fasta ->
-            tuple(key[0], key[1], fasta[1])
-        }
     
     // Save copy for resistance annotation (channels can only be used once)
     ch_consensus_for_resistance = ch_consensus_with_meta

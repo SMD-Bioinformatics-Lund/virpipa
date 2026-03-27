@@ -1,0 +1,2 @@
+clarity_sample_id,read1,read2,sample_name,run_name
+SAMPLE001,assets/test_data/tiny/SAMPLE001_122-634521_S26_R1_001.tiny.fastq.gz,assets/test_data/tiny/SAMPLE001_122-634521_S26_R2_001.tiny.fastq.gz,TEST001,tiny_run

@@ -21,29 +21,39 @@ process REMOVE_HOSTILE {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    def hostile_cache = params.hostile_cache_dir ?: '/fs1/resources/ref/micro/hostile'
+    def hostile_cache = cache_dir ?: params.hostile_cache_dir ?: '/fs1/resources/ref/micro/hostile'
     
     if (container_dir) {
         def hostile = "apptainer exec -B ${bind_paths} ${container_dir}/hostile_1.1.0.sif hostile"
         
         """
+        set -euo pipefail
+
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
         ${hostile} clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
-        mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
-        mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
+        clean_r1=\$(find . -maxdepth 1 -name '*.clean_1.fastq.gz' -print -quit)
+        clean_r2=\$(find . -maxdepth 1 -name '*.clean_2.fastq.gz' -print -quit)
+
+        mv "\${clean_r1}" ${sample_id}_R1_001_hostile.fastq.gz
+        mv "\${clean_r2}" ${sample_id}_R2_001_hostile.fastq.gz
         
         echo "Hostile filtering complete" > ${sample_id}_hostile.log
         """
     } else {
         """
+        set -euo pipefail
+
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
         hostile clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
-        mv ${read1.simpleName}.clean_1.fastq.gz ${sample_id}_R1_001_hostile.fastq.gz
-        mv ${read2.simpleName}.clean_2.fastq.gz ${sample_id}_R2_001_hostile.fastq.gz
+        clean_r1=\$(find . -maxdepth 1 -name '*.clean_1.fastq.gz' -print -quit)
+        clean_r2=\$(find . -maxdepth 1 -name '*.clean_2.fastq.gz' -print -quit)
+
+        mv "\${clean_r1}" ${sample_id}_R1_001_hostile.fastq.gz
+        mv "\${clean_r2}" ${sample_id}_R2_001_hostile.fastq.gz
         
         echo "Hostile filtering complete" > ${sample_id}_hostile.log
         """

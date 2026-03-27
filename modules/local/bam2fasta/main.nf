@@ -6,7 +6,7 @@ process BAM2FASTA {
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/fasta", mode: 'copy'
     
     input:
         tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta), val(ref_name)
@@ -14,8 +14,11 @@ process BAM2FASTA {
     
     output:
         tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.fasta"), path("${sample_id}-${ref_name}.fasta.fai"), emit: fasta
+        tuple val(run_name), val(sample_id), path("${sample_id}.fasta"), path("${sample_id}.fasta.fai"), emit: replacement_fasta
         path "${sample_id}-${ref_name}.vcf.gz", emit: vcf
         path "${sample_id}-${ref_name}.vcf.gz.csi", emit: vcf_index
+        path "${sample_id}-${ref_name}.vcf.gz.stats", emit: stats
+        path "${sample_id}-${ref_name}.bcf", emit: bcf
     
     script:
     def container_dir = params.container_dir
@@ -29,22 +32,34 @@ process BAM2FASTA {
         "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
         "samtools"
     
+    def ref_copy = ref_fasta.getName()
+    def bcf_name = "${sample_id}-${ref_name}.bcf"
+    def vcf_name = "${sample_id}-${ref_name}.vcf.gz"
+    def fasta_name = "${sample_id}-${ref_name}.fasta"
+    def stats_name = "${sample_id}-${ref_name}.vcf.gz.stats"
+    def replacement_fasta = "${sample_id}.fasta"
+
     """
-    # Generate pileup and call variants
-    ${bcftools} mpileup -Ob -f ${ref_fasta} -d 1000000 -a AD,DP ${bam} > ${sample_id}.bcf
-    ${bcftools} call -Oz -m -A --ploidy 1 -o ${sample_id}-${ref_name}.vcf.gz ${sample_id}.bcf
-    ${bcftools} index ${sample_id}-${ref_name}.vcf.gz
-    
-    # Decompress VCF for awk
-    ${bcftools} view -O v ${sample_id}-${ref_name}.vcf.gz > input.vcf
-    
-    # Create consensus with IUPAC codes
-    awk -v MIN_AF=${ambiguity_threshold} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${ref_fasta} > ${sample_id}-${ref_name}.fasta
-    
-    # Fix header
-    sed -i 's/>.*/>${sample_id}/' ${sample_id}-${ref_name}.fasta
-    
-    # Index
-    ${samtools} faidx ${sample_id}-${ref_name}.fasta
+    set -euo pipefail
+
+    if [[ "${ref_fasta}" != "${ref_copy}" ]]; then
+        cp -L ${ref_fasta} ${ref_copy}
+    fi
+
+    ${bcftools} mpileup -Ob -f ${ref_copy} -d 1000000 -a AD,DP -o ${bcf_name} ${bam}
+    ${bcftools} call -Oz -m -A --ploidy 1 -o ${vcf_name} ${bcf_name}
+    ${bcftools} index ${vcf_name}
+    ${bcftools} stats ${vcf_name} > ${stats_name}
+
+    zcat ${vcf_name} > input.vcf
+
+    awk -v MIN_AF=${ambiguity_threshold} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${ref_copy} > ${fasta_name}
+
+    sed -i "s/>.*/>${sample_id}-${ref_name}/" ${fasta_name}
+    ${samtools} faidx ${fasta_name}
+
+    cp ${fasta_name} ${replacement_fasta}
+    sed -i "s/>.*/>${sample_id}/" ${replacement_fasta}
+    ${samtools} faidx ${replacement_fasta}
     """
 }
