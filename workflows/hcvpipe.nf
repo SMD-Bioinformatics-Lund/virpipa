@@ -17,12 +17,15 @@ include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
 include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
 include { FILTER_VCF } from '../modules/local/filter_vcf/main'
+include { CREATE_CRAM as CREATE_CRAM_BESTREF } from '../modules/local/cram/main'
 include { CREATE_CRAM as CREATE_CRAM_PILON } from '../modules/local/cram/main'
 include { CREATE_CRAM as CREATE_CRAM_IUPAC } from '../modules/local/cram/main'
 include { LOG_COVERAGE } from '../modules/local/coverage/main'
+include { CREATE_REPORT as CREATE_REPORT_BESTREF } from '../modules/local/report/main'
 include { CREATE_REPORT as CREATE_REPORT_IUPAC } from '../modules/local/report/main'
 
-include { BAM2FASTA } from '../modules/local/bam2fasta/main'
+include { BAM2FASTA as BAM2FASTA_BESTREF } from '../modules/local/bam2fasta/main'
+include { BAM2FASTA as BAM2FASTA_PILON } from '../modules/local/bam2fasta/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -94,6 +97,7 @@ workflow HCVPIPE {
     MAP_READS(ch_mapped_all)
     ch_mapped = MAP_READS.out.bams
     ch_stats = MAP_READS.out.stats
+    ch_mapped_with_ref = MAP_READS.out.bams_with_ref
 
     // Step 4: Spades assembly
     ASSEMBLE_SPADES(ch_subsampled)
@@ -136,6 +140,23 @@ workflow HCVPIPE {
     ASSEMBLE_HYBRID(ch_hybrid_contigs, ch_hybrid_ref, ch_hybrid_refname)
     ch_hybrid = ASSEMBLE_HYBRID.out.hybrid_assembly
 
+    // Step 5c: Build the chosen best-reference consensus/VCF track from the
+    // initial reference-mapping BAM. This feeds the `${sample}-${subtype}`
+    // CRAM/report outputs that the bash pipeline keeps in `results/`.
+    ch_best_ref_mapped = ch_mapped_with_ref
+        .map { run_name, sample_id, ref_name, bam, bai ->
+            [[sample_id, ref_name], [run_name, sample_id, ref_name, bam, bai]]
+        }
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
+            [[sample_id, ref_name], [run_name, sample_id, ref_name, fasta]]
+        })
+        .map { key, mapped, best_ref ->
+            tuple(mapped[0], mapped[1], mapped[3], mapped[4], best_ref[3], mapped[2])
+        }
+
+    BAM2FASTA_BESTREF(ch_best_ref_mapped, "0.01")
+    ch_best_ref_fasta = BAM2FASTA_BESTREF.out.fasta
+
     // Step 6: Polishing loop (10 iterations with convergence check)
     // Prepare input: combine reads with hybrid assembly
     // Use subsampled reads for pilon (params.subsample_reads) - matching bash pipeline
@@ -166,8 +187,8 @@ workflow HCVPIPE {
             tuple(run_name, sample_id, bam, bai, fasta, '1.0-iupac')
         }
     
-    BAM2FASTA(ch_bam2fasta_input, "1.0")
-    ch_pilon_regenerated = BAM2FASTA.out.replacement_fasta
+    BAM2FASTA_PILON(ch_bam2fasta_input, "1.0")
+    ch_pilon_regenerated = BAM2FASTA_PILON.out.replacement_fasta
     
     // Step 6c: Create CRAM from the regenerated pilon replacement FASTA.
     // This matches the bash pipeline, which replaces pilon/${sample}.fasta
@@ -184,6 +205,23 @@ workflow HCVPIPE {
     
     CREATE_CRAM_PILON(ch_cram_input)
     ch_cram_output = CREATE_CRAM_PILON.out.cram_with_index
+
+    // Step 6c-b: Create the best-reference CRAM from the original reference
+    // mapping outputs and the original chosen reference FASTA.
+    ch_best_ref_cram_input = ch_mapped_with_ref
+        .map { run_name, sample_id, ref_name, bam, bai ->
+            [[sample_id, ref_name], [run_name, sample_id, ref_name, bam, bai]]
+        }
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
+            [[sample_id, ref_name], [run_name, sample_id, ref_name, fasta]]
+        })
+        .map { key, mapped, best_ref ->
+            def ref_abs = file(best_ref[3]).toAbsolutePath()
+            tuple(mapped[0], mapped[1], mapped[3], mapped[4], ref_abs, "${mapped[1]}-${mapped[2]}")
+        }
+
+    CREATE_CRAM_BESTREF(ch_best_ref_cram_input)
+    ch_best_ref_cram_output = CREATE_CRAM_BESTREF.out.cram_with_index
     
     // Step 6d: Log coverage from CRAM using the regenerated replacement FASTA
     ch_coverage_input = ch_cram_output
@@ -286,6 +324,30 @@ workflow HCVPIPE {
 
     CREATE_REPORT_IUPAC(ch_iupac_report_input)
 
+    // Step 8e: Create the `${sample}-${subtype}` report from the chosen
+    // best-reference BAM2FASTA outputs and CRAM.
+    ch_best_ref_report_input = BAM2FASTA_BESTREF.out.stats
+        .filter { stats -> !stats.getName().contains('1.0-iupac') }
+        .map { stats ->
+            def base = stats.getName().replaceFirst(/\.vcf\.gz\.stats$/, '')
+            def parts = base.split('-', 2)
+            tuple(parts[0], base, stats)
+        }
+        .join(ch_best_ref_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [run_name, cram, crai]] })
+        .join(ch_best_ref_fasta.map { run_name, sample_id, fasta, fai ->
+            def suffix = fasta.getBaseName().replaceFirst("^${sample_id}-", '')
+            [sample_id, [suffix, fasta]]
+        })
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
+        .filter { sample_id, report_base, stats, cram_data, fasta_data, ref_name ->
+            report_base == "${sample_id}-${ref_name}" && fasta_data[0] == ref_name
+        }
+        .map { sample_id, report_base, stats, cram_data, fasta_data, ref_name ->
+            tuple(cram_data[0], sample_id, stats, cram_data[1], cram_data[2], fasta_data[1], ref_name, report_base)
+        }
+
+    CREATE_REPORT_BESTREF(ch_best_ref_report_input)
+
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default (directory containing hcvgluerefs)
     def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
@@ -316,7 +378,7 @@ workflow HCVPIPE {
 
     // Step 10: Annotate with VADR
     def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
-    ch_vadr_input = BAM2FASTA.out.replacement_fasta.map { run_name, sample_id, fasta, fai ->
+    ch_vadr_input = BAM2FASTA_PILON.out.replacement_fasta.map { run_name, sample_id, fasta, fai ->
         tuple(run_name, sample_id, fasta)
     }
     ch_vadr_tuple = ch_vadr_input.map { run_name, sample_id, fasta ->

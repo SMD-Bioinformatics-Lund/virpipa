@@ -17,6 +17,9 @@ process MAP_READS {
         tuple val(run_name), val(sample_id), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.sort.bam"), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.sort.bam.bai"), emit: raw_bams
         tuple val(run_name), val(sample_id), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam"), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam.bai"), emit: bams
         tuple val(run_name), val(sample_id), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam.stats"), emit: stats
+        tuple val(run_name), val(sample_id), val(genome_name), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.sort.bam"), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.sort.bam.bai"), emit: raw_bams_with_ref
+        tuple val(run_name), val(sample_id), val(genome_name), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam"), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam.bai"), emit: bams_with_ref
+        tuple val(run_name), val(sample_id), val(genome_name), path("${sample_id}-${genome_name}.r11b2L25.bwa.umi.filter.sort.bam.stats"), emit: stats_with_ref
     
     script:
     def container_dir = params.container_dir
