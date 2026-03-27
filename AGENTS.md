@@ -85,6 +85,9 @@ nextflow run test_module.nf -profile local_containers,tiny --module hostile
 nextflow run test_module.nf -profile local --module bam2fasta
 nextflow run test_module.nf -profile local_containers --module bam2fasta
 
+# Run fixture-backed bestref test locally
+nextflow run test_module.nf -profile local --module bestref
+
 # Run fixture-backed consensus test locally
 nextflow run test_module.nf -profile local --module consensus
 
@@ -114,6 +117,7 @@ Currently tested modules:
 - `hostile` - Remove human reads with hostile (verified identical)
 - `subsample` - Subsample FASTQ reads with seqtk (verified identical)
 - `bam2fasta` - Build consensus FASTA/VCF from a fixture BAM (FASTA identical; VCF/stats differ only in header path/date metadata when compared to bash-original)
+- `bestref` - Select `3a-D17763.fa` from fixture mapping stats (verified identical chosen FASTA in workdir)
 - `consensus` - Build `0.15-iupac` FASTA from fixture VCF + replacement FASTA (verified identical)
 - `variantcall` - Build `SAMPLE001-pilon.vcf.gz` from fixture BAM + replacement FASTA (VCF body verified; header differs only in embedded reference path metadata)
 - `filter_vcf` - Build `SAMPLE001-pilon-m*.vcf.gz` from fixture pilon VCF (all filtered VCF bodies verified; stats differ only in embedded filename/path metadata)
@@ -128,6 +132,7 @@ Currently tested modules:
 - The mounted laptop copy of `/fs1` is available under `/mnt/fs1`.
 - The repo-local tiny fixture is in `assets/test_data/tiny/` with samplesheet `assets/tiny_samplesheet.csv`.
 - The repo-local `bam2fasta` fixture is in `assets/test_data/bam2fasta/` and uses the `SAMPLE001-nextflow-nfcore-scaffold` bash-original outputs so sample naming matches the main test data.
+- The repo-local `bestref` fixture is in `assets/test_data/bestref/` and contains only the initial reference-mapping `*.stats` files plus the expected `3a-D17763.fa` reference.
 - The repo-local `consensus` fixture is in `assets/test_data/consensus/` and uses `SAMPLE001-pilon.vcf.gz` plus the replacement `SAMPLE001.fasta` reference from the same bash-original run.
 - The repo-local `variantcall` fixture is in `assets/test_data/variantcall/` and uses the `SAMPLE001` pilon BAM plus replacement `SAMPLE001.fasta`.
 - The repo-local `filter_vcf` fixture is in `assets/test_data/filter_vcf/` and contains the bash-original `SAMPLE001-pilon.vcf.gz` plus the expected `SAMPLE001-pilon-m*.vcf.gz` outputs.
@@ -140,6 +145,7 @@ Currently tested modules:
 - Use `-profile local,tiny` for non-container local tests that rely on tools from the `skrotis` environment.
 - Use `-profile local_containers,tiny` for Apptainer-backed local tests; inside Codex this may still require running the command outside the sandbox.
 - Use `-profile local --module bam2fasta` for fast local logic checks, and `-profile local_containers --module bam2fasta` when you want the pinned bcftools/samtools versions from the container.
+- Use `-profile local --module bestref` for the reference-selection fixture. This module is internal and does not publish to `params.outdir`, so inspect the workdir output or the process log when verifying it manually.
 - Use `-profile local_containers --module variantcall` and `-profile local_containers --module filter_vcf` for parity checks because they are bcftools-version sensitive.
 - Use `-profile local_containers --module cram` for parity checks because CRAM headers embed reference paths and the module relies on samtools behavior matching the pipeline container.
 - Use `-profile local --module coverage` for the coverage fixture because `samtools` is available in `skrotis`.
@@ -149,6 +155,7 @@ Currently tested modules:
 - Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m, `CREATE_REPORT` to 2 CPUs / 2 GB / 30m, and `ANNOTATE_VADR` to 2 CPUs / 8 GB / 1h so they fit local resources.
 - The mounted test sample currently available on the laptop is `SAMPLE001`; if someone refers to `TEST001` they likely mean the sample_name column rather than the FASTQ basename.
 - For `bam2fasta`, the generated FASTA is byte-identical to the bash-original fixture. The generated VCF and stats still differ in embedded path/date header metadata, which is expected and acceptable for parity checks.
+- For `bestref`, only feed the initial reference-mapping stats into the module test. Do not include later `pilon*` or `0.15-iupac` stats when checking the subtype-selection behavior from the early mapping stage.
 - `bam2fasta` also needs to emit a replacement `SAMPLE001.fasta` with the sample-name header; downstream `variantcall` and `consensus` should use that replacement FASTA, not the published `SAMPLE001-1.0-iupac.fasta`, because the BAM/VCF contig names are `SAMPLE001`.
 - For `variantcall` and `filter_vcf`, compare VCF content after stripping `##bcftools...` command/version lines or other embedded path metadata. The variant bodies match; remaining diffs are in generated header metadata.
 - For `cram`, compare `samtools view` payload or header content rather than raw file bytes. The CRAM binary and CRAI differ because the embedded `UR:` reference path changes with the work directory, but the alignment payload is the same.

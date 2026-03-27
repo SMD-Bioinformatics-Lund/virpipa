@@ -16,34 +16,37 @@ process SELECT_BEST_REFERENCE {
     script:
     def refDir = ref_dir
     """
+    set -euo pipefail
+
     # Get absolute path to ref_dir
     REF_DIR=\$(readlink -f "${refDir}")
     
     # Find the reference with lowest error rate from stats files
     
-    best_err=""
     best_ref=""
     best_file=""
+    > best_ref_candidates.tsv
     
     for stats in *.stats; do
         [[ -e "\$stats" ]] || continue
         
-        # Extract ref name - the stats file has pattern: SAMPLE001-3a-D17763.bam.stats
-        # We want to extract "3a-D17763" - capture everything between first - and .bam.stats
-        refname=\$(echo "\$stats" | sed 's/^[^-]*-\\([^.]*\\).*/\\1/')
+        # Extract the reference name from bash-style stats names like:
+        # SAMPLE001-3a-D17763.r11b2L25.bwa.umi.filter.sort.bam.stats
+        refname=\$(basename "\$stats")
+        refname=\${refname#${sample_id}-}
+        refname=\${refname%.bwa.umi.filter.sort.bam.stats}
+        refname=\${refname%.*}
         
         # Get error rate from stats file (convert scientific notation to decimal for bc)
         errrate=\$(awk '\$1=="SN" && \$2=="error" && \$3=="rate:" { printf "%.6f", \$4; exit }' "\$stats")
         
         [[ -z "\$errrate" ]] && continue
         
-        echo "Found \$refname with error rate \$errrate"
-        
-        if [[ -z "\$best_err" ]] || (( \$(echo "\$errrate < \$best_err" | bc -l) )); then
-            best_err=\$errrate
-            best_ref=\$refname
-        fi
+        printf "%s\t%s\n" "\$refname" "\$errrate" | tee -a best_ref_candidates.tsv
     done
+
+    best_ref=\$(sort -k2,2g best_ref_candidates.tsv | head -n 1 | cut -f1)
+    best_err=\$(sort -k2,2g best_ref_candidates.tsv | head -n 1 | cut -f2)
     
     echo "Best reference: \$best_ref with error rate \$best_err" > best_ref.log
     
