@@ -12,6 +12,7 @@ include { CREATE_CONSENSUS } from './modules/local/consensus/main'
 include { FILTER_VCF } from './modules/local/filter_vcf/main'
 include { VARIANT_CALLING } from './modules/local/variantcall/main'
 include { CREATE_CRAM } from './modules/local/cram/main'
+include { LOG_COVERAGE } from './modules/local/coverage/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -31,6 +32,7 @@ Available modules to test locally:
   - filter_vcf : Build min-fraction filtered VCFs from a fixture pilon VCF
   - variantcall: Build the pilon VCF from a fixture BAM and reference
   - cram       : Build the polished CRAM from a fixture BAM and reference
+  - coverage   : Build the coverage TSV from a fixture CRAM
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -41,6 +43,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module filter_vcf --outdir test_output_filter_vcf
   nextflow run test_module.nf -profile local_containers --module variantcall --outdir test_output_variantcall
   nextflow run test_module.nf -profile local_containers --module cram --outdir test_output_cram
+  nextflow run test_module.nf -profile local --module coverage --outdir test_output_coverage
 
 Notes:
   - Sentieon-dependent modules are intentionally not wired here yet.
@@ -166,7 +169,19 @@ Notes:
                 )
             )
         )
+    } else if (params.module == 'coverage') {
+        LOG_COVERAGE(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/coverage/SAMPLE001.cram"),
+                    file("${projectDir}/assets/test_data/coverage/SAMPLE001.cram.crai"),
+                    file("${projectDir}/assets/test_data/coverage/SAMPLE001.fasta")
+                )
+            )
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage"
     }
 }
