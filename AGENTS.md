@@ -94,6 +94,12 @@ nextflow run test_module.nf -profile local_containers --module filter_vcf
 
 # Run fixture-backed CRAM test locally
 nextflow run test_module.nf -profile local_containers --module cram
+
+# Run fixture-backed coverage test locally
+nextflow run test_module.nf -profile local --module coverage
+
+# Run fixture-backed subtype BLAST test locally
+nextflow run test_module.nf -profile local_containers --module subtype
 ```
 
 ### Available Test Modules
@@ -106,6 +112,8 @@ Currently tested modules:
 - `variantcall` - Build `SAMPLE001-pilon.vcf.gz` from fixture BAM + replacement FASTA (VCF body verified; header differs only in embedded reference path metadata)
 - `filter_vcf` - Build `SAMPLE001-pilon-m*.vcf.gz` from fixture pilon VCF (all filtered VCF bodies verified; stats differ only in embedded filename/path metadata)
 - `cram` - Build `SAMPLE001.cram` from fixture BAM + replacement FASTA (SAM payload verified; CRAM/header/index differ only in embedded reference path metadata)
+- `coverage` - Build `SAMPLE001-coverage.tsv` from fixture CRAM (verified identical)
+- `subtype` - Build `SAMPLE001-0.15-iupac.fasta.blast` from fixture consensus FASTA (verified identical)
 
 ### Current Laptop Notes
 
@@ -116,18 +124,23 @@ Currently tested modules:
 - The repo-local `variantcall` fixture is in `assets/test_data/variantcall/` and uses the `SAMPLE001` pilon BAM plus replacement `SAMPLE001.fasta`.
 - The repo-local `filter_vcf` fixture is in `assets/test_data/filter_vcf/` and contains the bash-original `SAMPLE001-pilon.vcf.gz` plus the expected `SAMPLE001-pilon-m*.vcf.gz` outputs.
 - The repo-local `cram` fixture is in `assets/test_data/cram/` and uses the `SAMPLE001` pilon BAM plus replacement `SAMPLE001.fasta`, with expected `SAMPLE001.cram` outputs from the bash-original run.
+- The repo-local `coverage` fixture is in `assets/test_data/coverage/` and uses the bash-original `SAMPLE001.cram` plus replacement `SAMPLE001.fasta`, with expected `SAMPLE001-coverage.tsv`.
+- The repo-local `subtype` fixture is in `assets/test_data/subtype/` and uses `SAMPLE001-0.15-iupac.fasta` plus the expected bash-original `SAMPLE001-0.15-iupac.fasta.blast`.
 - The `tiny` profile points `params.input` at that tiny samplesheet and writes to `results_tiny` unless `--outdir` overrides it.
 - Use `-profile local,tiny` for non-container local tests that rely on tools from the `skrotis` environment.
 - Use `-profile local_containers,tiny` for Apptainer-backed local tests; inside Codex this may still require running the command outside the sandbox.
 - Use `-profile local --module bam2fasta` for fast local logic checks, and `-profile local_containers --module bam2fasta` when you want the pinned bcftools/samtools versions from the container.
 - Use `-profile local_containers --module variantcall` and `-profile local_containers --module filter_vcf` for parity checks because they are bcftools-version sensitive.
 - Use `-profile local_containers --module cram` for parity checks because CRAM headers embed reference paths and the module relies on samtools behavior matching the pipeline container.
-- Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, and `CREATE_CRAM` to 2 CPUs / 2 GB / 30m so they fit local resources.
+- Use `-profile local --module coverage` for the coverage fixture because `samtools` is available in `skrotis`.
+- Use `-profile local_containers --module subtype` for parity checks because `blastn` is not installed in `skrotis`, but the pinned `blast_2.16.0.sif` container reproduces the bash-original output exactly.
+- Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, and `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m so they fit local resources.
 - The mounted test sample currently available on the laptop is `SAMPLE001`; if someone refers to `TEST001` they likely mean the sample_name column rather than the FASTQ basename.
 - For `bam2fasta`, the generated FASTA is byte-identical to the bash-original fixture. The generated VCF and stats still differ in embedded path/date header metadata, which is expected and acceptable for parity checks.
 - `bam2fasta` also needs to emit a replacement `SAMPLE001.fasta` with the sample-name header; downstream `variantcall` and `consensus` should use that replacement FASTA, not the published `SAMPLE001-1.0-iupac.fasta`, because the BAM/VCF contig names are `SAMPLE001`.
 - For `variantcall` and `filter_vcf`, compare VCF content after stripping `##bcftools...` command/version lines or other embedded path metadata. The variant bodies match; remaining diffs are in generated header metadata.
 - For `cram`, compare `samtools view` payload or header content rather than raw file bytes. The CRAM binary and CRAI differ because the embedded `UR:` reference path changes with the work directory, but the alignment payload is the same.
+- For `subtype`, the bash pipeline writes a literal header row before `blastn -outfmt 6`. That header contains a typo (`s. star ... t`) from the original bash line continuation, and the Nextflow module intentionally reproduces it so the `.blast` file is byte-identical to the bash-original result.
 
 ### Clean Run
 

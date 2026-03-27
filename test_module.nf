@@ -13,6 +13,7 @@ include { FILTER_VCF } from './modules/local/filter_vcf/main'
 include { VARIANT_CALLING } from './modules/local/variantcall/main'
 include { CREATE_CRAM } from './modules/local/cram/main'
 include { LOG_COVERAGE } from './modules/local/coverage/main'
+include { SUBTYPE_BLAST } from './modules/local/subtype/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -33,6 +34,7 @@ Available modules to test locally:
   - variantcall: Build the pilon VCF from a fixture BAM and reference
   - cram       : Build the polished CRAM from a fixture BAM and reference
   - coverage   : Build the coverage TSV from a fixture CRAM
+  - subtype    : Build the BLAST subtype hits from a fixture consensus FASTA
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -44,6 +46,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module variantcall --outdir test_output_variantcall
   nextflow run test_module.nf -profile local_containers --module cram --outdir test_output_cram
   nextflow run test_module.nf -profile local --module coverage --outdir test_output_coverage
+  nextflow run test_module.nf -profile local_containers --module subtype --outdir test_output_subtype
 
 Notes:
   - Sentieon-dependent modules are intentionally not wired here yet.
@@ -181,7 +184,18 @@ Notes:
                 )
             )
         )
+    } else if (params.module == 'subtype') {
+        SUBTYPE_BLAST(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta")
+                )
+            ),
+            Channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage, subtype"
     }
 }
