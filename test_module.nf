@@ -17,6 +17,7 @@ include { SUBTYPE_BLAST } from './modules/local/subtype/main'
 include { CREATE_REPORT } from './modules/local/report/main'
 include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
 include { SELECT_BEST_REFERENCE } from './modules/local/bestref/main'
+include { MAP_READS } from './modules/local/mapping/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -33,6 +34,7 @@ Available modules to test locally:
   - subsample  : Subsample FASTQ reads with seqtk
   - bam2fasta  : Build consensus FASTA and VCF from a fixture BAM
   - bestref    : Pick the best reference FASTA from fixture mapping stats
+  - mapping    : Map SAMPLE001 reads to one reference with sentieon
   - consensus  : Build 0.15 IUPAC consensus from a fixture VCF
   - filter_vcf : Build min-fraction filtered VCFs from a fixture pilon VCF
   - variantcall: Build the pilon VCF from a fixture BAM and reference
@@ -48,6 +50,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile --outdir test_output_tiny
   nextflow run test_module.nf -profile local --module bam2fasta --outdir test_output_bam2fasta
   nextflow run test_module.nf -profile local --module bestref --outdir test_output_bestref
+  nextflow run test_module.nf -profile local_containers --module mapping --outdir test_output_mapping
   nextflow run test_module.nf -profile local --module consensus --outdir test_output_consensus
   nextflow run test_module.nf -profile local_containers --module filter_vcf --outdir test_output_filter_vcf
   nextflow run test_module.nf -profile local_containers --module variantcall --outdir test_output_variantcall
@@ -139,6 +142,19 @@ Notes:
                     'SAMPLE001',
                     files("${projectDir}/assets/test_data/bestref/*.stats"),
                     file("${projectDir}/assets/test_data/bestref")
+                )
+            )
+        )
+    } else if (params.module == 'mapping') {
+        MAP_READS(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz'),
+                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz'),
+                    file("${projectDir}/assets/test_data/mapping/3a-D17763.fa"),
+                    '3a-D17763'
                 )
             )
         )
@@ -241,6 +257,6 @@ Notes:
             Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
         )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
     }
 }
