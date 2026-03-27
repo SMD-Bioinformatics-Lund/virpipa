@@ -176,10 +176,10 @@ workflow HCVPIPE {
         .filter { polish, bam -> polish[0] == bam[0] }
         .map { polish, bam ->
             def fasta_abs = polish[2].toAbsolutePath()
-            [polish[1], polish[0], bam[2], bam[3], fasta_abs]
+            [polish[1], polish[0], bam[2], bam[3], fasta_abs, polish[0]]
         }
     
-    CREATE_CRAM(ch_cram_input, "pilon")
+    CREATE_CRAM(ch_cram_input)
     ch_cram_output = CREATE_CRAM.out.cram_with_index
     
     // Step 6c: Log coverage from CRAM - use polished fasta as reference

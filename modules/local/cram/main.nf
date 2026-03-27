@@ -1,5 +1,5 @@
 process CREATE_CRAM {
-    tag { "${sample_id}:${bam_base}" }
+    tag { "${sample_id}:${output_name}" }
     label 'process_medium'
     
     cpus 4
@@ -9,27 +9,29 @@ process CREATE_CRAM {
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
     input:
-        tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta)
-        val(bam_base)
+        tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta), val(output_name)
     
     output:
-        tuple val(run_name), val(sample_id), path("*.cram"), path("*.cram.crai"), emit: cram_with_index
+        tuple val(run_name), val(sample_id), path("${output_name}.cram"), path("${output_name}.cram.crai"), emit: cram_with_index
     
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    
-    if (container_dir) {
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
-        
-        """
-        ${samtools} view -O cram,embed_ref -T ${ref_fasta} ${bam} -o ${sample_id}-${bam_base}.cram
-        ${samtools} index ${sample_id}-${bam_base}.cram
-        """
-    } else {
-        """
-        echo "CREATE_CRAM requires container with samtools"
-        exit 1
-        """
-    }
+
+    def samtools = container_dir ?
+        "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
+        "samtools"
+
+    def ref_copy = ref_fasta.getName()
+
+    """
+    set -euo pipefail
+
+    if [[ "${ref_fasta}" != "${ref_copy}" ]]; then
+        cp -L ${ref_fasta} ${ref_copy}
+    fi
+
+    ${samtools} view -O cram,embed_ref -T ${ref_copy} ${bam} -o ${output_name}.cram
+    ${samtools} index ${output_name}.cram
+    """
 }
