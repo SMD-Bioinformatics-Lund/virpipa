@@ -167,27 +167,28 @@ workflow HCVPIPE {
     BAM2FASTA(ch_bam2fasta_input, "1.0")
     ch_pilon_regenerated = BAM2FASTA.out.replacement_fasta
     
-    // Step 6c: Create CRAM from polished BAM
-    // Use cross and filter since join is not working well
-    ch_polished_simple = ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
+    // Step 6c: Create CRAM from the regenerated pilon replacement FASTA.
+    // This matches the bash pipeline, which replaces pilon/${sample}.fasta
+    // with the 1.0-iupac majority-call FASTA before creating CRAM outputs.
+    ch_regenerated_simple = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
     ch_pilon_simple = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
     
-    ch_cram_input = ch_polished_simple.cross(ch_pilon_simple)
-        .filter { polish, bam -> polish[0] == bam[0] }
-        .map { polish, bam ->
-            def fasta_abs = polish[2].toAbsolutePath()
-            [polish[1], polish[0], bam[2], bam[3], fasta_abs, polish[0]]
+    ch_cram_input = ch_regenerated_simple.cross(ch_pilon_simple)
+        .filter { regenerated, bam -> regenerated[0] == bam[0] }
+        .map { regenerated, bam ->
+            def fasta_abs = regenerated[2].toAbsolutePath()
+            [regenerated[1], regenerated[0], bam[2], bam[3], fasta_abs, regenerated[0]]
         }
     
     CREATE_CRAM(ch_cram_input)
     ch_cram_output = CREATE_CRAM.out.cram_with_index
     
-    // Step 6c: Log coverage from CRAM - use polished fasta as reference
+    // Step 6d: Log coverage from CRAM using the regenerated replacement FASTA
     ch_coverage_input = ch_cram_output
         .map { run_name, sample_id, cram, crai -> 
             [sample_id, run_name, cram, crai]
         }
-        .join(ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
+        .join(ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
         .map { sample_id, run_name, cram, crai, fasta ->
             def fasta_abs = file(fasta).toAbsolutePath()
             tuple(run_name, sample_id, cram, crai, fasta_abs)
