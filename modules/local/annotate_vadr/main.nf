@@ -14,23 +14,33 @@ process ANNOTATE_VADR {
     
     output:
         tuple val(run_name), val(sample_id), path("*_mod.gff"), emit: gff
-        path "*.bed", emit: bed
-        path "*.tbl", emit: logs
-    
+        tuple val(run_name), val(sample_id), path("*.bed"), emit: bed
+
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
-    
     def vadr_container = params.vadr_container ?: "${container_dir}/vadr_164.sif"
+    def configured_model_dir = params.vadr_model_dir ?: ''
+    def vadr_model_dir = vadr_model.toString().contains('/') ? vadr_model.toString() : (configured_model_dir ?: vadr_model.toString())
     
     if (container_dir) {
         """
-        # Run VADR using the script from original pipeline
+        set -euo pipefail
+
+        export VADR_CONTAINER='${vadr_container}'
+        export VADR_BIND='${bind_paths}'
+        export VADR_MODELDIR='${vadr_model_dir}'
+        export VADR_ANNOTATE_TBL2GFF='${scripts_dir}/annotate-tbl2gff.pl'
+
+        # Run VADR using the original pipeline helper with explicit local paths.
         bash ${scripts_dir}/vadr_annotate.sh ${fasta} . ${sample_id}
-        
-        # Move all outputs to current directory
-        mv vadr/* . 2>/dev/null || true
+
+        shopt -s nullglob
+        for output in vadr/${sample_id}*_mod.gff vadr/${sample_id}*.bed; do
+            mv "\$output" .
+        done
+        shopt -u nullglob
         """
     } else {
         """

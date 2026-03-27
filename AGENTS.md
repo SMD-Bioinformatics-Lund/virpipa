@@ -103,6 +103,9 @@ nextflow run test_module.nf -profile local_containers --module subtype
 
 # Run fixture-backed report test locally
 nextflow run test_module.nf -profile local --module report
+
+# Run fixture-backed VADR test locally
+nextflow run test_module.nf -profile local_containers --module vadr
 ```
 
 ### Available Test Modules
@@ -118,6 +121,7 @@ Currently tested modules:
 - `coverage` - Build `SAMPLE001-coverage.tsv` from fixture CRAM (verified identical)
 - `subtype` - Build `SAMPLE001-0.15-iupac.fasta.blast` from fixture consensus FASTA (verified identical)
 - `report` - Build `SAMPLE001-0.15-iupac.report.tsv` and `.fastanucfreq.tsv` from fixture stats/CRAM/FASTA (verified identical)
+- `vadr` - Build `SAMPLE001.vadr.pass_mod.gff` and `SAMPLE001.vadr.bed` from fixture `SAMPLE001.fasta` (verified identical)
 
 ### Current Laptop Notes
 
@@ -131,6 +135,7 @@ Currently tested modules:
 - The repo-local `coverage` fixture is in `assets/test_data/coverage/` and uses the bash-original `SAMPLE001.cram` plus replacement `SAMPLE001.fasta`, with expected `SAMPLE001-coverage.tsv`.
 - The repo-local `subtype` fixture is in `assets/test_data/subtype/` and uses `SAMPLE001-0.15-iupac.fasta` plus the expected bash-original `SAMPLE001-0.15-iupac.fasta.blast`.
 - The repo-local `report` fixture is in `assets/test_data/report/` and uses the bash-original `SAMPLE001-0.15-iupac.vcf.gz.stats`, `SAMPLE001-0.15-iupac.cram`, `SAMPLE001-0.15-iupac.fasta`, plus the expected report and nucleotide-frequency outputs.
+- The repo-local `vadr` fixture is in `assets/test_data/vadr/` and uses `SAMPLE001.fasta` plus the expected bash-original `SAMPLE001.vadr.pass_mod.gff` and `SAMPLE001.vadr.bed`.
 - The `tiny` profile points `params.input` at that tiny samplesheet and writes to `results_tiny` unless `--outdir` overrides it.
 - Use `-profile local,tiny` for non-container local tests that rely on tools from the `skrotis` environment.
 - Use `-profile local_containers,tiny` for Apptainer-backed local tests; inside Codex this may still require running the command outside the sandbox.
@@ -140,7 +145,8 @@ Currently tested modules:
 - Use `-profile local --module coverage` for the coverage fixture because `samtools` is available in `skrotis`.
 - Use `-profile local --module report` for the report fixture because the module only needs `samtools coverage` plus text processing, and the local `skrotis` toolchain reproduces the bash-original output exactly.
 - Use `-profile local_containers --module subtype` for parity checks because `blastn` is not installed in `skrotis`, but the pinned `blast_2.16.0.sif` container reproduces the bash-original output exactly.
-- Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m, and `CREATE_REPORT` to 2 CPUs / 2 GB / 30m so they fit local resources.
+- Use `-profile local_containers --module vadr` for parity checks. On this laptop, point `params.vadr_model_dir` at `/home/jonas/resources/vadr/vadr-models-flavi`, not `/mnt/fs1/...`, because VADR startup on the WSL-mounted path is extremely slow.
+- Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m, `CREATE_REPORT` to 2 CPUs / 2 GB / 30m, and `ANNOTATE_VADR` to 2 CPUs / 8 GB / 1h so they fit local resources.
 - The mounted test sample currently available on the laptop is `SAMPLE001`; if someone refers to `TEST001` they likely mean the sample_name column rather than the FASTQ basename.
 - For `bam2fasta`, the generated FASTA is byte-identical to the bash-original fixture. The generated VCF and stats still differ in embedded path/date header metadata, which is expected and acceptable for parity checks.
 - `bam2fasta` also needs to emit a replacement `SAMPLE001.fasta` with the sample-name header; downstream `variantcall` and `consensus` should use that replacement FASTA, not the published `SAMPLE001-1.0-iupac.fasta`, because the BAM/VCF contig names are `SAMPLE001`.
@@ -148,6 +154,7 @@ Currently tested modules:
 - For `cram`, compare `samtools view` payload or header content rather than raw file bytes. The CRAM binary and CRAI differ because the embedded `UR:` reference path changes with the work directory, but the alignment payload is the same.
 - For `subtype`, the bash pipeline writes a literal header row before `blastn -outfmt 6`. That header contains a typo (`s. star ... t`) from the original bash line continuation, and the Nextflow module intentionally reproduces it so the `.blast` file is byte-identical to the bash-original result.
 - For `report`, derive the output prefix from the `*.vcf.gz.stats` filename, not from the FASTA name. The bash report appends `samtools coverage` output transposed into key/value rows and omits the `rname` row, so the Nextflow module should do the same.
+- For `annotate_vadr`, the bash pipeline runs VADR on `results/${id}.fasta` and publishes `SAMPLE001.vadr.pass_mod.gff` plus `SAMPLE001.vadr.bed`. The laptop test should use the replacement `SAMPLE001.fasta` fixture, not `SAMPLE001-0.15-iupac.fasta`.
 
 ### Clean Run
 

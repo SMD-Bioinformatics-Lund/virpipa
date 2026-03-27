@@ -15,6 +15,7 @@ include { CREATE_CRAM } from './modules/local/cram/main'
 include { LOG_COVERAGE } from './modules/local/coverage/main'
 include { SUBTYPE_BLAST } from './modules/local/subtype/main'
 include { CREATE_REPORT } from './modules/local/report/main'
+include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -37,6 +38,7 @@ Available modules to test locally:
   - coverage   : Build the coverage TSV from a fixture CRAM
   - subtype    : Build the BLAST subtype hits from a fixture consensus FASTA
   - report     : Build the report TSV and nucleotide frequencies from report fixtures
+  - vadr       : Build the VADR GFF and BED outputs from a fixture sample FASTA
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -50,6 +52,7 @@ Usage:
   nextflow run test_module.nf -profile local --module coverage --outdir test_output_coverage
   nextflow run test_module.nf -profile local_containers --module subtype --outdir test_output_subtype
   nextflow run test_module.nf -profile local --module report --outdir test_output_report
+  nextflow run test_module.nf -profile local_containers --module vadr --outdir test_output_vadr
 
 Notes:
   - Sentieon-dependent modules are intentionally not wired here yet.
@@ -212,7 +215,18 @@ Notes:
                 )
             )
         )
+    } else if (params.module == 'vadr') {
+        ANNOTATE_VADR(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/vadr/SAMPLE001.fasta")
+                )
+            ),
+            Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage, subtype, report"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
     }
 }

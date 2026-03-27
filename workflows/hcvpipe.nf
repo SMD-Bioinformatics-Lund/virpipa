@@ -299,7 +299,10 @@ workflow HCVPIPE {
 
     // Step 10: Annotate with VADR
     def vadr_model = params.vadr_model ?: 'vadr-models-flavi'
-    ch_vadr_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+    ch_vadr_input = BAM2FASTA.out.replacement_fasta.map { run_name, sample_id, fasta, fai ->
+        tuple(run_name, sample_id, fasta)
+    }
+    ch_vadr_tuple = ch_vadr_input.map { run_name, sample_id, fasta ->
         [ [run_name, sample_id, fasta], vadr_model ]
     }
     ch_vadr_fasta = ch_vadr_tuple.map { it[0] }
