@@ -18,6 +18,7 @@ include { CREATE_REPORT } from './modules/local/report/main'
 include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
 include { SELECT_BEST_REFERENCE } from './modules/local/bestref/main'
 include { MAP_READS } from './modules/local/mapping/main'
+include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
 include { POLISH_PILON_LOOP } from './modules/local/polish/main'
 
 workflow {
@@ -36,6 +37,7 @@ Available modules to test locally:
   - bam2fasta  : Build consensus FASTA and VCF from a fixture BAM
   - bestref    : Pick the best reference FASTA from fixture mapping stats
   - mapping    : Map SAMPLE001 reads to one reference with sentieon
+  - mapping_noopt: Map SAMPLE001 reads with the no-opt sentieon path
   - polish     : Run the pilon polishing loop from fixture reads + hybrid FASTA
   - consensus  : Build 0.15 IUPAC consensus from a fixture VCF
   - filter_vcf : Build min-fraction filtered VCFs from a fixture pilon VCF
@@ -53,6 +55,7 @@ Usage:
   nextflow run test_module.nf -profile local --module bam2fasta --outdir test_output_bam2fasta
   nextflow run test_module.nf -profile local --module bestref --outdir test_output_bestref
   nextflow run test_module.nf -profile local_containers --module mapping --outdir test_output_mapping
+  nextflow run test_module.nf -profile local_containers --module mapping_noopt --outdir test_output_mapping_noopt
   nextflow run test_module.nf -profile local_containers --module polish --outdir test_output_polish
   nextflow run test_module.nf -profile local --module consensus --outdir test_output_consensus
   nextflow run test_module.nf -profile local_containers --module filter_vcf --outdir test_output_filter_vcf
@@ -160,6 +163,19 @@ Notes:
                 )
             )
         )
+    } else if (params.module == 'mapping_noopt') {
+        MAP_READS_NOOPT(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz"),
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz"),
+                    file("${projectDir}/assets/test_data/mapping_noopt/SAMPLE001-0.15-iupac.fasta"),
+                    '0.15-iupac'
+                )
+            )
+        )
     } else if (params.module == 'polish') {
         POLISH_PILON_LOOP(
             Channel.of(
@@ -255,7 +271,8 @@ Notes:
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram"),
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai"),
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta"),
-                    '3a-D17763'
+                    '3a-D17763',
+                    'SAMPLE001-0.15-iupac'
                 )
             )
         )
@@ -271,6 +288,6 @@ Notes:
             Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
         )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
     }
 }

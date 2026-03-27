@@ -5,6 +5,7 @@ nextflow.enable.dsl = 2
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
+include { MAP_READS_NOOPT } from '../modules/local/mapping_noopt/main'
 include { SELECT_BEST_REFERENCE } from '../modules/local/bestref/main'
 include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
 include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
@@ -16,9 +17,10 @@ include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
 include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
 include { FILTER_VCF } from '../modules/local/filter_vcf/main'
-include { CREATE_CRAM } from '../modules/local/cram/main'
+include { CREATE_CRAM as CREATE_CRAM_PILON } from '../modules/local/cram/main'
+include { CREATE_CRAM as CREATE_CRAM_IUPAC } from '../modules/local/cram/main'
 include { LOG_COVERAGE } from '../modules/local/coverage/main'
-include { CREATE_REPORT } from '../modules/local/report/main'
+include { CREATE_REPORT as CREATE_REPORT_IUPAC } from '../modules/local/report/main'
 
 include { BAM2FASTA } from '../modules/local/bam2fasta/main'
 
@@ -180,8 +182,8 @@ workflow HCVPIPE {
             [regenerated[1], regenerated[0], bam[2], bam[3], fasta_abs, regenerated[0]]
         }
     
-    CREATE_CRAM(ch_cram_input)
-    ch_cram_output = CREATE_CRAM.out.cram_with_index
+    CREATE_CRAM_PILON(ch_cram_input)
+    ch_cram_output = CREATE_CRAM_PILON.out.cram_with_index
     
     // Step 6d: Log coverage from CRAM using the regenerated replacement FASTA
     ch_coverage_input = ch_cram_output
@@ -228,27 +230,6 @@ workflow HCVPIPE {
     
     FILTER_VCF(ch_filter_input)
 
-    // Step 7c: Create report files (matching bash pipeline)
-    // Report needs: run_name, sample_id, vcf_stats, cram, crai, ref_fasta, subtype
-    ch_vcf_stats = VARIANT_CALLING.out.stats.map { stats ->
-        [stats.baseName.replaceAll('\\.vcf\\.gz\\.stats$', ''), stats]
-    }
-    
-    ch_report_input = ch_vcf_stats
-        .map { base_name, stats -> 
-            def parts = base_name.split('-')
-            def sample_id = parts[0]
-            [sample_id, stats]
-        }
-        .join(ch_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] })
-        .join(ch_polished.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
-        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
-        .map { sample_id, stats, run_name, cram, crai, fasta, ref_name ->
-            tuple(run_name, sample_id, stats, cram, crai, fasta, ref_name)
-        }
-    
-    CREATE_REPORT(ch_report_input)
-
     // Step 8: Create consensus from VCF - use bam2fasta output (100% IUPAC) as reference
     // This matches bash pipeline which replaces pilon FASTA with bam2fasta output
     ch_vcf_for_consensus = ch_vcf.map { run_name, sample_id, vcf, vcf_idx -> [sample_id, run_name, vcf, vcf_idx] }
@@ -269,6 +250,41 @@ workflow HCVPIPE {
     
     // Save copy for resistance annotation (channels can only be used once)
     ch_consensus_for_resistance = ch_consensus_with_meta
+
+    // Step 8b: Map the 0.15-iupac consensus with the no-opt sentieon path
+    ch_iupac_mapping_input = ch_consensus_with_meta.cross(ch_pilon_reads)
+        .filter { consensus, reads -> consensus[1] == reads[1] }
+        .map { consensus, reads ->
+            tuple(consensus[0], consensus[1], reads[2], reads[3], consensus[2], '0.15-iupac')
+        }
+
+    MAP_READS_NOOPT(ch_iupac_mapping_input)
+    ch_iupac_bams = MAP_READS_NOOPT.out.bams
+
+    // Step 8c: Create the 0.15-iupac CRAM from the no-opt mapped BAM
+    ch_iupac_cram_input = ch_iupac_bams
+        .map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .map { sample_id, run_name, bam, bai, fasta ->
+            def fasta_abs = file(fasta).toAbsolutePath()
+            tuple(run_name, sample_id, bam, bai, fasta_abs, "${sample_id}-0.15-iupac")
+        }
+
+    CREATE_CRAM_IUPAC(ch_iupac_cram_input)
+    ch_iupac_cram_output = CREATE_CRAM_IUPAC.out.cram_with_index
+
+    // Step 8d: Create the 0.15-iupac report from the filtered 0.15 VCF stats
+    ch_iupac_report_input = FILTER_VCF.out.stats
+        .filter { run_name, sample_id, stats -> stats.getName() == "${sample_id}-pilon-m0.15.vcf.gz.stats" }
+        .map { run_name, sample_id, stats -> [sample_id, run_name, stats] }
+        .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] })
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
+        .map { sample_id, run_name, stats, cram, crai, fasta, ref_name ->
+            tuple(run_name, sample_id, stats, cram, crai, fasta, ref_name, "${sample_id}-0.15-iupac")
+        }
+
+    CREATE_REPORT_IUPAC(ch_iupac_report_input)
 
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default (directory containing hcvgluerefs)

@@ -9,7 +9,7 @@ process CREATE_REPORT {
     publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
     
     input:
-        tuple val(run_name), val(sample_id), path(vcf_stats), path(cram), path(crai), path(ref_fasta), val(subtype)
+        tuple val(run_name), val(sample_id), path(vcf_stats), path(cram), path(crai), path(ref_fasta), val(subtype), val(report_id)
     
     output:
         path "*.report.tsv", emit: report
@@ -18,7 +18,6 @@ process CREATE_REPORT {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
-    def report_id = vcf_stats.getName().replaceFirst(/\.vcf\.gz\.stats$/, '')
     def samtools = container_dir ?
         "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
         "samtools"
