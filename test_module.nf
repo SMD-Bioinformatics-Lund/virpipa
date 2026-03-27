@@ -14,6 +14,7 @@ include { VARIANT_CALLING } from './modules/local/variantcall/main'
 include { CREATE_CRAM } from './modules/local/cram/main'
 include { LOG_COVERAGE } from './modules/local/coverage/main'
 include { SUBTYPE_BLAST } from './modules/local/subtype/main'
+include { CREATE_REPORT } from './modules/local/report/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -35,6 +36,7 @@ Available modules to test locally:
   - cram       : Build the polished CRAM from a fixture BAM and reference
   - coverage   : Build the coverage TSV from a fixture CRAM
   - subtype    : Build the BLAST subtype hits from a fixture consensus FASTA
+  - report     : Build the report TSV and nucleotide frequencies from report fixtures
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -47,6 +49,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module cram --outdir test_output_cram
   nextflow run test_module.nf -profile local --module coverage --outdir test_output_coverage
   nextflow run test_module.nf -profile local_containers --module subtype --outdir test_output_subtype
+  nextflow run test_module.nf -profile local --module report --outdir test_output_report
 
 Notes:
   - Sentieon-dependent modules are intentionally not wired here yet.
@@ -195,7 +198,21 @@ Notes:
             ),
             Channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
         )
+    } else if (params.module == 'report') {
+        CREATE_REPORT(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.vcf.gz.stats"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta"),
+                    '3a-D17763'
+                )
+            )
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage, subtype"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, consensus, filter_vcf, variantcall, cram, coverage, subtype, report"
     }
 }

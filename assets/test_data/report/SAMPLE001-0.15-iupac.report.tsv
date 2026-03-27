@@ -1,0 +1,17 @@
+# VCF stats
+subtype	3a
+reference	3a-D17763
+id	SAMPLE001
+snps	179
+multiallelic_snps	0
+AF0	179
+AF0.99	
+# COVERAGE
+startpos	1
+endpos	9456
+numreads	266
+covbases	8743
+coverage	92.4598
+meandepth	4.42121
+meanbaseq	255
+meanmapq	60
