@@ -313,13 +313,16 @@ workflow HCVPIPE {
 
     // Step 8d: Create the 0.15-iupac report from the filtered 0.15 VCF stats
     ch_iupac_report_input = FILTER_VCF.out.stats
-        .filter { run_name, sample_id, stats -> stats.getName() == "${sample_id}-pilon-m0.15.vcf.gz.stats" }
-        .map { run_name, sample_id, stats -> [sample_id, run_name, stats] }
-        .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, run_name, cram, crai] })
+        .map { run_name, sample_id, stats_files ->
+            def stats = stats_files.find { it.getName() == "${sample_id}-pilon-m0.15.vcf.gz.stats" }
+            stats ? tuple(sample_id, stats) : null
+        }
+        .filter { sample_id, stats -> stats != null }
+        .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [run_name, cram, crai]] })
         .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
         .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
-        .map { sample_id, run_name, stats, cram, crai, fasta, ref_name ->
-            tuple(run_name, sample_id, stats, cram, crai, fasta, ref_name, "${sample_id}-0.15-iupac")
+        .map { sample_id, stats, cram_data, fasta, ref_name ->
+            tuple(cram_data[0], sample_id, stats, cram_data[1], cram_data[2], fasta, ref_name, "${sample_id}-0.15-iupac")
         }
 
     CREATE_REPORT_IUPAC(ch_iupac_report_input)
