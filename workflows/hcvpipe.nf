@@ -391,9 +391,7 @@ workflow HCVPIPE {
     // Get blast db from params or use default (directory containing hcvgluerefs)
     def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
     
-    // Get subtype from BLAST (for report generation)
-    // Note: SUBTYPE_BLAST outputs blast files, subtype extraction needs to be done separately
-    // For now, use placeholder - can be enhanced later to parse subtype from BLAST results
+    // Run BLAST on the main polished FASTA, the 0.15-iupac FASTA, and the pilon-iupac FASTA.
     ch_main_blast_with_meta = Channel.empty()
     ch_iupac_blast_with_meta = Channel.empty()
     ch_pilon_iupac_blast_with_meta = Channel.empty()

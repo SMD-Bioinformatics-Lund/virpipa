@@ -11,7 +11,7 @@ Downloads the resistance rules table from https://hcv.geno2pheno.org/index.php?p
 
 Usage:
 ```bash
-python scripts/update_geno2pheno_rules.py --output-csv hcv_geno2pheno_rules.csv --output-json hcv_geno2pheno_rules.json
+python scripts/update_geno2pheno_rules.py --output-csv assets/hbv_result_rules.csv
 ```
 
 ### 2. `scripts/annotate_vcf_resistance.py` (Main Script)
@@ -46,12 +46,7 @@ python scripts/annotate_vcf_resistance.py \
 - Reference files go to `assets/` folder (e.g., `assets/hbv_result_rules.csv`, `assets/resistance_reference.bed`)
 
 **Environment:**
-Requires the `skrotis` mamba environment with:
-- pysam
-- pandas
-- biopython
-
-Run with: `mamba run -n skrotis python scripts/annotate_vcf_resistance.py ...`
+Use the `skrotis` environment or the pipeline python container.
 
 ## Output Files
 
@@ -79,10 +74,10 @@ The resistance module is now wired in the Nextflow pipeline. It consumes:
 
 ## Data Locations (example sample SAMPLE001)
 
-- VCF: `results/vcf/SAMPLE001-pilon.vcf.gz`
+- VCF: `results/SAMPLE001-pilon-m0.15.vcf.gz`
 - GFF: `results/SAMPLE001.vadr.pass_mod.gff`
-- FASTA: `fasta/SAMPLE001-0.15-iupac.fasta`
-- Subtype: extracted from blast file or lid file (stored in `$subtype` variable)
+- FASTA: `results/SAMPLE001-0.15-iupac.fasta`
+- Subtype: extracted from the first hit in `results/SAMPLE001-0.15-iupac.fasta.blast`
 
 ## Testing
 
@@ -99,6 +94,7 @@ nextflow run test_module.nf -profile local_containers --module resistance
 - BED coordinates use codon boundaries (not just variant position)
 - Results default to the `results/` folder
 
-## Branch
+## Notes
 
-`hcv-resistance-annotation` - Contains all changes
+- The pipeline currently consumes the committed rules CSV by default through `params.resistance_rules`
+- A normalized JSON artifact is still supported if you want a stricter machine-facing rules contract later

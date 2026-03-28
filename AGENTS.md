@@ -201,7 +201,7 @@ Currently tested modules:
 - For `annotate_vadr`, the bash pipeline runs VADR on `results/${id}.fasta` and publishes `SAMPLE001.vadr.pass_mod.gff` plus `SAMPLE001.vadr.bed`. The laptop test should use the replacement `SAMPLE001.fasta` fixture, not `SAMPLE001-0.15-iupac.fasta`.
 - `scripts/update_geno2pheno_rules.py` is the single offline refresh entrypoint for geno2pheno rules. It can download the table or rebuild normalized output from an existing CSV snapshot.
 - `POLISH_PILON_LOOP` is now fixture-backed and locally verified against the repo-local `assets/test_data/polish/` set with final-convergence parity plus early-round spot checks.
-- The workflow now has a fixture-verified `0.15-iupac` no-opt mapping branch and uses it to build the `0.15-iupac` CRAM/report track after consensus. The remaining larger workflow integration gap is the `${sample}-${subtype}` best-reference report/CRAM branch, which still needs to be wired from the early best-reference mapping outputs.
+- The workflow now has a fixture-verified `0.15-iupac` no-opt mapping branch and uses it to build the `0.15-iupac` CRAM/report track after consensus.
 - The workflow now also wires the `${sample}-${subtype}` best-reference branch from the early `MAP_READS` outputs: it uses `MAP_READS.out.bams_with_ref` joined to `ch_best_ref_with_name`, runs `BAM2FASTA_BESTREF` to recover `${sample}-${subtype}.fasta` and stats, builds `${sample}-${subtype}.cram` against the original chosen reference FASTA, and reports with `report_id = ${sample}-${subtype}`.
 
 ### Clean Run
