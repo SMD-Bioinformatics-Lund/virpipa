@@ -13,6 +13,7 @@ process LOG_COVERAGE {
     
     output:
         path "*.tsv", emit: coverage_tsv
+        tuple val(run_name), val(sample_id), path("*.tsv"), emit: coverage_with_meta
     
     script:
     def container_dir = params.container_dir

@@ -142,6 +142,9 @@ Currently tested modules:
 ### Current Laptop Notes
 
 - The mounted laptop copy of `/fs1` is available under `/mnt/fs1`.
+- A faster local copy of the bash-original comparison run is available under `~/hcv/SAMPLE001-nextflow-nfcore-scaffold/`; prefer `~/hcv/SAMPLE001-nextflow-nfcore-scaffold/results/` over `/mnt/fs1/...` when comparing the final `results/` tree on the laptop.
+- A local copy of the full test FASTQs is being added under `~/hcv/test_data/`; prefer that over `/mnt/fs1/...` when you need the full-sample inputs on the laptop.
+- A faster local hostile cache is available under `~/resources/hostile`; prefer that over `/mnt/fs1/resources/ref/micro/hostile` for laptop runs.
 - The repo-local tiny fixture is in `assets/test_data/tiny/` with samplesheet `assets/tiny_samplesheet.csv`.
 - The repo-local `bam2fasta` fixture is in `assets/test_data/bam2fasta/` and uses the `SAMPLE001-nextflow-nfcore-scaffold` bash-original outputs so sample naming matches the main test data.
 - The repo-local `bestref` fixture is in `assets/test_data/bestref/` and contains only the initial reference-mapping `*.stats` files plus the expected `3a-D17763.fa` reference.
@@ -170,7 +173,7 @@ Currently tested modules:
 - Use `-profile local --module report` for the report fixture because the module only needs `samtools coverage` plus text processing, and the local `skrotis` toolchain reproduces the bash-original output exactly.
 - Use `-profile local_containers --module subtype` for parity checks because `blastn` is not installed in `skrotis`, but the pinned `blast_2.16.0.sif` container reproduces the bash-original output exactly.
 - Use `-profile local_containers --module vadr` for parity checks. On this laptop, point `params.vadr_model_dir` at `/home/jonas/resources/vadr/vadr-models-flavi`, not `/mnt/fs1/...`, because VADR startup on the WSL-mounted path is extremely slow.
-- Use `/mnt/fs1/resources/ref/micro/hostile` as the laptop hostile cache path when the mount is present. If `/mnt/fs1` disappears after a reboot, that is an environment issue rather than a workflow bug; restore the mount before retrying `REMOVE_HOSTILE`.
+- Use `~/resources/hostile` as the default laptop hostile cache path. `/mnt/fs1/resources/ref/micro/hostile` remains a fallback if the local copy is unavailable.
 - Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `ASSEMBLE_SPADES` to 8 CPUs / 15 GB / 8h, `ASSEMBLE_HYBRID` to 8 CPUs / 15 GB / 4h, `MAP_READS` to 4 CPUs / 8 GB / 1h, `POLISH_PILON_LOOP` to 4 CPUs / 10 GB / 2h, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m, `CREATE_REPORT` to 2 CPUs / 2 GB / 30m, and `ANNOTATE_VADR` to 2 CPUs / 8 GB / 1h so they fit local resources.
 - The mounted test sample currently available on the laptop is `SAMPLE001`; if someone refers to `TEST001` they likely mean the sample_name column rather than the FASTQ basename.
 - For `bam2fasta`, the generated FASTA is byte-identical to the bash-original fixture. The generated VCF and stats still differ in embedded path/date header metadata, which is expected and acceptable for parity checks.

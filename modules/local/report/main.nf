@@ -14,6 +14,8 @@ process CREATE_REPORT {
     output:
         path "*.report.tsv", emit: report
         path "*.fastanucfreq.tsv", emit: nucfreq
+        tuple val(run_name), val(sample_id), path("*.report.tsv"), emit: report_with_meta
+        tuple val(run_name), val(sample_id), path("*.fastanucfreq.tsv"), emit: nucfreq_with_meta
 
     script:
     def container_dir = params.container_dir

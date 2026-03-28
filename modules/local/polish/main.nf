@@ -19,8 +19,10 @@ process POLISH_PILON_LOOP {
     output:
         tuple val(run_name), val(sample_id), path("${sample_id}.fasta"), path("${sample_id}.fasta.fai"), emit: polished
         tuple val(run_name), val(sample_id), path("${sample_id}-pilon.r11b2L25.bwa.umi.filter.sort.bam"), path("${sample_id}-pilon.r11b2L25.bwa.umi.filter.sort.bam.bai"), emit: final_bam_with_index
+        tuple val(run_name), val(sample_id), path("${sample_id}-pilon-iupac.fasta"), emit: polished_pilon_iupac
         path("${sample_id}-iupac.fasta")
         path("${sample_id}-iupac.fasta.fai")
+        path("${sample_id}-pilon-iupac.fasta")
         path("${sample_id}-pilon-*.fasta*")
         path("${sample_id}-pilon*.changes")
         path("${sample_id}-pilon*.bam")
@@ -151,6 +153,7 @@ process POLISH_PILON_LOOP {
         if [[ "\${curr_changes}" -eq "\${prev_changes}" ]] || [[ "\${round}" -eq "\${maxpolish}" ]]; then
             cp "\${sample}-pilon-\${round}.fasta" "\${sample}.fasta"
             cp "\${sample}-pilon-\${round}-iupac.fasta" "\${sample}-iupac.fasta"
+            cp "\${sample}-iupac.fasta" "\${sample}-pilon-iupac.fasta"
             ${samtools} faidx "\${sample}.fasta"
             ${samtools} faidx "\${sample}-iupac.fasta"
             ${sentieon} bwa index "\${sample}.fasta"
@@ -163,6 +166,7 @@ process POLISH_PILON_LOOP {
         last_round=\$(find . -maxdepth 1 -name "\${sample}-pilon-[0-9]*.changes" ! -name "*-iupac.changes" -printf '%f\n' | sed -E 's/.*-([0-9]+)\\.changes/\\1/' | sort -n | tail -1)
         cp "\${sample}-pilon-\${last_round}.fasta" "\${sample}.fasta"
         cp "\${sample}-pilon-\${last_round}-iupac.fasta" "\${sample}-iupac.fasta"
+        cp "\${sample}-iupac.fasta" "\${sample}-pilon-iupac.fasta"
         ${samtools} faidx "\${sample}.fasta"
         ${samtools} faidx "\${sample}-iupac.fasta"
         ${sentieon} bwa index "\${sample}.fasta"

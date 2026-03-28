@@ -14,6 +14,7 @@ process SUBTYPE_BLAST {
 
     output:
         path "*.blast", emit: blast
+        tuple val(run_name), val(sample_id), path("*.blast"), emit: blast_with_meta
 
     script:
     def container_dir = params.container_dir

@@ -11,7 +11,6 @@ include { ASSEMBLE_SPADES } from '../modules/local/assembly_spades/main'
 include { ASSEMBLE_HYBRID } from '../modules/local/assembly_hybrid/main'
 include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
 include { ANNOTATE_VADR } from '../modules/local/annotate_vadr/main'
-include { SUBTYPE_BLAST } from '../modules/local/subtype/main'
 include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 
@@ -23,9 +22,13 @@ include { CREATE_CRAM as CREATE_CRAM_IUPAC } from '../modules/local/cram/main'
 include { LOG_COVERAGE } from '../modules/local/coverage/main'
 include { CREATE_REPORT as CREATE_REPORT_BESTREF } from '../modules/local/report/main'
 include { CREATE_REPORT as CREATE_REPORT_IUPAC } from '../modules/local/report/main'
+include { FINALIZE_RESULTS } from '../modules/local/finalize_results/main'
 
 include { BAM2FASTA as BAM2FASTA_BESTREF } from '../modules/local/bam2fasta/main'
 include { BAM2FASTA as BAM2FASTA_PILON } from '../modules/local/bam2fasta/main'
+include { SUBTYPE_BLAST as SUBTYPE_BLAST_MAIN } from '../modules/local/subtype/main'
+include { SUBTYPE_BLAST as SUBTYPE_BLAST_IUPAC } from '../modules/local/subtype/main'
+include { SUBTYPE_BLAST as SUBTYPE_BLAST_PILON_IUPAC } from '../modules/local/subtype/main'
 
 workflow HCVPIPE {
     if (!params.input) {
@@ -49,18 +52,33 @@ workflow HCVPIPE {
 
             def read2 = (row.read2 ?: row.fastq_2 ?: '').toString().trim()
             def run_name = (row.run_name ?: params.run_name ?: 'test').toString().trim()
+            def lid = (row.sample_name ?: row.lid ?: '').toString().trim()
             
-            return [run_name, sample, file(read1), read2 ? file(read2) : []]
+            return [run_name, sample, lid, file(read1), read2 ? file(read2) : []]
         }
-        .set { ch_samples }
+        .set { ch_sample_rows }
+
+    ch_samples = ch_sample_rows.map { run_name, sample_id, lid, read1, read2 ->
+        [run_name, sample_id, read1, read2]
+    }
+
+    ch_sample_lids = ch_sample_rows.map { run_name, sample_id, lid, read1, read2 ->
+        [sample_id, [run_name, lid]]
+    }
 
     // Step 1: Remove human reads first (to match bash pipeline)
     if (params.remove_human) {
         def cache_dir = params.hostile_cache_dir ?: ''
         REMOVE_HOSTILE(ch_samples, cache_dir)
         ch_prepped = REMOVE_HOSTILE.out.reads
+        ch_hostile_json = REMOVE_HOSTILE.out.hostile_json_with_meta.map { run_name, sample_id, hostile_json ->
+            [sample_id, hostile_json.toString()]
+        }
     } else {
         ch_prepped = ch_samples
+        ch_hostile_json = ch_sample_rows.map { run_name, sample_id, lid, read1, read2 ->
+            [sample_id, '']
+        }
     }
 
     // Step 2: Subsample reads for pilon polishing and reference selection
@@ -154,7 +172,10 @@ workflow HCVPIPE {
             tuple(mapped[0], mapped[1], mapped[3], mapped[4], best_ref[3], mapped[2])
         }
 
-    BAM2FASTA_BESTREF(ch_best_ref_mapped, "0.01")
+    // Match the bash pipeline's initial best-reference bam2fasta call, which
+    // uses the default majority-call threshold rather than the later quasispecies
+    // thresholds used for the pilon-derived tracks.
+    BAM2FASTA_BESTREF(ch_best_ref_mapped, "1.0")
     ch_best_ref_fasta = BAM2FASTA_BESTREF.out.fasta
 
     // Step 6: Polishing loop (10 iterations with convergence check)
@@ -358,23 +379,28 @@ workflow HCVPIPE {
     // Get subtype from BLAST (for report generation)
     // Note: SUBTYPE_BLAST outputs blast files, subtype extraction needs to be done separately
     // For now, use placeholder - can be enhanced later to parse subtype from BLAST results
-    ch_subtype_for_report = Channel.of(['unknown'])
-    
-    // Step 9b: Create report files (matching bash pipeline) - SKIPPING FOR NOW
-    // Get the VCF stats for the unfiltered pilon VCF (from VARIANT_CALLING)
-    // This step can be added back after debugging
-    
-    // BLAST for subtype (for downstream analysis)
-    ch_consensus_for_blast = ch_consensus_with_meta
-    
+    ch_main_blast_with_meta = Channel.empty()
+    ch_iupac_blast_with_meta = Channel.empty()
+    ch_pilon_iupac_blast_with_meta = Channel.empty()
+
     if (blast_db_path.exists()) {
-        ch_subtype_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+        ch_main_blast_tuple = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai ->
             [ tuple(run_name, sample_id, fasta), blast_db_path ]
         }
-        ch_subtype_fasta = ch_subtype_tuple.map { it[0] }
-        ch_subtype_db = ch_subtype_tuple.map { it[1] }
-        
-        SUBTYPE_BLAST(ch_subtype_fasta, ch_subtype_db)
+        SUBTYPE_BLAST_MAIN(ch_main_blast_tuple.map { it[0] }, ch_main_blast_tuple.map { it[1] })
+        ch_main_blast_with_meta = SUBTYPE_BLAST_MAIN.out.blast_with_meta
+
+        ch_iupac_blast_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+            [ tuple(run_name, sample_id, fasta), blast_db_path ]
+        }
+        SUBTYPE_BLAST_IUPAC(ch_iupac_blast_tuple.map { it[0] }, ch_iupac_blast_tuple.map { it[1] })
+        ch_iupac_blast_with_meta = SUBTYPE_BLAST_IUPAC.out.blast_with_meta
+
+        ch_pilon_iupac_blast_tuple = POLISH_PILON_LOOP.out.polished_pilon_iupac.map { run_name, sample_id, fasta ->
+            [ tuple(run_name, sample_id, fasta), blast_db_path ]
+        }
+        SUBTYPE_BLAST_PILON_IUPAC(ch_pilon_iupac_blast_tuple.map { it[0] }, ch_pilon_iupac_blast_tuple.map { it[1] })
+        ch_pilon_iupac_blast_with_meta = SUBTYPE_BLAST_PILON_IUPAC.out.blast_with_meta
     } else {
         println "WARNING: BLAST database not found at ${blast_db_path}, skipping SUBTYPE_BLAST"
     }
@@ -417,6 +443,71 @@ workflow HCVPIPE {
     }
     
     ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_csv)
+
+    // Step 12: Assemble bash-style results contract in one place.
+    ch_final_results_input = ch_sample_lids
+        .join(ch_hostile_json)
+        .join(BAM2FASTA_PILON.out.replacement_fasta.map { run_name, sample_id, fasta, fai -> [sample_id, [fasta, fai]] })
+        .join(ch_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
+        .join(LOG_COVERAGE.out.coverage_with_meta.map { run_name, sample_id, coverage -> [sample_id, coverage] })
+        .join(BAM2FASTA_BESTREF.out.fasta.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
+        .join(BAM2FASTA_BESTREF.out.vcf_with_meta.map { run_name, sample_id, vcf -> [sample_id, vcf] })
+        .join(BAM2FASTA_BESTREF.out.vcf_index_with_meta.map { run_name, sample_id, vcf_index -> [sample_id, vcf_index] })
+        .join(BAM2FASTA_BESTREF.out.stats_with_meta.map { run_name, sample_id, stats -> [sample_id, stats] })
+        .join(ch_best_ref_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
+        .join(CREATE_REPORT_BESTREF.out.report_with_meta.map { run_name, sample_id, report -> [sample_id, report] })
+        .join(CREATE_REPORT_BESTREF.out.nucfreq_with_meta.map { run_name, sample_id, nucfreq -> [sample_id, nucfreq] })
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
+        .join(CREATE_REPORT_IUPAC.out.report_with_meta.map { run_name, sample_id, report -> [sample_id, report] })
+        .join(CREATE_REPORT_IUPAC.out.nucfreq_with_meta.map { run_name, sample_id, nucfreq -> [sample_id, nucfreq] })
+        .join(ANNOTATE_VADR.out.gff.map { run_name, sample_id, gff -> [sample_id, gff] })
+        .join(ANNOTATE_VADR.out.bed.map { run_name, sample_id, bed -> [sample_id, bed] })
+        .join(FILTER_VCF.out.filtered_vcfs.map { run_name, sample_id, vcfs -> [sample_id, vcfs] })
+        .join(FILTER_VCF.out.indices.map { run_name, sample_id, indices -> [sample_id, indices] })
+        .join(FILTER_VCF.out.stats.map { run_name, sample_id, stats -> [sample_id, stats] })
+        .join(ch_main_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
+        .join(ch_iupac_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
+        .join(ch_pilon_iupac_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
+        .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_tsv,
+                bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
+                iupac_fasta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
+                filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast ->
+            tuple(
+                sample_meta[0],
+                sample_id,
+                sample_meta[1],
+                hostile_json_path,
+                main_fasta_meta[0],
+                main_fasta_meta[1],
+                main_blast,
+                main_cram_meta[0],
+                main_cram_meta[1],
+                iupac_fasta,
+                iupac_blast,
+                iupac_cram_meta[0],
+                iupac_cram_meta[1],
+                iupac_report,
+                iupac_nucfreq,
+                bestref_fasta,
+                bestref_vcf,
+                bestref_vcf_index,
+                bestref_vcf_stats,
+                bestref_cram_meta[0],
+                bestref_cram_meta[1],
+                bestref_report,
+                bestref_nucfreq,
+                coverage_tsv,
+                vadr_gff,
+                vadr_bed,
+                pilon_iupac_blast,
+                filtered_vcfs,
+                filtered_indices,
+                filtered_stats
+            )
+        }
+
+    FINALIZE_RESULTS(ch_final_results_input)
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }

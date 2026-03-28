@@ -19,6 +19,9 @@ process BAM2FASTA {
         path "${sample_id}-${ref_name}.vcf.gz.csi", emit: vcf_index
         path "${sample_id}-${ref_name}.vcf.gz.stats", emit: stats
         path "${sample_id}-${ref_name}.bcf", emit: bcf
+        tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.vcf.gz"), emit: vcf_with_meta
+        tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.vcf.gz.csi"), emit: vcf_index_with_meta
+        tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.vcf.gz.stats"), emit: stats_with_meta
     
     script:
     def container_dir = params.container_dir

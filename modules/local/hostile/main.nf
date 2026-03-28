@@ -16,6 +16,7 @@ process REMOVE_HOSTILE {
     output:
         tuple val(run_name), val(sample_id), path("*_R1_*_hostile*.fastq.gz"), path("*_R2_*_hostile*.fastq.gz"), emit: reads
         path "hostile.json", emit: hostile_json
+        tuple val(run_name), val(sample_id), path("hostile.json"), emit: hostile_json_with_meta
         path "*.log", emit: logs
     
     script:
