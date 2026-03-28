@@ -257,6 +257,27 @@ workflow HCVPIPE {
     
     LOG_COVERAGE(ch_coverage_input)
     
+    def extractSubtypeFromBlast = { blast_file ->
+        def blast_line = blast_file.readLines().find { line ->
+            line && !line.startsWith('query acc.ver')
+        }
+        if (!blast_line) {
+            error "Could not derive subtype from BLAST output: ${blast_file}"
+        }
+
+        def fields = blast_line.split('\t')
+        if (fields.size() < 2 || !fields[1]) {
+            error "Malformed BLAST output while deriving subtype: ${blast_file}"
+        }
+
+        def subtype = fields[1].split('_')[0]
+        if (!subtype) {
+            error "Could not parse subtype from BLAST subject '${fields[1]}' in ${blast_file}"
+        }
+
+        return subtype
+    }
+
     // Step 7: Variant calling on pilon-polished BAM (matching bash pipeline)
     // Use pilon BAM and bam2fasta-regenerated FASTA as reference
     ch_pilon_for_varcall = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
@@ -279,9 +300,6 @@ workflow HCVPIPE {
     VARIANT_CALLING(ch_variant_input)
     ch_vcf = VARIANT_CALLING.out.vcf
     
-    // Save copy for resistance before using
-    ch_vcf_for_resistance = ch_vcf
-
     // Step 7b: Filter VCF at multiple min fractions
     ch_filter_input = ch_vcf.map { run_name, sample_id, vcf, vcf_idx ->
             tuple(run_name, sample_id, vcf, vcf_idx, "${sample_id}-pilon")
@@ -307,9 +325,6 @@ workflow HCVPIPE {
         tuple(run_name, sample_id, fasta)
     }
     
-    // Save copy for resistance annotation (channels can only be used once)
-    ch_consensus_for_resistance = ch_consensus_with_meta
-
     // Step 8b: Map the 0.15-iupac consensus with the no-opt sentieon path
     ch_iupac_mapping_input = ch_consensus_with_meta.cross(ch_pilon_reads)
         .filter { consensus, reads -> consensus[1] == reads[1] }
@@ -419,30 +434,43 @@ workflow HCVPIPE {
     ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
-    // Save GFF for resistance before using
-    ch_vadr_gff_for_resistance = ch_vadr_gff
-    
-    // Step 11: Annotate resistance (needs VCF + GFF + fasta + subtype + rules)
-    rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
-    rules_csv = file(rules_path)
-    
-    // Combine VCF with GFF by sample_id
-    ch_vcf_gff = ch_vcf_for_resistance.cross(ch_vadr_gff_for_resistance)
-        .filter { vcf, gff -> vcf[1] == gff[1] }
-        .map { vcf, gff -> [vcf[0], vcf[1], vcf[2], gff[2]] }
-    
-    // Add consensus fasta 
-    ch_resistance_input = ch_vcf_gff.combine(ch_consensus_for_resistance)
-        .map { run_name, sample_id, vcf, gff, cons_run, cons_sample, cons_fasta ->
-            [run_name, sample_id, vcf, gff, cons_fasta]
+    // Step 11: Annotate resistance from the filtered m0.15 VCF and the 0.15 typing result
+    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
+    def rules_json = file(rules_path)
+
+    ch_vcf_for_resistance = FILTER_VCF.out.filtered_vcfs
+        .map { run_name, sample_id, vcfs ->
+            def filtered_vcf = vcfs.find { it.getName() == "${sample_id}-pilon-m0.15.vcf.gz" }
+            if (!filtered_vcf) {
+                error "Could not find ${sample_id}-pilon-m0.15.vcf.gz in FILTER_VCF output"
+            }
+            [sample_id, [run_name, filtered_vcf]]
         }
-    
-    // Add placeholder subtype
-    ch_resistance_full = ch_resistance_input.map { run_name, sample_id, vcf, gff, fasta ->
-        [tuple(run_name, sample_id, vcf, gff, fasta), '1a']
+
+    ch_gff_for_resistance = ANNOTATE_VADR.out.gff.map { run_name, sample_id, gff ->
+        [sample_id, [run_name, gff]]
     }
-    
-    ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_csv)
+
+    ch_iupac_fasta_for_resistance = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+        [sample_id, [run_name, fasta]]
+    }
+
+    ch_subtype_for_resistance = ch_iupac_blast_with_meta.map { run_name, sample_id, blast ->
+        [sample_id, [run_name, extractSubtypeFromBlast(blast)]]
+    }
+
+    ch_resistance_full = ch_vcf_for_resistance
+        .join(ch_gff_for_resistance)
+        .join(ch_iupac_fasta_for_resistance)
+        .join(ch_subtype_for_resistance)
+        .map { sample_id, vcf_meta, gff_meta, fasta_meta, subtype_meta ->
+            [
+                tuple(vcf_meta[0], sample_id, vcf_meta[1], gff_meta[1], fasta_meta[1]),
+                subtype_meta[1]
+            ]
+        }
+
+    ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_json)
 
     // Step 12: Assemble bash-style results contract in one place.
     ch_final_results_input = ch_sample_lids
@@ -469,10 +497,14 @@ workflow HCVPIPE {
         .join(ch_main_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
         .join(ch_iupac_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
         .join(ch_pilon_iupac_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
+        .join(ANNOTATE_RESISTANCE.out.tsv_with_meta.map { run_name, sample_id, tsv -> [sample_id, tsv] })
+        .join(ANNOTATE_RESISTANCE.out.bed_with_meta.map { run_name, sample_id, bed -> [sample_id, bed] })
+        .join(ANNOTATE_RESISTANCE.out.drug_tsv_with_meta.map { run_name, sample_id, drug_tsv -> [sample_id, drug_tsv] })
         .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_tsv,
                 bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
                 iupac_fasta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
-                filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast ->
+                filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast,
+                resistance_tsv, resistance_bed, resistance_drug_tsv ->
             tuple(
                 sample_meta[0],
                 sample_id,
@@ -501,6 +533,9 @@ workflow HCVPIPE {
                 vadr_gff,
                 vadr_bed,
                 pilon_iupac_blast,
+                resistance_tsv,
+                resistance_bed,
+                resistance_drug_tsv,
                 filtered_vcfs,
                 filtered_indices,
                 filtered_stats

@@ -1,0 +1,2 @@
+sample	gene	genomic_start	genomic_end	ref_nuc	alt_nuc	aa_pos	ref_aa	alt_aa	rule_definition	drugs	prediction	reference	strand
+SAMPLE001	NS5A	6550	6552	T	C	93	Y	H	93H	Daclatasvir, Elbasvir, Ledipasvir, Ombitasvir, Velpatasvir	resistant	Hernandez et al. 2013; Hernandez et al. 2013;Wang et al. 2013;Leroy et al. (26822022); Lawitz et al. 2016; Liu et al. 2015;http://www.ema.europa.eu/docs/en;GB/document;library/EPAR;-;Product;Information/human/004126/WC500211235.pdf; g2p;Expert opinion	+

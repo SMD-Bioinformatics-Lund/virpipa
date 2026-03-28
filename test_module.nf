@@ -16,6 +16,7 @@ include { LOG_COVERAGE } from './modules/local/coverage/main'
 include { SUBTYPE_BLAST } from './modules/local/subtype/main'
 include { CREATE_REPORT } from './modules/local/report/main'
 include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
+include { ANNOTATE_RESISTANCE } from './modules/local/resistance/main'
 include { SELECT_BEST_REFERENCE } from './modules/local/bestref/main'
 include { MAP_READS } from './modules/local/mapping/main'
 include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
@@ -47,6 +48,7 @@ Available modules to test locally:
   - subtype    : Build the BLAST subtype hits from a fixture consensus FASTA
   - report     : Build the report TSV and nucleotide frequencies from report fixtures
   - vadr       : Build the VADR GFF and BED outputs from a fixture sample FASTA
+  - resistance : Annotate filtered VCF variants with geno2pheno resistance rules
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -65,6 +67,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module subtype --outdir test_output_subtype
   nextflow run test_module.nf -profile local --module report --outdir test_output_report
   nextflow run test_module.nf -profile local_containers --module vadr --outdir test_output_vadr
+  nextflow run test_module.nf -profile local_containers --module resistance --outdir test_output_resistance
 
 Notes:
   - Default input is ${test_input}
@@ -287,7 +290,21 @@ Notes:
             ),
             Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
         )
+    } else if (params.module == 'resistance') {
+        ANNOTATE_RESISTANCE(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    file("${projectDir}/assets/test_data/resistance/SAMPLE001-positive-93H.vcf"),
+                    file("${projectDir}/assets/test_data/vadr/SAMPLE001.vadr.pass_mod.gff"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta")
+                )
+            ),
+            Channel.value('3a'),
+            Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"))
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance"
     }
 }

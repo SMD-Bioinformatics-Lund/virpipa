@@ -6,17 +6,18 @@ process ANNOTATE_RESISTANCE {
     memory '8 GB'
     time '1h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
-    
     input:
         tuple val(run_name), val(sample_id), path(vcf), path(gff), path(fasta)
         val subtype
-        path rules_csv
+        path rules_json
     
     output:
         path "*_resistance.tsv", emit: tsv, optional: true
         path "*_resistance.bed", emit: bed, optional: true  
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance.tsv"), emit: tsv_with_meta, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance.bed"), emit: bed_with_meta, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance_by_drug.tsv"), emit: drug_tsv_with_meta, optional: true
     
     script:
     def container_dir = params.container_dir
@@ -28,6 +29,6 @@ process ANNOTATE_RESISTANCE {
         'python3'
     
     """
-    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_csv} --output-dir .
+    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_json} --output-dir .
     """
 }

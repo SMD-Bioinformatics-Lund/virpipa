@@ -6,25 +6,15 @@ This pipeline annotates HCV VCF variants with drug resistance information from t
 
 ## Files
 
-### 1. `scripts/download_geno2pheno_rules.py`
-Downloads the resistance rules table from https://hcv.geno2pheno.org/index.php?page=Rules
+### 1. `scripts/update_geno2pheno_rules.py`
+Downloads the resistance rules table from https://hcv.geno2pheno.org/index.php?page=Rules and can also rebuild normalized data from an existing CSV snapshot.
 
 Usage:
 ```bash
-python scripts/download_geno2pheno_rules.py -o hbv_result_rules.csv
+python scripts/update_geno2pheno_rules.py --output-csv hcv_geno2pheno_rules.csv --output-json hcv_geno2pheno_rules.json
 ```
 
-### 2. `scripts/parse_geno2pheno_rules.py`
-Parses the rules CSV into a more usable format. Handles:
-- Subtype matching: "1" matches all genotype 1 subtypes (1a, 1b, etc.)
-- Compound rules: "445F and 451S" means ALL variants must be present
-
-Usage:
-```bash
-python scripts/parse_geno2pheno_rules.py --subtype 3a
-```
-
-### 3. `scripts/annotate_vcf_resistance.py` (Main Script)
+### 2. `scripts/annotate_vcf_resistance.py` (Main Script)
 Annotates VCF variants with drug resistance information.
 
 **Required arguments:**
@@ -36,7 +26,7 @@ Annotates VCF variants with drug resistance information.
 **Optional arguments:**
 - `--sample-name` - Sample ID (default: derived from VCF filename)
 - `--output-dir` - Output directory (default: results subfolder of sample)
-- `--rules` - Rules CSV (default: assets/hbv_result_rules.csv)
+- `--rules` - Rules JSON or CSV (default: assets/hbv_result_rules.csv)
 - `--assets-dir` - Directory for reference files (default: assets)
 - `--ref-bed` - Also generate reference BED with all resistance positions
 
@@ -47,7 +37,8 @@ python scripts/annotate_vcf_resistance.py \
     --gff /path/to/results/SAMPLE001.vadr.pass_mod.gff \
     --fasta /path/to/fasta/SAMPLE001-0.15-iupac.fasta \
     --subtype 3a \
-    --sample-name SAMPLE001
+    --sample-name SAMPLE001 \
+    --rules assets/hbv_result_rules.csv
 ```
 
 **Output:**
@@ -80,11 +71,11 @@ Drug-focused results with sections per drug.
 
 ## Pipeline Integration
 
-To integrate into the Nextflow pipeline:
-
-1. Add as a process in `modules/local/`
-2. Input: tuple of (sample_id, vcf, gff, fasta, subtype)
-3. Output: resistance TSV, BED, and by_drug TSV files
+The resistance module is now wired in the Nextflow pipeline. It consumes:
+- `SAMPLE001-pilon-m0.15.vcf.gz` for the resistance-call set
+- `SAMPLE001.vadr.pass_mod.gff` for gene coordinates
+- `SAMPLE001-0.15-iupac.fasta` for codon translation
+- subtype parsed from `SAMPLE001-0.15-iupac.fasta.blast`
 
 ## Data Locations (example sample SAMPLE001)
 
@@ -95,13 +86,16 @@ To integrate into the Nextflow pipeline:
 
 ## Testing
 
-Tested with sample SAMPLE001 (subtype 3a):
-- Results match the PDF from geno2pheno
-- BED coordinates correctly span the full codon (e.g., 3900-3903 for NS3:156)
+Fixture-backed positive test data lives in `assets/test_data/resistance/` and uses a synthetic `NS5A 93H` variant for subtype `3a`.
+Run with:
+
+```bash
+nextflow run test_module.nf -profile local_containers --module resistance
+```
 
 ## Notes
 
-- The rules CSV (hbv_result_rules.csv) should be downloaded occasionally to get updated rules
+- The geno2pheno rules table should be refreshed manually outside the HPC when needed
 - BED coordinates use codon boundaries (not just variant position)
 - Results default to the `results/` folder
 

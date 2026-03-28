@@ -118,6 +118,9 @@ nextflow run test_module.nf -profile local --module report
 
 # Run fixture-backed VADR test locally
 nextflow run test_module.nf -profile local_containers --module vadr
+
+# Run fixture-backed resistance annotation test locally
+nextflow run test_module.nf -profile local_containers --module resistance
 ```
 
 ### Available Test Modules
@@ -138,6 +141,7 @@ Currently tested modules:
 - `subtype` - Build `SAMPLE001-0.15-iupac.fasta.blast` from fixture consensus FASTA (verified identical)
 - `report` - Build `SAMPLE001-0.15-iupac.report.tsv` and `.fastanucfreq.tsv` from fixture stats/CRAM/FASTA (verified identical)
 - `vadr` - Build `SAMPLE001.vadr.pass_mod.gff` and `SAMPLE001.vadr.bed` from fixture `SAMPLE001.fasta` (verified identical)
+- `resistance` - Build `SAMPLE001_resistance.tsv`, `.bed`, and `_by_drug.tsv` from a synthetic subtype-3a `NS5A 93H` fixture VCF
 
 ### Current Laptop Notes
 
@@ -159,6 +163,7 @@ Currently tested modules:
 - The repo-local `subtype` fixture is in `assets/test_data/subtype/` and uses `SAMPLE001-0.15-iupac.fasta` plus the expected bash-original `SAMPLE001-0.15-iupac.fasta.blast`.
 - The repo-local `report` fixture is in `assets/test_data/report/` and uses the bash-original `SAMPLE001-0.15-iupac.vcf.gz.stats`, `SAMPLE001-0.15-iupac.cram`, `SAMPLE001-0.15-iupac.fasta`, plus the expected report and nucleotide-frequency outputs.
 - The repo-local `vadr` fixture is in `assets/test_data/vadr/` and uses `SAMPLE001.fasta` plus the expected bash-original `SAMPLE001.vadr.pass_mod.gff` and `SAMPLE001.vadr.bed`.
+- The repo-local `resistance` fixture is in `assets/test_data/resistance/` and uses a synthetic `SAMPLE001-positive-93H.vcf` together with the VADR/report fixtures to exercise a positive subtype-3a resistance call.
 - The `tiny` profile points `params.input` at that tiny samplesheet and writes to `results_tiny` unless `--outdir` overrides it.
 - Use `-profile local,tiny` for non-container local tests that rely on tools from the `skrotis` environment.
 - Use `-profile local_containers,tiny` for Apptainer-backed local tests; inside Codex this may still require running the command outside the sandbox.
@@ -173,6 +178,7 @@ Currently tested modules:
 - Use `-profile local --module report` for the report fixture because the module only needs `samtools coverage` plus text processing, and the local `skrotis` toolchain reproduces the bash-original output exactly.
 - Use `-profile local_containers --module subtype` for parity checks because `blastn` is not installed in `skrotis`, but the pinned `blast_2.16.0.sif` container reproduces the bash-original output exactly.
 - Use `-profile local_containers --module vadr` for parity checks. On this laptop, point `params.vadr_model_dir` at `/home/jonas/resources/vadr/vadr-models-flavi`, not `/mnt/fs1/...`, because VADR startup on the WSL-mounted path is extremely slow.
+- Use `-profile local_containers --module resistance` for the resistance fixture. The module accepts either the committed `assets/hbv_result_rules.csv` table or a normalized JSON rules artifact from `scripts/update_geno2pheno_rules.py`.
 - Use `~/resources/hostile` as the default laptop hostile cache path. `/mnt/fs1/resources/ref/micro/hostile` remains a fallback if the local copy is unavailable.
 - Laptop profiles currently downscale `REMOVE_HOSTILE` to 4 CPUs / 10 GB / 1h, `SUBSAMPLE_READS` to 2 CPUs / 2 GB / 30m, `BAM2FASTA` to 2 CPUs / 4 GB / 30m, `ASSEMBLE_SPADES` to 8 CPUs / 15 GB / 8h, `ASSEMBLE_HYBRID` to 8 CPUs / 15 GB / 4h, `MAP_READS` to 4 CPUs / 8 GB / 1h, `POLISH_PILON_LOOP` to 4 CPUs / 10 GB / 2h, `CREATE_CONSENSUS` to 2 CPUs / 2 GB / 30m, `VARIANT_CALLING` to 2 CPUs / 4 GB / 30m, `FILTER_VCF` to 2 CPUs / 2 GB / 30m, `CREATE_CRAM` to 2 CPUs / 2 GB / 30m, `SUBTYPE_BLAST` to 2 CPUs / 2 GB / 30m, `CREATE_REPORT` to 2 CPUs / 2 GB / 30m, and `ANNOTATE_VADR` to 2 CPUs / 8 GB / 1h so they fit local resources.
 - The mounted test sample currently available on the laptop is `SAMPLE001`; if someone refers to `TEST001` they likely mean the sample_name column rather than the FASTQ basename.
@@ -189,9 +195,11 @@ Currently tested modules:
 - For `subtype`, the bash pipeline writes a literal header row before `blastn -outfmt 6`. That header contains a typo (`s. star ... t`) from the original bash line continuation, and the Nextflow module intentionally reproduces it so the `.blast` file is byte-identical to the bash-original result.
 - For `report`, derive the output prefix from the `*.vcf.gz.stats` filename, not from the FASTA name. The bash report appends `samtools coverage` output transposed into key/value rows and omits the `rname` row, so the Nextflow module should do the same.
 - `FILTER_VCF.out.stats` emits a list of seven stats files, not a single `Path`, so the workflow must pick the `m0.15` member before building the `0.15-iupac` report.
+- The resistance branch should also pick the `m0.15` filtered VCF, not the unfiltered pilon VCF, and derive subtype from the first data hit in `SAMPLE001-0.15-iupac.fasta.blast`.
 - The `0.15-iupac` report branch must key on `sample_id`, not `run_name`; otherwise the join never emits and the published `SAMPLE001-0.15-iupac.report.tsv`/`fastanucfreq.tsv` files are missing.
 - `CREATE_REPORT` now takes an explicit `report_id` so the workflow can emit bash-style names like `SAMPLE001-0.15-iupac.report.tsv` even when the stats input comes from `SAMPLE001-pilon-m0.15.vcf.gz.stats`.
 - For `annotate_vadr`, the bash pipeline runs VADR on `results/${id}.fasta` and publishes `SAMPLE001.vadr.pass_mod.gff` plus `SAMPLE001.vadr.bed`. The laptop test should use the replacement `SAMPLE001.fasta` fixture, not `SAMPLE001-0.15-iupac.fasta`.
+- `scripts/update_geno2pheno_rules.py` is the single offline refresh entrypoint for geno2pheno rules. It can download the table or rebuild normalized output from an existing CSV snapshot.
 - `POLISH_PILON_LOOP` is now fixture-backed and locally verified against the repo-local `assets/test_data/polish/` set with final-convergence parity plus early-round spot checks.
 - The workflow now has a fixture-verified `0.15-iupac` no-opt mapping branch and uses it to build the `0.15-iupac` CRAM/report track after consensus. The remaining larger workflow integration gap is the `${sample}-${subtype}` best-reference report/CRAM branch, which still needs to be wired from the early best-reference mapping outputs.
 - The workflow now also wires the `${sample}-${subtype}` best-reference branch from the early `MAP_READS` outputs: it uses `MAP_READS.out.bams_with_ref` joined to `ch_best_ref_with_name`, runs `BAM2FASTA_BESTREF` to recover `${sample}-${subtype}.fasta` and stats, builds `${sample}-${subtype}.cram` against the original chosen reference FASTA, and reports with `report_id = ${sample}-${subtype}`.

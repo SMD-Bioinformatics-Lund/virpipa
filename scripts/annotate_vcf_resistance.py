@@ -1,15 +1,5 @@
 #!/usr/bin/env python3
-"""
-Annotate VCF variants with HCV drug resistance information from geno2pheno rules.
-
-This script:
-1. Parses VCF file to get variants
-2. Uses VADR GFF to map genomic positions to genes (NS3, NS5A, NS5B, etc.)
-3. Extracts codons from IUPAC FASTA at variant positions
-4. Translates codons to amino acids (handling IUPAC ambiguity)
-5. Matches against resistance rules for the given subtype
-6. Outputs TSV results and BED file for IGV
-"""
+"""Annotate VCF variants with HCV drug resistance information."""
 
 import argparse
 import csv
@@ -23,6 +13,8 @@ try:
 except ImportError:
     sys.stderr.write("Error: pysam not installed. Install with: pip install pysam\n")
     sys.exit(1)
+
+from update_geno2pheno_rules import load_rules_json, load_rules_rows_from_csv, normalize_rows
 
 
 def parse_vcf(vcf_file):
@@ -323,58 +315,35 @@ def parse_subtype_pattern(pattern):
     return list(subtypes)
 
 
-def load_rules_csv(csv_file):
-    """Load rules from CSV file."""
-    rules = []
-    
-    with open(csv_file, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-    
-    header = None
-    data_lines = []
-    for line in lines:
-        if line.startswith('#'):
-            continue
-        if not header:
-            import csv as csv_module
-            reader = csv_module.reader([line])
-            header = next(reader)
-            continue
-        data_lines.append(line)
-    
-    import csv as csv_module
-    reader = csv_module.DictReader(data_lines, fieldnames=header)
-    for row in reader:
-        if not row.get('Drugs') or row['Drugs'].startswith('#'):
-            continue
-        
-        rule_defs = parse_rule_definition(row['Rule Definitions'])
-        subtypes = parse_subtype_pattern(row['Rule for Subtype'])
-        
-        for rule in rule_defs:
-            rules.append({
-                'drug': row['Drugs'].strip(),
-                'region': row['Region'].strip(),
-                'position': rule['position'],
-                'aa': rule['aa'],
-                'rule_definition': row['Rule Definitions'].strip(),
-                'subtypes': subtypes,
-                'prediction': row['Predictions'].strip(),
-                'reference': row['Reference'].strip(),
-            })
-    
-    return rules
-
-
-def build_rules_index(rules):
-    """Build indexable structure from rules for fast lookup."""
+def build_rules_index(rules_json):
+    """Build tuple-keyed rule index from the normalized JSON artifact."""
     index = defaultdict(list)
-    
-    for rule in rules:
-        key = (rule['region'], rule['position'], rule['aa'])
-        index[key].append(rule)
-    
+    for rule in rules_json.get('rules', []):
+        parsed_definition = parse_rule_definition(rule['rule_definition'])
+        expanded_subtypes = parse_subtype_pattern(rule.get('subtype_pattern', ''))
+        for parsed_rule in parsed_definition:
+            index[(rule['region'], parsed_rule['position'], parsed_rule['aa'])].append({
+                'drug': rule['drug'],
+                'rule_definition': rule['rule_definition'],
+                'subtypes': expanded_subtypes,
+                'prediction': rule['prediction'],
+                'reference': rule['reference'],
+                'is_compound': len(parsed_definition) > 1,
+            })
     return index
+
+
+def load_rules_data(rules_path):
+    rules_path = Path(rules_path)
+    if rules_path.suffix.lower() == '.json':
+        return load_rules_json(rules_path)
+    if rules_path.suffix.lower() == '.csv':
+        _, rows = load_rules_rows_from_csv(rules_path)
+        data = normalize_rows(rows)
+        columns = data.get('columns', [])
+        data['rules'] = [dict(zip(columns, row)) for row in data.get('rules', [])]
+        return data
+    raise ValueError(f"Unsupported rules file format: {rules_path}")
 
 
 def match_variant_to_rules(region, aa_pos, possible_aa, subtype, rules_index):
@@ -417,7 +386,7 @@ def main():
     parser.add_argument(
         '--rules', '-r',
         default='hbv_result_rules.csv',
-        help='Rules CSV file (default: hbv_result_rules.csv)'
+        help='Rules JSON or CSV file (default: hbv_result_rules.csv)'
     )
     parser.add_argument(
         '--output-dir', '-o',
@@ -442,9 +411,13 @@ def main():
     args = parser.parse_args()
     
     print(f"Loading rules from {args.rules}...")
-    rules = load_rules_csv(args.rules)
-    rules_index = build_rules_index(rules)
+    rules_json = load_rules_data(args.rules)
+    rules = rules_json.get('rules', [])
+    rules_index = build_rules_index(rules_json)
     print(f"Loaded {len(rules)} rules")
+
+    if not any(args.subtype in parse_subtype_pattern(rule.get('subtype_pattern', '')) for rule in rules):
+        raise SystemExit(f"No geno2pheno rules found for subtype '{args.subtype}' in {args.rules}")
     
     print(f"Parsing GFF: {args.gff}")
     genes = parse_gff(args.gff)
@@ -458,9 +431,7 @@ def main():
     if not sample_name:
         sample_name = Path(args.vcf).stem.replace('.vcf', '').replace('.gz', '')
     
-    vcf_parent = Path(args.vcf).parent
-    sample_folder = vcf_parent.parent
-    output_dir = sample_folder / args.output_dir
+    output_dir = Path(args.output_dir)
     
     assets_dir = Path(args.assets_dir)
     
@@ -470,21 +441,21 @@ def main():
         assets_dir.mkdir(parents=True, exist_ok=True)
         with open(ref_bed_file, 'w') as f:
             f.write("#chrom\tstart\tend\tname\tscore\tstrand\tgene\tdrugs\tprediction\n")
-            for rule in rules:
+            for rule in sorted(rules, key=lambda item: (item['region'], item['drug'], item['rule_definition'])):
                 gene = rule['region']
-                pos = rule['position']
-                aa = rule['aa']
-                drug = rule['drug']
-                pred = rule['prediction']
-                strand = '+'
-                if gene in genes:
-                    gene_info = genes.get(gene)
-                    if gene_info:
-                        strand = gene_info.get('strand', '+')
-                        gene_start = gene_info['start']
-                        codon_start = gene_start + (pos - 1) * 3
-                        codon_end = codon_start + 3
-                        f.write(f"REF\t{codon_start-1}\t{codon_end}\t{gene}:{pos}:{aa}\t0\t{strand}\t{gene}\t{drug}\t{pred}\n")
+                if gene not in genes:
+                    continue
+                gene_info = genes[gene]
+                strand = gene_info.get('strand', '+')
+                gene_start = gene_info['start']
+                for parsed_rule in parse_rule_definition(rule['rule_definition']):
+                    pos = parsed_rule['position']
+                    aa = parsed_rule['aa']
+                    drug = rule['drug']
+                    pred = rule['prediction']
+                    codon_start = gene_start + (pos - 1) * 3
+                    codon_end = codon_start + 3
+                    f.write(f"REF\t{codon_start-1}\t{codon_end}\t{gene}:{pos}:{aa}\t0\t{strand}\t{gene}\t{drug}\t{pred}\n")
         print(f"Reference BED written with {len(rules)} entries")
     
     print(f"Parsing VCF: {args.vcf}")
@@ -494,7 +465,7 @@ def main():
     print(f"\nAnalyzing variants for subtype {args.subtype}...")
     
     results = []
-    bed_entries = []
+    found_variants = defaultdict(set)
     
     for var in variants:
         chrom = var['chrom']
@@ -537,6 +508,7 @@ def main():
         matches = match_variant_to_rules(
             gene_name, aa_pos, possible_alt_aa, args.subtype, rules_index
         )
+        found_variants[(gene_name, aa_pos)].update(possible_alt_aa)
         
         for match in matches:
             ref_aa_str = ','.join(sorted(possible_ref_aa)) if possible_ref_aa else '-'
@@ -557,10 +529,24 @@ def main():
                 'drug': match['drug'],
                 'prediction': match['prediction'],
                 'reference': match['reference'],
+                'is_compound': match.get('is_compound', False),
                 'strand': gene_info['strand']
             })
-    
-    print(f"Found {len(results)} raw rule matches")
+
+    filtered_results = []
+    for result in results:
+        if not result['is_compound']:
+            filtered_results.append(result)
+            continue
+
+        compound_parts = parse_rule_definition(result['rule_definition'])
+        if all(
+            part['aa'] in found_variants.get((result['gene'], part['position']), set())
+            for part in compound_parts
+        ):
+            filtered_results.append(result)
+
+    print(f"Found {len(filtered_results)} rule matches after compound-rule filtering")
     
     grouped = defaultdict(lambda: {
         'codon_start': None,
@@ -573,7 +559,7 @@ def main():
         'rule_definitions': set()
     })
     
-    for r in results:
+    for r in filtered_results:
         key = (r['gene'], r['aa_pos'], r['ref_aa'], r['alt_aa'])
         if grouped[key]['codon_start'] is None:
             grouped[key]['codon_start'] = r['codon_start']
@@ -616,7 +602,7 @@ def main():
             'sample', 'gene', 'genomic_start', 'genomic_end', 'ref_nuc', 'alt_nuc',
             'aa_pos', 'ref_aa', 'alt_aa', 'rule_definition',
             'drugs', 'prediction', 'reference', 'strand'
-        ], delimiter='\t')
+        ], delimiter='\t', lineterminator='\n')
         writer.writeheader()
         for r in consolidated:
             writer.writerow(r)
@@ -646,9 +632,9 @@ def main():
                 'sample', 'gene', 'genomic_start', 'genomic_end', 'ref_nuc', 'alt_nuc',
                 'aa_pos', 'ref_aa', 'alt_aa', 'rule_definition',
                 'prediction', 'reference'
-            ], delimiter='\t', extrasaction='ignore')
+            ], delimiter='\t', extrasaction='ignore', lineterminator='\n')
             writer.writeheader()
-            for r in drug_focused[drug]:
+            for r in sorted(drug_focused[drug], key=lambda item: (item['gene'], item['aa_pos'], item['alt_aa'])):
                 writer.writerow(r)
             f.write("\n")
     

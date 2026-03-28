@@ -14,6 +14,7 @@ process FINALIZE_RESULTS {
             path(iupac_fasta), path(iupac_blast), path(iupac_cram), path(iupac_crai), path(iupac_report), path(iupac_nucfreq),
             path(bestref_fasta), path(bestref_vcf), path(bestref_vcf_index), path(bestref_vcf_stats), path(bestref_cram), path(bestref_crai), path(bestref_report), path(bestref_nucfreq),
             path(coverage_tsv), path(vadr_gff), path(vadr_bed), path(pilon_iupac_blast),
+            path(resistance_tsv), path(resistance_bed), path(resistance_drug_tsv),
             path(filtered_vcfs), path(filtered_indices), path(filtered_stats)
 
     output:
@@ -61,6 +62,9 @@ process FINALIZE_RESULTS {
     cp ${coverage_tsv} results/${coverage_tsv.getName()}
     cp ${vadr_gff} results/${vadr_gff.getName()}
     cp ${vadr_bed} results/${vadr_bed.getName()}
+    cp ${resistance_tsv} results/${resistance_tsv.getName()}
+    cp ${resistance_bed} results/${resistance_bed.getName()}
+    cp ${resistance_drug_tsv} results/${resistance_drug_tsv.getName()}
     printf 'query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\t\t\tt\ts. end\tevalue\tbit score\n' > results/${pilon_iupac_blast.getName()}
 
     for file in ${filtered_vcfs}; do
