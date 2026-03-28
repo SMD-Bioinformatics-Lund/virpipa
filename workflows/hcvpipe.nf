@@ -449,7 +449,7 @@ workflow HCVPIPE {
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
     // Step 11: Annotate resistance from the filtered m0.15 VCF and the 0.15 typing result
-    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"
+    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"
     def rules_json = file(rules_path)
 
     ch_vcf_for_resistance = FILTER_VCF.out.filtered_vcfs

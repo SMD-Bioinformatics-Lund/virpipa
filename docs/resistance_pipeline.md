@@ -11,7 +11,7 @@ Downloads the resistance rules table from https://hcv.geno2pheno.org/index.php?p
 
 Usage:
 ```bash
-python scripts/update_geno2pheno_rules.py --output-csv assets/hbv_result_rules.csv
+python scripts/update_geno2pheno_rules.py --output-csv assets/hcv_geno2pheno_rules.csv
 ```
 
 ### 2. `scripts/annotate_vcf_resistance.py` (Main Script)
@@ -26,7 +26,7 @@ Annotates VCF variants with drug resistance information.
 **Optional arguments:**
 - `--sample-name` - Sample ID (default: derived from VCF filename)
 - `--output-dir` - Output directory (default: results subfolder of sample)
-- `--rules` - Rules JSON or CSV (default: assets/hbv_result_rules.csv)
+- `--rules` - Rules JSON or CSV (default: assets/hcv_geno2pheno_rules.csv)
 - `--assets-dir` - Directory for reference files (default: assets)
 - `--ref-bed` - Also generate reference BED with all resistance positions
 
@@ -38,12 +38,12 @@ python scripts/annotate_vcf_resistance.py \
     --fasta /path/to/fasta/SAMPLE001-0.15-iupac.fasta \
     --subtype 3a \
     --sample-name SAMPLE001 \
-    --rules assets/hbv_result_rules.csv
+    --rules assets/hcv_geno2pheno_rules.csv
 ```
 
 **Output:**
 - Results go to sample's `results/` folder (e.g., `results/SAMPLE001_resistance.tsv`)
-- Reference files go to `assets/` folder (e.g., `assets/hbv_result_rules.csv`, `assets/resistance_reference.bed`)
+- Reference files go to `assets/` folder (e.g., `assets/hcv_geno2pheno_rules.csv`, `assets/resistance_reference.bed`)
 
 **Environment:**
 Use the `skrotis` environment or the pipeline python container.

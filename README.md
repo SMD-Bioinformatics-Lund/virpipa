@@ -123,7 +123,7 @@ See [`docs/output.md`](/home/jonas/git/virpipa/docs/output.md) for the current o
 geno2pheno HCV rules are refreshed manually outside Hopper. The offline refresh entrypoint is:
 
 ```bash
-python scripts/update_geno2pheno_rules.py --output-csv assets/hbv_result_rules.csv
+python scripts/update_geno2pheno_rules.py --output-csv assets/hcv_geno2pheno_rules.csv
 ```
 
-The pipeline currently consumes the committed CSV rules table by default via `params.resistance_rules` and the repo default is [`assets/hbv_result_rules.csv`](/home/jonas/git/virpipa/assets/hbv_result_rules.csv).
+The pipeline currently consumes the committed CSV rules table by default via `params.resistance_rules` and the repo default is [`assets/hcv_geno2pheno_rules.csv`](/home/jonas/git/virpipa/assets/hcv_geno2pheno_rules.csv).

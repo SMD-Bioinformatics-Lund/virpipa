@@ -385,8 +385,8 @@ def main():
     )
     parser.add_argument(
         '--rules', '-r',
-        default='hbv_result_rules.csv',
-        help='Rules JSON or CSV file (default: hbv_result_rules.csv)'
+        default='hcv_geno2pheno_rules.csv',
+        help='Rules JSON or CSV file (default: hcv_geno2pheno_rules.csv)'
     )
     parser.add_argument(
         '--output-dir', '-o',

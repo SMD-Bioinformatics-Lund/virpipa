@@ -302,7 +302,7 @@ Notes:
                 )
             ),
             Channel.value('3a'),
-            Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hbv_result_rules.csv"))
+            Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
         )
     } else {
         error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance"
