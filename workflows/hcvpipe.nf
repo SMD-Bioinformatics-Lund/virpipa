@@ -51,7 +51,7 @@ workflow HCVPIPE {
             }
 
             def read2 = (row.read2 ?: row.fastq_2 ?: '').toString().trim()
-            def run_name = (row.run_name ?: params.run_name ?: 'test').toString().trim()
+            def run_name = (row.run_name ?: row.sequencing_run ?: params.run_name ?: 'test').toString().trim()
             def lid = (row.sample_name ?: row.lid ?: '').toString().trim()
             
             return [run_name, sample, lid, file(read1), read2 ? file(read2) : []]

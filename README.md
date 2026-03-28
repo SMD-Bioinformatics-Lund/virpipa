@@ -94,7 +94,7 @@ Samplesheet columns:
 - `read1`
 - `read2`
 - optional `sample_name` or `lid`
-- optional `run_name`
+- optional `run_name` or `sequencing_run`
 
 Example:
 

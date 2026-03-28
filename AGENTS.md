@@ -391,7 +391,7 @@ SAMPLE001,/path/to/R1.fastq.gz,/path/to/R2.fastq.gz,LID001,test
 - `read1` / `fastq_1` - Read 1 path (required)
 - `read2` / `fastq_2` - Read 2 path (optional)
 - `sample_name` / `lid` - Sample name/LID (optional)
-- `run_name` - Run name for output directory (optional)
+- `run_name` / `sequencing_run` - Run name for output directory (optional)
 
 ### Configuration
 

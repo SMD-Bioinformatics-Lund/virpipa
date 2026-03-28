@@ -119,7 +119,7 @@ Notes:
                 error "Samplesheet row for sample '${sample_id}' is missing read2/fastq_2"
             }
 
-            def run_name = (row.run_name ?: params.run_name ?: 'test').toString().trim()
+            def run_name = (row.run_name ?: row.sequencing_run ?: params.run_name ?: 'test').toString().trim()
             tuple(run_name, sample_id, resolvePath(read1), resolvePath(read2))
         }
         .set { ch_samples }
