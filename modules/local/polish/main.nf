@@ -77,19 +77,19 @@ process POLISH_PILON_LOOP {
         local prefix=\$2
         local use_opt=\$3
         local staged_ref
-        local bwa_args=()
+        local bwa_args=""
 
         staged_ref=\$(stage_reference "\${ref}" "ref_\${prefix}")
 
         if [[ "\${use_opt}" == "true" ]]; then
-            bwa_args=(-k 11 -B 2 -L 25)
+            bwa_args="-k 11 -B 2 -L 25"
         fi
 
         ${sentieon} umi extract -d 3M2S+T,3M2S+T ${read1} ${read2} | \\
         ${sentieon} bwa mem \\
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
-            "\${bwa_args[@]}" \\
+            \${bwa_args} \\
             -p -C "\${staged_ref}" - | \\
         ${sentieon} umi consensus --copy_tags XR,RX,MI,XZ -o consensus.fastq.gz
 
@@ -100,7 +100,7 @@ process POLISH_PILON_LOOP {
         ${sentieon} bwa mem \\
             -R "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tLB:${sample_id}\\tPL:illumina" \\
             -t ${task.cpus} \\
-            "\${bwa_args[@]}" \\
+            \${bwa_args} \\
             -p -C "\${staged_ref}" consensus.fastq.gz | \\
         ${sentieon} util sort -i - --sam2bam --umi_post_process -o "\${prefix}.sort.bam"
 
