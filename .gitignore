@@ -4,3 +4,7 @@ results/
 results_test/
 .singularity/
 assets/containers/
+results_full_sample001/
+results_tiny/
+test_output_*/
+scripts/__pycache__/
