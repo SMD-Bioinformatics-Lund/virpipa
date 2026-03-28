@@ -230,9 +230,9 @@ workflow HCVPIPE {
     
     ch_cram_input = ch_regenerated_simple
         .join(ch_pilon_simple)
-        .map { sample_id, regenerated, bam ->
-            def fasta_abs = regenerated[2].toAbsolutePath()
-            [regenerated[1], sample_id, bam[2], bam[3], fasta_abs, sample_id]
+        .map { sample_id, regenerated_run_name, fasta, pilon_run_name, bam, bai ->
+            def fasta_abs = fasta.toAbsolutePath()
+            [regenerated_run_name, sample_id, bam, bai, fasta_abs, sample_id]
         }
     
     CREATE_CRAM_PILON(ch_cram_input)
@@ -327,8 +327,8 @@ workflow HCVPIPE {
     // ch_polished_for_consensus: [sample_id, run_name, fasta]
     ch_consensus_input = ch_vcf_for_consensus
         .join(ch_polished_for_consensus)
-        .map { sample_id, vcf_data, polished_data ->
-            tuple(vcf_data[1], sample_id, vcf_data[2], polished_data[2])
+        .map { sample_id, run_name, vcf, vcf_idx, polished_run_name, fasta ->
+            tuple(run_name, sample_id, vcf, fasta)
         }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
