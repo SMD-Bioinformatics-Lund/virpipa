@@ -143,11 +143,17 @@ workflow HCVPIPE {
     }
 
     // Step 5b: Hybrid assembly with best reference
-    // Use cross to combine and then filter by matching sample
-    ch_hybrid_input = ch_assembly.cross(ch_best_ref_with_name)
-        .filter { assembly, best_ref -> assembly[1] == best_ref[1] }
-        .map { assembly, best_ref -> 
-            tuple(tuple(assembly[0], assembly[1], assembly[2]), best_ref[3], best_ref[2])
+    // Key explicitly by sample_id so batch runs keep all samples instead of
+    // relying on cross/filter fan-in behavior.
+    ch_hybrid_input = ch_assembly
+        .map { run_name, sample_id, contigs ->
+            [sample_id, [run_name, sample_id, contigs]]
+        }
+        .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta ->
+            [sample_id, [ref_name, fasta]]
+        })
+        .map { sample_id, assembly, best_ref ->
+            tuple(tuple(assembly[0], assembly[1], assembly[2]), best_ref[1], best_ref[0])
         }
     
     // Split the tuple into 3 separate channels for the process
@@ -181,10 +187,15 @@ workflow HCVPIPE {
     // Step 6: Polishing loop (10 iterations with convergence check)
     // Prepare input: combine reads with hybrid assembly
     // Use subsampled reads for pilon (params.subsample_reads) - matching bash pipeline
-    ch_polish_input = ch_hybrid.cross(ch_pilon_reads)
-        .filter { hybrid, reads -> hybrid[1] == reads[1] }
-        .map { hybrid, reads ->
-            tuple(hybrid[0], hybrid[1], reads[2], reads[3], hybrid[2])
+    ch_polish_input = ch_hybrid
+        .map { run_name, sample_id, hybrid_fasta ->
+            [sample_id, [run_name, sample_id, hybrid_fasta]]
+        }
+        .join(ch_pilon_reads.map { run_name, sample_id, read1, read2 ->
+            [sample_id, [read1, read2]]
+        })
+        .map { sample_id, hybrid, reads ->
+            tuple(hybrid[0], hybrid[1], reads[0], reads[1], hybrid[2])
         }
     
     POLISH_PILON_LOOP(ch_polish_input)
@@ -217,11 +228,11 @@ workflow HCVPIPE {
     ch_regenerated_simple = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai -> [sample_id, run_name, fasta] }
     ch_pilon_simple = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
     
-    ch_cram_input = ch_regenerated_simple.cross(ch_pilon_simple)
-        .filter { regenerated, bam -> regenerated[0] == bam[0] }
-        .map { regenerated, bam ->
+    ch_cram_input = ch_regenerated_simple
+        .join(ch_pilon_simple)
+        .map { sample_id, regenerated, bam ->
             def fasta_abs = regenerated[2].toAbsolutePath()
-            [regenerated[1], regenerated[0], bam[2], bam[3], fasta_abs, regenerated[0]]
+            [regenerated[1], sample_id, bam[2], bam[3], fasta_abs, sample_id]
         }
     
     CREATE_CRAM_PILON(ch_cram_input)
@@ -314,10 +325,10 @@ workflow HCVPIPE {
     
     // ch_vcf_for_consensus: [sample_id, run_name, vcf, vcf_idx]
     // ch_polished_for_consensus: [sample_id, run_name, fasta]
-    ch_consensus_input = ch_vcf_for_consensus.cross(ch_polished_for_consensus)
-        .filter { vcf_data, polished_data -> vcf_data[0] == polished_data[0] }
-        .map { vcf_data, polished_data ->
-            tuple(vcf_data[1], vcf_data[0], vcf_data[2], polished_data[2])
+    ch_consensus_input = ch_vcf_for_consensus
+        .join(ch_polished_for_consensus)
+        .map { sample_id, vcf_data, polished_data ->
+            tuple(vcf_data[1], sample_id, vcf_data[2], polished_data[2])
         }
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
@@ -326,10 +337,15 @@ workflow HCVPIPE {
     }
     
     // Step 8b: Map the 0.15-iupac consensus with the no-opt sentieon path
-    ch_iupac_mapping_input = ch_consensus_with_meta.cross(ch_pilon_reads)
-        .filter { consensus, reads -> consensus[1] == reads[1] }
-        .map { consensus, reads ->
-            tuple(consensus[0], consensus[1], reads[2], reads[3], consensus[2], '0.15-iupac')
+    ch_iupac_mapping_input = ch_consensus_with_meta
+        .map { run_name, sample_id, fasta ->
+            [sample_id, [run_name, sample_id, fasta]]
+        }
+        .join(ch_pilon_reads.map { run_name, sample_id, read1, read2 ->
+            [sample_id, [read1, read2]]
+        })
+        .map { sample_id, consensus, reads ->
+            tuple(consensus[0], consensus[1], reads[0], reads[1], consensus[2], '0.15-iupac')
         }
 
     MAP_READS_NOOPT(ch_iupac_mapping_input)
