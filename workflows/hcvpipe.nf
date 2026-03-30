@@ -3,6 +3,7 @@
 nextflow.enable.dsl = 2
 
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
+include { SUBSAMPLE_READS as SUBSAMPLE_READS_REFSEL } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
 include { MAP_READS } from '../modules/local/mapping/main'
 include { MAP_READS_NOOPT } from '../modules/local/mapping_noopt/main'
@@ -90,14 +91,14 @@ workflow HCVPIPE {
         if (params.subsample_reads <= 250000) {
             ch_subsampled = ch_pilon_reads
         } else {
-            SUBSAMPLE_READS(ch_prepped, 250000)
-            ch_subsampled = SUBSAMPLE_READS.out.reads
+            SUBSAMPLE_READS_REFSEL(ch_prepped, 250000)
+            ch_subsampled = SUBSAMPLE_READS_REFSEL.out.reads
         }
     } else {
         ch_pilon_reads = ch_prepped
         // For reference selection, subsample 250k
-        SUBSAMPLE_READS(ch_prepped, 250000)
-        ch_subsampled = SUBSAMPLE_READS.out.reads
+        SUBSAMPLE_READS_REFSEL(ch_prepped, 250000)
+        ch_subsampled = SUBSAMPLE_READS_REFSEL.out.reads
     }
 
     // Determine references: single genome or all in ref_dir
