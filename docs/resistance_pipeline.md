@@ -61,7 +61,10 @@ Columns:
 ### 2. `sample_resistance.bed`
 BED file for IGV visualization. One entry per unique amino acid change. Coordinates cover the full codon.
 
-### 3. `sample_resistance_by_drug.tsv`
+### 3. `sample_resistance.gff`
+GFF3 file for IGV visualization. One `resistance_mutation` feature per unique amino acid change, with codon-span coordinates and attributes for gene, amino-acid change, drugs, prediction, rule definition, and reference.
+
+### 4. `sample_resistance_by_drug.tsv`
 Drug-focused results with sections per drug.
 
 ## Pipeline Integration

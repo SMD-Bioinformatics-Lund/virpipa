@@ -7,6 +7,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import quote
 
 try:
     import pysam
@@ -359,6 +360,11 @@ def match_variant_to_rules(region, aa_pos, possible_aa, subtype, rules_index):
     return matches
 
 
+def gff_escape(value):
+    """Escape a GFF3 attribute value."""
+    return quote(str(value), safe=':_|,-.()')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Annotate VCF variants with HCV drug resistance information'
@@ -614,7 +620,31 @@ def main():
         for r in consolidated:
             bed_name = f"{r['gene']}:{r['aa_pos']}:{r['ref_aa']}>{r['alt_aa']}"
             f.write(f"{sample_name}\t{r['genomic_start']-1}\t{r['genomic_end']}\t{bed_name}\t0\t{r['strand']}\n")
-    
+
+    gff_file = output_dir / f"{sample_name}_resistance.gff"
+    print(f"Writing GFF: {gff_file}")
+    with open(gff_file, 'w') as f:
+        f.write("##gff-version 3\n")
+        for r in consolidated:
+            feature_id = f"{r['gene']}:{r['aa_pos']}:{r['ref_aa']}>{r['alt_aa']}"
+            aa_change = f"{r['ref_aa']}>{r['alt_aa']}"
+            attributes = [
+                f"ID={gff_escape(feature_id)}",
+                f"gene={gff_escape(r['gene'])}",
+                f"aa_pos={gff_escape(r['aa_pos'])}",
+                f"aa_change={gff_escape(aa_change)}",
+                f"ref_nuc={gff_escape(r['ref_nuc'])}",
+                f"alt_nuc={gff_escape(r['alt_nuc'])}",
+                f"drugs={gff_escape(r['drugs'])}",
+                f"prediction={gff_escape(r['prediction'])}",
+                f"rule_definition={gff_escape(r['rule_definition'])}",
+                f"reference={gff_escape(r['reference'])}",
+            ]
+            f.write(
+                f"{sample_name}\tgeno2pheno\tresistance_mutation\t{r['genomic_start']}\t{r['genomic_end']}\t.\t"
+                f"{r['strand']}\t.\t{';'.join(attributes)}\n"
+            )
+
     drug_focused = defaultdict(list)
     for r in consolidated:
         for drug in r['drugs'].split(', '):

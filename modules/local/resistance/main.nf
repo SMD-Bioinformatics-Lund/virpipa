@@ -13,10 +13,12 @@ process ANNOTATE_RESISTANCE {
     
     output:
         path "*_resistance.tsv", emit: tsv, optional: true
-        path "*_resistance.bed", emit: bed, optional: true  
+        path "*_resistance.bed", emit: bed, optional: true
+        path "*_resistance.gff", emit: gff, optional: true
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance.tsv"), emit: tsv_with_meta, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance.bed"), emit: bed_with_meta, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance.gff"), emit: gff_with_meta, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance_by_drug.tsv"), emit: drug_tsv_with_meta, optional: true
     
     script:

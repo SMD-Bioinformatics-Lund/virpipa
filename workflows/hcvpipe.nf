@@ -513,12 +513,13 @@ workflow HCVPIPE {
         .join(ch_pilon_iupac_blast_with_meta.map { run_name, sample_id, blast -> [sample_id, blast] })
         .join(ANNOTATE_RESISTANCE.out.tsv_with_meta.map { run_name, sample_id, tsv -> [sample_id, tsv] })
         .join(ANNOTATE_RESISTANCE.out.bed_with_meta.map { run_name, sample_id, bed -> [sample_id, bed] })
+        .join(ANNOTATE_RESISTANCE.out.gff_with_meta.map { run_name, sample_id, gff -> [sample_id, gff] })
         .join(ANNOTATE_RESISTANCE.out.drug_tsv_with_meta.map { run_name, sample_id, drug_tsv -> [sample_id, drug_tsv] })
         .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_tsv,
                 bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
                 iupac_fasta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
                 filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast,
-                resistance_tsv, resistance_bed, resistance_drug_tsv ->
+                resistance_tsv, resistance_bed, resistance_gff, resistance_drug_tsv ->
             tuple(
                 sample_meta[0],
                 sample_id,
@@ -549,6 +550,7 @@ workflow HCVPIPE {
                 pilon_iupac_blast,
                 resistance_tsv,
                 resistance_bed,
+                resistance_gff,
                 resistance_drug_tsv,
                 filtered_vcfs,
                 filtered_indices,

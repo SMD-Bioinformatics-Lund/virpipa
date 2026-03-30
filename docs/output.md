@@ -30,6 +30,7 @@ Current final sample outputs include:
 - `SAMPLE001.vadr.bed`
 - `SAMPLE001_resistance.tsv`
 - `SAMPLE001_resistance.bed`
+- `SAMPLE001_resistance.gff`
 - `SAMPLE001_resistance_by_drug.tsv`
 - `hostile.json` when host filtering is enabled
 
