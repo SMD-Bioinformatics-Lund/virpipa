@@ -28,6 +28,8 @@ include { CREATE_CONSENSUS } from '../modules/local/consensus/main'
 include { ANNOTATE_VADR } from '../modules/local/annotate_vadr/main'
 include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 include { VARIANT_CALLING } from '../modules/local/variantcall/main'
+include { BUILD_QC_SUMMARY } from '../modules/local/qc_summary/main'
+include { AGGREGATE_QC_SUMMARY } from '../modules/local/qc_summary_aggregate/main'
 
 include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
 include { FILTER_VCF } from '../modules/local/filter_vcf/main'
@@ -52,6 +54,8 @@ workflow HCVPIPE {
 
     def samplesheet_path = file(params.input).toAbsolutePath()
     def samplesheet_dir = samplesheet_path.parent
+    def samplesheet_parent = samplesheet_dir?.parent
+    def samplesheet_grandparent = samplesheet_parent?.parent
     def project_root = projectDir.toString()
     def resolved_ref_dir = params.ref_dir ? resolvePathFromBase(params.ref_dir, project_root) : null
     def resolved_genome = params.genome ? resolvePathFromBase(params.genome, project_root) : null
@@ -62,6 +66,11 @@ workflow HCVPIPE {
     def expected_reference_count = resolved_genome
         ? 1
         : new File(resolved_ref_dir.toString()).listFiles()?.count { it.isFile() && it.name.endsWith('.fa') } ?: 0
+    def resolved_sample_info_json = [
+        file("${samplesheet_dir}/clarity_sample_info.json"),
+        samplesheet_parent ? file("${samplesheet_parent}/clarity_sample_info.json") : null,
+        samplesheet_grandparent ? file("${samplesheet_grandparent}/clarity_sample_info.json") : null
+    ].find { it && it.exists() }
 
     // Channel: read samplesheet
     Channel
@@ -593,6 +602,18 @@ workflow HCVPIPE {
         }
 
     FINALIZE_RESULTS(ch_final_results_input)
+
+    def sample_info_json_path = resolved_sample_info_json ? resolved_sample_info_json.toString() : ''
+
+    BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, sample_info_json_path)
+
+    ch_qc_summary_by_run = BUILD_QC_SUMMARY.out.json_with_meta
+        .map { run_name, sample_id, qc_json ->
+            tuple(run_name, qc_json)
+        }
+        .groupTuple(by: 0)
+
+    AGGREGATE_QC_SUMMARY(ch_qc_summary_by_run)
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }

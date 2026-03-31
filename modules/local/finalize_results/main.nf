@@ -19,6 +19,7 @@ process FINALIZE_RESULTS {
 
     output:
         path "results", emit: results_dir
+        tuple val(run_name), val(sample_id), val(lid), path("results"), emit: results_dir_with_meta
 
     script:
     def container_dir = params.container_dir

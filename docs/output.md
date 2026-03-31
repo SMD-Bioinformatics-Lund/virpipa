@@ -32,6 +32,7 @@ Current final sample outputs include:
 - `SAMPLE001_resistance.bed`
 - `SAMPLE001_resistance.gff`
 - `SAMPLE001_resistance_by_drug.tsv`
+- `SAMPLE001_qc_summary.json`
 - `hostile.json` when host filtering is enabled
 
 Optional bash-style LID outputs are published when `sample_name` / `lid` is present:
@@ -44,7 +45,9 @@ Optional bash-style LID outputs are published when `sample_name` / `lid` is pres
 
 Pipeline run metadata is written to:
 
-- `results/pipeline_info/timeline.html`
-- `results/pipeline_info/report.html`
-- `results/pipeline_info/trace.txt`
-- `results/pipeline_info/dag.svg`
+- `results/<run_name>/pipeline_info/timeline.html`
+- `results/<run_name>/pipeline_info/report.html`
+- `results/<run_name>/pipeline_info/trace.txt`
+- `results/<run_name>/pipeline_info/dag.svg`
+- `results/<run_name>/pipeline_info/qc_summary.json`
+- `results/<run_name>/pipeline_info/qc_summary.jsonl`

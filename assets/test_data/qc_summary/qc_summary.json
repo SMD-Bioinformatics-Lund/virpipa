@@ -1,0 +1,83 @@
+[
+  {
+    "generated_at_utc": "DYNAMIC",
+    "host_filter": {
+      "enabled": true,
+      "reads_in": 123456,
+      "reads_removed_proportion": 0.0123
+    },
+    "lid": "LID001",
+    "outputs": {
+      "coverage_tsv": "SAMPLE001-coverage.tsv",
+      "filtered_vcf_m015": null,
+      "filtered_vcf_m015_stats": "SAMPLE001-pilon-m0.15.vcf.gz.stats",
+      "hostile_json": "hostile.json",
+      "iupac_cram": null,
+      "iupac_fasta": null,
+      "iupac_report": "SAMPLE001-0.15-iupac.report.tsv",
+      "main_blast": "SAMPLE001.fasta.blast",
+      "main_cram": null,
+      "main_fasta": null,
+      "resistance_bed": null,
+      "resistance_by_drug_tsv": null,
+      "resistance_gff": null,
+      "resistance_tsv": "SAMPLE001_resistance.tsv",
+      "vadr_bed": null,
+      "vadr_gff": null
+    },
+    "qc": {
+      "coverage_pct": 92.4598,
+      "coverage_thresholds_pct": {
+        "1000x": 0.0,
+        "100x": 0.0,
+        "10x": 7.99,
+        "1x": 91.16
+      },
+      "mean_depth": 4.42121
+    },
+    "resistance": {
+      "drugs": [
+        "Daclatasvir",
+        "Elbasvir",
+        "Ledipasvir",
+        "Ombitasvir",
+        "Velpatasvir"
+      ],
+      "genes": [
+        "NS5A"
+      ],
+      "has_resistance": true,
+      "mutation_count": 1,
+      "predictions": [
+        "resistant"
+      ]
+    },
+    "run_name": "fixture_run",
+    "sample_id": "SAMPLE001",
+    "sample_metadata": {
+      "ct": 24.8,
+      "library_concentration_ng_ul": 5.6,
+      "library_fragment_length_bp": 387
+    },
+    "schema_version": 1,
+    "typing": {
+      "main_blast_genotype": "3a",
+      "main_blast_identity": 91.514,
+      "main_blast_reference": "3a_D17763",
+      "report_reference": "3a-D17763",
+      "report_subtype": "3a"
+    },
+    "variants": {
+      "af_counts": {
+        "0.05": 236,
+        "0.1": 210,
+        "0.15": 179,
+        "0.2": 151,
+        "0.3": 106,
+        "0.4": 92
+      },
+      "multiallelic_snps": 0,
+      "snps": 179
+    }
+  }
+]

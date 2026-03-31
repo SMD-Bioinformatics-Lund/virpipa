@@ -21,6 +21,8 @@ include { SELECT_BEST_REFERENCE } from './modules/local/bestref/main'
 include { MAP_READS } from './modules/local/mapping/main'
 include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
 include { POLISH_PILON_LOOP } from './modules/local/polish/main'
+include { BUILD_QC_SUMMARY } from './modules/local/qc_summary/main'
+include { AGGREGATE_QC_SUMMARY } from './modules/local/qc_summary_aggregate/main'
 
 workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
@@ -49,6 +51,7 @@ Available modules to test locally:
   - report     : Build the report TSV and nucleotide frequencies from report fixtures
   - vadr       : Build the VADR GFF and BED outputs from a fixture sample FASTA
   - resistance : Annotate filtered VCF variants with geno2pheno resistance rules
+  - qc_summary : Build per-sample and run-level QC summary JSON fixtures
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -68,6 +71,7 @@ Usage:
   nextflow run test_module.nf -profile local --module report --outdir test_output_report
   nextflow run test_module.nf -profile local_containers --module vadr --outdir test_output_vadr
   nextflow run test_module.nf -profile local_containers --module resistance --outdir test_output_resistance
+  nextflow run test_module.nf -profile local_containers --module qc_summary --outdir test_output_qc_summary
 
 Notes:
   - Default input is ${test_input}
@@ -304,7 +308,25 @@ Notes:
             Channel.value('3a'),
             Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
         )
+    } else if (params.module == 'qc_summary') {
+        BUILD_QC_SUMMARY(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    'LID001',
+                    file("${projectDir}/assets/test_data/qc_summary/results")
+                )
+            ),
+            Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString())
+        )
+
+        AGGREGATE_QC_SUMMARY(
+            BUILD_QC_SUMMARY.out.json_with_meta
+                .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
+                .groupTuple(by: 0)
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary"
     }
 }
