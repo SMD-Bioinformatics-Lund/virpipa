@@ -2,6 +2,20 @@
 
 nextflow.enable.dsl = 2
 
+def resolvePathFromBase(String rawPath, def baseDir) {
+    def pathText = rawPath?.toString()?.trim()
+    if (!pathText) {
+        return null
+    }
+
+    def candidate = new File(pathText)
+    if (candidate.isAbsolute()) {
+        return file(candidate)
+    }
+
+    return file(new File(baseDir.toString(), pathText))
+}
+
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { SUBSAMPLE_READS as SUBSAMPLE_READS_REFSEL } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
@@ -36,6 +50,16 @@ workflow HCVPIPE {
         error "Missing required parameter: --input <samplesheet.csv>"
     }
 
+    def samplesheet_path = file(params.input).toAbsolutePath()
+    def samplesheet_dir = samplesheet_path.parent
+    def project_root = projectDir.toString()
+    def resolved_ref_dir = params.ref_dir ? resolvePathFromBase(params.ref_dir, project_root) : null
+    def resolved_genome = params.genome ? resolvePathFromBase(params.genome, project_root) : null
+    def resolved_blast_db = params.blast_db ? resolvePathFromBase(params.blast_db, project_root) : null
+    def resolved_rules_path = params.resistance_rules
+        ? resolvePathFromBase(params.resistance_rules, project_root)
+        : resolvePathFromBase('assets/hcv_geno2pheno_rules.csv', project_root)
+
     // Channel: read samplesheet
     Channel
         .fromPath(params.input, checkIfExists: true)
@@ -54,8 +78,11 @@ workflow HCVPIPE {
             def read2 = (row.read2 ?: row.fastq_2 ?: '').toString().trim()
             def run_name = (row.run_name ?: row.sequencing_run ?: params.run_name ?: 'test').toString().trim()
             def lid = (row.sample_name ?: row.lid ?: '').toString().trim()
-            
-            return [run_name, sample, lid, file(read1), read2 ? file(read2) : []]
+
+            def resolved_read1 = resolvePathFromBase(read1, samplesheet_dir)
+            def resolved_read2 = read2 ? resolvePathFromBase(read2, samplesheet_dir) : []
+
+            return [run_name, sample, lid, resolved_read1, resolved_read2]
         }
         .set { ch_sample_rows }
 
@@ -102,11 +129,11 @@ workflow HCVPIPE {
     }
 
     // Determine references: single genome or all in ref_dir
-    if (params.genome) {
-        def genome_file = file(params.genome)
+    if (resolved_genome) {
+        def genome_file = resolved_genome
         ch_references = Channel.value(tuple(genome_file.simpleName, genome_file))
-    } else if (params.ref_dir) {
-        def ref_dir = file(params.ref_dir)
+    } else if (resolved_ref_dir) {
+        def ref_dir = resolved_ref_dir
         ch_references = Channel.fromPath("${ref_dir}/*.fa")
             .map { tuple(it.simpleName, it) }
     } else {
@@ -131,7 +158,7 @@ workflow HCVPIPE {
     ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
     
     // Get ref_dir - convert to absolute path to handle both relative and absolute
-    def ref_dir = file(params.ref_dir).toAbsolutePath()
+    def ref_dir = resolved_ref_dir.toAbsolutePath()
     
     // Add ref_dir to each entry as part of the tuple  
     ch_best_ref_input = ch_stats_per_sample.map { run_name, sample_id, stats_list ->
@@ -410,7 +437,7 @@ workflow HCVPIPE {
 
     // Step 9: Subtype with BLAST
     // Get blast db from params or use default (directory containing hcvgluerefs)
-    def blast_db_path = params.blast_db ? file(params.blast_db) : file("${params.ref_dir}/hcvglue")
+    def blast_db_path = resolved_blast_db ?: file("${resolved_ref_dir}/hcvglue")
     
     // Run BLAST on the main polished FASTA, the 0.15-iupac FASTA, and the pilon-iupac FASTA.
     ch_main_blast_with_meta = Channel.empty()
@@ -454,8 +481,7 @@ workflow HCVPIPE {
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
     // Step 11: Annotate resistance from the filtered m0.15 VCF and the 0.15 typing result
-    def rules_path = params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"
-    def rules_json = file(rules_path)
+    def rules_json = resolved_rules_path
 
     ch_vcf_for_resistance = FILTER_VCF.out.filtered_vcfs
         .map { run_name, sample_id, vcfs ->
