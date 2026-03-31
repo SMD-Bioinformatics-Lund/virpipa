@@ -59,6 +59,9 @@ workflow HCVPIPE {
     def resolved_rules_path = params.resistance_rules
         ? resolvePathFromBase(params.resistance_rules, project_root)
         : resolvePathFromBase('assets/hcv_geno2pheno_rules.csv', project_root)
+    def expected_reference_count = resolved_genome
+        ? 1
+        : new File(resolved_ref_dir.toString()).listFiles()?.count { it.isFile() && it.name.endsWith('.fa') } ?: 0
 
     // Channel: read samplesheet
     Channel
@@ -155,7 +158,7 @@ workflow HCVPIPE {
 
     // Step 5: Select best reference based on mapping stats
     // Group stats by sample
-    ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1])
+    ch_stats_per_sample = ch_stats.groupTuple(by: [0, 1], size: expected_reference_count)
     
     // Get ref_dir - convert to absolute path to handle both relative and absolute
     def ref_dir = resolved_ref_dir.toAbsolutePath()
