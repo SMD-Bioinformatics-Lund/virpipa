@@ -127,6 +127,11 @@ def read_hostile(hostile_path: Path) -> dict:
         }
 
     data = json.loads(hostile_path.read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        data = next((item for item in data if isinstance(item, dict)), {})
+    elif not isinstance(data, dict):
+        data = {}
+
     return {
         "enabled": True,
         "reads_in": data.get("reads_in"),
