@@ -197,29 +197,55 @@ def read_sample_info(sample_info_path: Path | None, sample_id: str) -> dict:
     return result
 
 
+def first_existing_relative_path(results_dir: Path, *candidates: str) -> str | None:
+    for candidate in candidates:
+        if (results_dir / candidate).exists():
+            return candidate
+    return None
+
+
 def build_output_paths(results_dir: Path, sample_id: str) -> dict:
+    selected_vadr_gff = first_existing_relative_path(
+        results_dir,
+        f"{sample_id}.vadr.pass_mod.gff",
+        f"{sample_id}.vadr.fail_mod.gff",
+    )
+
     path_names = {
         "main_fasta": f"{sample_id}.fasta",
+        "main_fasta_index": f"{sample_id}.fasta.fai",
         "main_cram": f"{sample_id}.cram",
+        "main_cram_index": f"{sample_id}.cram.crai",
         "main_blast": f"{sample_id}.fasta.blast",
         "iupac_fasta": f"{sample_id}-0.15-iupac.fasta",
         "iupac_cram": f"{sample_id}-0.15-iupac.cram",
+        "iupac_cram_index": f"{sample_id}-0.15-iupac.cram.crai",
         "iupac_report": f"{sample_id}-0.15-iupac.report.tsv",
         "coverage_tsv": f"{sample_id}-coverage.tsv",
-        "vadr_gff": f"{sample_id}.vadr.pass_mod.gff",
+        "rug_kde_plot": f"{sample_id}_rug_kde_plot.png",
+        "vadr_pass_gff": f"{sample_id}.vadr.pass_mod.gff",
+        "vadr_fail_gff": f"{sample_id}.vadr.fail_mod.gff",
         "vadr_bed": f"{sample_id}.vadr.bed",
         "resistance_tsv": f"{sample_id}_resistance.tsv",
         "resistance_bed": f"{sample_id}_resistance.bed",
         "resistance_gff": f"{sample_id}_resistance.gff",
         "resistance_by_drug_tsv": f"{sample_id}_resistance_by_drug.tsv",
+        "filtered_vcf_m005": f"{sample_id}-pilon-m0.05.vcf.gz",
+        "filtered_vcf_m01": f"{sample_id}-pilon-m0.1.vcf.gz",
         "filtered_vcf_m015": f"{sample_id}-pilon-m0.15.vcf.gz",
+        "filtered_vcf_m02": f"{sample_id}-pilon-m0.2.vcf.gz",
+        "filtered_vcf_m03": f"{sample_id}-pilon-m0.3.vcf.gz",
+        "filtered_vcf_m04": f"{sample_id}-pilon-m0.4.vcf.gz",
         "filtered_vcf_m015_stats": f"{sample_id}-pilon-m0.15.vcf.gz.stats",
         "hostile_json": "hostile.json",
     }
-    return {
+    outputs = {
         key: value if (results_dir / value).exists() else None
         for key, value in path_names.items()
     }
+    outputs["selected_vadr_gff"] = selected_vadr_gff
+    outputs["vadr_gff"] = selected_vadr_gff
+    return outputs
 
 
 def main() -> None:
@@ -236,10 +262,13 @@ def main() -> None:
     sample_info = read_sample_info(Path(args.sample_info) if args.sample_info else None, sample_id)
 
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "pipeline_name": "virpipa",
+        "virus": "HCV",
         "run_name": args.run_name,
         "sample_id": sample_id,
+        "sample_run_id": f"{sample_id}_{args.run_name}",
         "lid": args.lid or None,
         "typing": {
             **blast_info,

@@ -35,6 +35,10 @@ Current final sample outputs include:
 - `SAMPLE001_qc_summary.json`
 - `hostile.json` when host filtering is enabled
 
+The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
+It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
+relative paths to key result files needed for tables, detail views, and IGV launchers.
+
 Optional bash-style LID outputs are published when `sample_name` / `lid` is present:
 
 - `results/<lid>.lid`
