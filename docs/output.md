@@ -38,6 +38,8 @@ Current final sample outputs include:
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
 relative paths to key result files needed for tables, detail views, and IGV launchers.
+When LID-specific outputs exist under `results/lid/`, the QC JSON also exposes those paths together with
+preferred export/display keys such as `export_fasta`, `export_iupac_fasta`, and `display_rug_kde_plot`.
 
 Optional bash-style LID outputs are published when `sample_name` / `lid` is present:
 

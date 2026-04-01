@@ -9,6 +9,9 @@
     "lid": "LID001",
     "outputs": {
       "coverage_tsv": "SAMPLE001-coverage.tsv",
+      "display_rug_kde_plot": "lid/LID001_rug_kde_plot.png",
+      "export_fasta": "lid/LID001.fasta",
+      "export_iupac_fasta": "lid/LID001-0.15-iupac.fasta",
       "filtered_vcf_m005": "SAMPLE001-pilon-m0.05.vcf.gz",
       "filtered_vcf_m01": "SAMPLE001-pilon-m0.1.vcf.gz",
       "filtered_vcf_m015": "SAMPLE001-pilon-m0.15.vcf.gz",
@@ -21,6 +24,10 @@
       "iupac_cram_index": "SAMPLE001-0.15-iupac.cram.crai",
       "iupac_fasta": "SAMPLE001-0.15-iupac.fasta",
       "iupac_report": "SAMPLE001-0.15-iupac.report.tsv",
+      "lid_2limsrs": "lid/LID001-2limsrs.txt",
+      "lid_fasta": "lid/LID001.fasta",
+      "lid_iupac_fasta": "lid/LID001-0.15-iupac.fasta",
+      "lid_rug_kde_plot": "lid/LID001_rug_kde_plot.png",
       "main_blast": "SAMPLE001.fasta.blast",
       "main_cram": "SAMPLE001.cram",
       "main_cram_index": "SAMPLE001.cram.crai",
@@ -73,7 +80,7 @@
       "library_fragment_length_bp": 387
     },
     "sample_run_id": "SAMPLE001_fixture_run",
-    "schema_version": 2,
+    "schema_version": 3,
     "typing": {
       "main_blast_genotype": "3a",
       "main_blast_identity": 91.514,

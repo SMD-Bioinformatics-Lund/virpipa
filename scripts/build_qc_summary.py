@@ -204,12 +204,18 @@ def first_existing_relative_path(results_dir: Path, *candidates: str) -> str | N
     return None
 
 
-def build_output_paths(results_dir: Path, sample_id: str) -> dict:
+def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> dict:
     selected_vadr_gff = first_existing_relative_path(
         results_dir,
         f"{sample_id}.vadr.pass_mod.gff",
         f"{sample_id}.vadr.fail_mod.gff",
     )
+
+    lid_value = lid or ""
+    lid_fasta = f"lid/{lid_value}.fasta" if lid_value else None
+    lid_iupac_fasta = f"lid/{lid_value}-0.15-iupac.fasta" if lid_value else None
+    lid_rug_kde_plot = f"lid/{lid_value}_rug_kde_plot.png" if lid_value else None
+    lid_2limsrs = f"lid/{lid_value}-2limsrs.txt" if lid_value else None
 
     path_names = {
         "main_fasta": f"{sample_id}.fasta",
@@ -243,8 +249,15 @@ def build_output_paths(results_dir: Path, sample_id: str) -> dict:
         key: value if (results_dir / value).exists() else None
         for key, value in path_names.items()
     }
+    outputs["lid_fasta"] = lid_fasta if lid_fasta and (results_dir / lid_fasta).exists() else None
+    outputs["lid_iupac_fasta"] = lid_iupac_fasta if lid_iupac_fasta and (results_dir / lid_iupac_fasta).exists() else None
+    outputs["lid_rug_kde_plot"] = lid_rug_kde_plot if lid_rug_kde_plot and (results_dir / lid_rug_kde_plot).exists() else None
+    outputs["lid_2limsrs"] = lid_2limsrs if lid_2limsrs and (results_dir / lid_2limsrs).exists() else None
     outputs["selected_vadr_gff"] = selected_vadr_gff
     outputs["vadr_gff"] = selected_vadr_gff
+    outputs["display_rug_kde_plot"] = outputs["lid_rug_kde_plot"] or outputs["rug_kde_plot"]
+    outputs["export_fasta"] = outputs["lid_fasta"] or outputs["main_fasta"]
+    outputs["export_iupac_fasta"] = outputs["lid_iupac_fasta"] or outputs["iupac_fasta"]
     return outputs
 
 
@@ -262,7 +275,7 @@ def main() -> None:
     sample_info = read_sample_info(Path(args.sample_info) if args.sample_info else None, sample_id)
 
     summary = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "pipeline_name": "virpipa",
         "virus": "HCV",
@@ -288,7 +301,7 @@ def main() -> None:
         "host_filter": host_filter,
         "sample_metadata": sample_info,
         "resistance": resistance,
-        "outputs": build_output_paths(results_dir, sample_id),
+        "outputs": build_output_paths(results_dir, sample_id, args.lid or None),
     }
 
     output_path = Path(args.output)
