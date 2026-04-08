@@ -6,7 +6,7 @@ process FINALIZE_RESULTS {
     memory '4 GB'
     time '30m'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', overwrite: true
+    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', overwrite: true, pattern: 'results/**'
 
     input:
         tuple val(run_name), val(sample_id), val(lid), val(hostile_json_path),
