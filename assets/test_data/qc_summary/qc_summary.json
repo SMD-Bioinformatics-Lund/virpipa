@@ -1,6 +1,6 @@
 [
   {
-    "generated_at_utc": "DYNAMIC",
+    "generated_at_utc": "2026-04-08T15:36:16Z",
     "host_filter": {
       "enabled": true,
       "reads_in": 123456,
@@ -56,6 +56,44 @@
       "mean_depth": 4.42121
     },
     "resistance": {
+      "analysis_present": true,
+      "by_drug": [
+        {
+          "drug": "Daclatasvir",
+          "mutations": [
+            "NS5A:Y93H"
+          ],
+          "prediction": "resistant"
+        },
+        {
+          "drug": "Elbasvir",
+          "mutations": [
+            "NS5A:Y93H"
+          ],
+          "prediction": "resistant"
+        },
+        {
+          "drug": "Ledipasvir",
+          "mutations": [
+            "NS5A:Y93H"
+          ],
+          "prediction": "resistant"
+        },
+        {
+          "drug": "Ombitasvir",
+          "mutations": [
+            "NS5A:Y93H"
+          ],
+          "prediction": "resistant"
+        },
+        {
+          "drug": "Velpatasvir",
+          "mutations": [
+            "NS5A:Y93H"
+          ],
+          "prediction": "resistant"
+        }
+      ],
       "drugs": [
         "Daclatasvir",
         "Elbasvir",
@@ -68,6 +106,28 @@
       ],
       "has_resistance": true,
       "mutation_count": 1,
+      "mutations": [
+        {
+          "aa_pos": 93,
+          "alt_aa": "H",
+          "drugs": [
+            "Daclatasvir",
+            "Elbasvir",
+            "Ledipasvir",
+            "Ombitasvir",
+            "Velpatasvir"
+          ],
+          "gene": "NS5A",
+          "genomic_end": 6552,
+          "genomic_start": 6550,
+          "mutation_label": "NS5A:Y93H",
+          "prediction": "resistant",
+          "ref_aa": "Y",
+          "reference": "Hernandez et al. 2013",
+          "rule_definition": "93H",
+          "strand": "+"
+        }
+      ],
       "predictions": [
         "resistant"
       ]
@@ -80,7 +140,7 @@
       "library_fragment_length_bp": 387
     },
     "sample_run_id": "SAMPLE001_fixture_run",
-    "schema_version": 3,
+    "schema_version": 4,
     "typing": {
       "main_blast_genotype": "3a",
       "main_blast_identity": 91.514,

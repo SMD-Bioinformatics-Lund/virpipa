@@ -138,21 +138,47 @@ def read_hostile(hostile_path: Path) -> dict:
         "reads_removed_proportion": data.get("reads_removed_proportion"),
     }
 
+def mutation_label(gene: str | None, ref_aa: str | None, aa_pos: str | int | None, alt_aa: str | None) -> str | None:
+    if not gene or not ref_aa or aa_pos in (None, "") or not alt_aa:
+        return None
+    return f"{gene}:{ref_aa}{aa_pos}{alt_aa}"
 
-def read_resistance(resistance_path: Path) -> dict:
-    if not resistance_path.exists():
+
+def prediction_priority(prediction: str) -> tuple[int, str]:
+    value = prediction.strip().lower()
+    if "resistant" in value:
+        return (0, value)
+    if "probable" in value or "intermediate" in value or "reduced" in value:
+        return (1, value)
+    if "possible" in value:
+        return (2, value)
+    return (3, value)
+
+
+def best_prediction(predictions: list[str]) -> str | None:
+    cleaned = sorted({item.strip() for item in predictions if item and item.strip()}, key=prediction_priority)
+    return cleaned[0] if cleaned else None
+
+
+def read_resistance(resistance_path: Path, resistance_by_drug_path: Path) -> dict:
+    analysis_present = resistance_path.exists() or resistance_by_drug_path.exists()
+    if not analysis_present:
         return {
+            "analysis_present": False,
             "has_resistance": False,
             "mutation_count": 0,
             "genes": [],
             "drugs": [],
             "predictions": [],
+            "by_drug": [],
+            "mutations": [],
         }
 
     rows = []
-    with resistance_path.open(encoding="utf-8") as handle:
-        reader = csv.DictReader(handle, delimiter="\t")
-        rows.extend(reader)
+    if resistance_path.exists():
+        with resistance_path.open(encoding="utf-8") as handle:
+            reader = csv.DictReader(handle, delimiter="\t")
+            rows.extend(reader)
 
     genes = sorted({row["gene"] for row in rows if row.get("gene")})
     predictions = sorted({row["prediction"] for row in rows if row.get("prediction")})
@@ -164,12 +190,119 @@ def read_resistance(resistance_path: Path) -> dict:
             if drug.strip()
         }
     )
+
+    mutations = []
+    for row in rows:
+        mutation = {
+            "gene": row.get("gene"),
+            "aa_pos": maybe_int(row.get("aa_pos")) if row.get("aa_pos") not in (None, "") else None,
+            "ref_aa": row.get("ref_aa"),
+            "alt_aa": row.get("alt_aa"),
+            "mutation_label": mutation_label(row.get("gene"), row.get("ref_aa"), row.get("aa_pos"), row.get("alt_aa")),
+            "rule_definition": row.get("rule_definition") or None,
+            "prediction": row.get("prediction") or None,
+            "drugs": [drug.strip() for drug in row.get("drugs", "").split(",") if drug.strip()],
+            "genomic_start": maybe_int(row.get("genomic_start")),
+            "genomic_end": maybe_int(row.get("genomic_end")),
+            "strand": row.get("strand") or None,
+            "reference": row.get("reference") or None,
+        }
+        mutations.append(mutation)
+
+    derived_by_drug: dict[str, dict[str, object]] = {}
+    for mutation in mutations:
+        for drug in mutation.get("drugs", []):
+            record = derived_by_drug.setdefault(drug, {"drug": drug, "predictions": [], "mutations": []})
+            if mutation.get("prediction"):
+                record["predictions"].append(mutation["prediction"])
+            if mutation.get("mutation_label"):
+                record["mutations"].append(mutation["mutation_label"])
+
+    by_drug_records = []
+    if resistance_by_drug_path.exists():
+        current_drug = None
+        current_rows: list[dict] = []
+        with resistance_by_drug_path.open(encoding="utf-8") as handle:
+            for raw_line in handle:
+                line = raw_line.rstrip("\n")
+                if not line:
+                    continue
+                if line.startswith("## "):
+                    if current_drug is not None:
+                        by_drug_records.append(
+                            {
+                                "drug": current_drug,
+                                "prediction": best_prediction([item.get("prediction", "") for item in current_rows]),
+                                "mutations": [
+                                    label
+                                    for label in (
+                                        mutation_label(item.get("gene"), item.get("ref_aa"), item.get("aa_pos"), item.get("alt_aa"))
+                                        for item in current_rows
+                                    )
+                                    if label
+                                ],
+                            }
+                        )
+                    current_drug = line[3:].strip()
+                    current_rows = []
+                    continue
+                if line.startswith("#") or line.startswith("sample\t"):
+                    continue
+                if current_drug is None:
+                    continue
+                fields = line.split("\t")
+                if len(fields) < 12:
+                    continue
+                current_rows.append(
+                    {
+                        "sample": fields[0],
+                        "gene": fields[1],
+                        "genomic_start": fields[2],
+                        "genomic_end": fields[3],
+                        "ref_nuc": fields[4],
+                        "alt_nuc": fields[5],
+                        "aa_pos": fields[6],
+                        "ref_aa": fields[7],
+                        "alt_aa": fields[8],
+                        "rule_definition": fields[9],
+                        "prediction": fields[10],
+                        "reference": fields[11],
+                    }
+                )
+        if current_drug is not None:
+            by_drug_records.append(
+                {
+                    "drug": current_drug,
+                    "prediction": best_prediction([item.get("prediction", "") for item in current_rows]),
+                    "mutations": [
+                        label
+                        for label in (
+                            mutation_label(item.get("gene"), item.get("ref_aa"), item.get("aa_pos"), item.get("alt_aa"))
+                            for item in current_rows
+                        )
+                        if label
+                    ],
+                }
+            )
+    if not by_drug_records and derived_by_drug:
+        by_drug_records = [
+            {
+                "drug": drug,
+                "prediction": best_prediction(record["predictions"]),
+                "mutations": sorted(set(record["mutations"])),
+            }
+            for drug, record in sorted(derived_by_drug.items())
+        ]
+
     return {
+        "analysis_present": True,
         "has_resistance": bool(rows),
         "mutation_count": len(rows),
         "genes": genes,
         "drugs": drugs,
         "predictions": predictions,
+        "by_drug": by_drug_records,
+        "mutations": mutations,
     }
 
 
@@ -271,11 +404,14 @@ def main() -> None:
     coverage_thresholds = read_coverage_tsv(results_dir / f"{sample_id}-coverage.tsv")
     af_counts = read_af_counts(results_dir, sample_id)
     host_filter = read_hostile(results_dir / "hostile.json")
-    resistance = read_resistance(results_dir / f"{sample_id}_resistance.tsv")
+    resistance = read_resistance(
+        results_dir / f"{sample_id}_resistance.tsv",
+        results_dir / f"{sample_id}_resistance_by_drug.tsv",
+    )
     sample_info = read_sample_info(Path(args.sample_info) if args.sample_info else None, sample_id)
 
     summary = {
-        "schema_version": 3,
+        "schema_version": 4,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "pipeline_name": "virpipa",
         "virus": "HCV",
