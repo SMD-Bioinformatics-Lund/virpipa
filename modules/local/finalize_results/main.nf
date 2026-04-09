@@ -6,8 +6,6 @@ process FINALIZE_RESULTS {
     memory '4 GB'
     time '30m'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', overwrite: true, pattern: 'results/**'
-
     input:
         tuple val(run_name), val(sample_id), val(lid), val(hostile_json_path),
             path(main_fasta), path(main_fai), path(main_blast), path(main_cram), path(main_crai),
@@ -26,6 +24,7 @@ process FINALIZE_RESULTS {
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
     def scripts_dir = params.scripts_dir ?: "${projectDir}/scripts"
     def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
+    def published_results_dir = "${params.outdir}/${run_name}/${sample_id}/results"
     def bcftools = container_dir ?
         "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
         "bcftools"
@@ -124,5 +123,8 @@ process FINALIZE_RESULTS {
         printf "sample_id\tparameter_name\tparameter_value\tcomment\n" > results/lid/${lid}-2limsrs.txt
         printf "%s\thcvtyp\t%s\t\n" "${lid}" "\${subtype}" >> results/lid/${lid}-2limsrs.txt
     fi
+
+    mkdir -p "${published_results_dir}"
+    cp -a results/. "${published_results_dir}/"
     """
 }
