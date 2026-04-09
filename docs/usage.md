@@ -19,6 +19,7 @@ If `run_name` is omitted, the pipeline infers it from `read1` using:
 ```bash
 nextflow run . \
   --input samplesheet.csv \
+  # or: --csv samplesheet.csv \
   --outdir results \
   --run_name 260224_A00681_1214_BHHG2YDRX7 \
   --container_dir /fs1/resources/containers \
@@ -28,5 +29,6 @@ nextflow run . \
 
 ## Notes
 
+- `--csv` is accepted as an alias for `--input`.
 - This scaffold intentionally runs the current `scripts/hcvpipe.sh` as a single process.
 - Next migration step is to split that process into modular DSL2 components.

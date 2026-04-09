@@ -48,11 +48,16 @@ include { SUBTYPE_BLAST as SUBTYPE_BLAST_IUPAC } from '../modules/local/subtype/
 include { SUBTYPE_BLAST as SUBTYPE_BLAST_PILON_IUPAC } from '../modules/local/subtype/main'
 
 workflow HCVPIPE {
-    if (!params.input) {
-        error "Missing required parameter: --input <samplesheet.csv>"
+    if (params.input && params.csv && params.input.toString() != params.csv.toString()) {
+        error "Provide either --input or --csv for the samplesheet, not both with different values"
     }
 
-    def samplesheet_path = file(params.input).toAbsolutePath()
+    def samplesheet_param = params.input ?: params.csv
+    if (!samplesheet_param) {
+        error "Missing required parameter: --input <samplesheet.csv> (alias: --csv)"
+    }
+
+    def samplesheet_path = file(samplesheet_param).toAbsolutePath()
     def samplesheet_dir = samplesheet_path.parent
     def samplesheet_parent = samplesheet_dir?.parent
     def samplesheet_grandparent = samplesheet_parent?.parent
@@ -74,7 +79,7 @@ workflow HCVPIPE {
 
     // Channel: read samplesheet
     Channel
-        .fromPath(params.input, checkIfExists: true)
+        .fromPath(samplesheet_param, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
             def sample = (row.clarity_sample_id ?: row.sample ?: row.id ?: '').toString().trim()

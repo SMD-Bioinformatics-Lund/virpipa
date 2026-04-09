@@ -5,12 +5,17 @@ nextflow.enable.dsl = 2
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 
 workflow {
-    if (!params.input) {
-        error "Missing required parameter: --input <samplesheet.csv>"
+    if (params.input && params.csv && params.input.toString() != params.csv.toString()) {
+        error "Provide either --input or --csv for the samplesheet, not both with different values"
+    }
+
+    def samplesheet_param = params.input ?: params.csv
+    if (!samplesheet_param) {
+        error "Missing required parameter: --input <samplesheet.csv> (alias: --csv)"
     }
 
     Channel
-        .fromPath(params.input, checkIfExists: true)
+        .fromPath(samplesheet_param, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
             def sample = (row.clarity_sample_id ?: row.sample ?: row.id ?: '').toString().trim()
