@@ -109,12 +109,13 @@ Sample outputs are published under:
 
 - `results/<run_name>/<sample_id>/results/`
 
-Run metadata is written under:
+If enabled with `--pipeline_info`, Nextflow run metadata is written under:
 
-- `results/pipeline_info/timeline.html`
-- `results/pipeline_info/report.html`
-- `results/pipeline_info/trace.txt`
-- `results/pipeline_info/dag.svg`
+- `results/<run_name>/pipeline_info/timeline.html`
+- `results/<run_name>/pipeline_info/report.html`
+- `results/<run_name>/pipeline_info/trace.txt`
+
+If `--run_name` is not provided, the built-in metadata path falls back to `results/pipeline_info_<timestamp>/`. DAG rendering is disabled by default; add `--pipeline_info_dag` to request `dag.svg` when Graphviz is available.
 
 See [`docs/output.md`](/home/jonas/git/virpipa/docs/output.md) for the current output contract and [`docs/pipeline_workflow.md`](/home/jonas/git/virpipa/docs/pipeline_workflow.md) for workflow details.
 

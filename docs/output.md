@@ -49,11 +49,15 @@ Optional bash-style LID outputs are published when `sample_name` / `lid` is pres
 - `results/lid/<lid>_rug_kde_plot.png`
 - `results/lid/<lid>-2limsrs.txt`
 
-Pipeline run metadata is written to:
+The per-run QC summary is written to:
+
+- `results/<run_name>/pipeline_info/qc_summary.json`
+- `results/<run_name>/pipeline_info/qc_summary.jsonl`
+
+If enabled with `--pipeline_info`, Nextflow run metadata is also written to:
 
 - `results/<run_name>/pipeline_info/timeline.html`
 - `results/<run_name>/pipeline_info/report.html`
 - `results/<run_name>/pipeline_info/trace.txt`
-- `results/<run_name>/pipeline_info/dag.svg`
-- `results/<run_name>/pipeline_info/qc_summary.json`
-- `results/<run_name>/pipeline_info/qc_summary.jsonl`
+
+If `--run_name` is not provided, the built-in metadata path falls back to `results/pipeline_info_<timestamp>/`. DAG rendering is disabled by default; add `--pipeline_info_dag` to request `dag.svg` when Graphviz is available.
