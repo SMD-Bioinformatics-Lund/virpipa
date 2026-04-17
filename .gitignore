@@ -8,3 +8,4 @@ results_full_sample001/
 results_tiny/
 test_output_*/
 scripts/__pycache__/
+.codex
