@@ -1,0 +1,12 @@
+SAMPLE001	VADR:v1.7	5'UTR	1	339	.	+	.	ID:5'UTR1;
+SAMPLE001	VADR:v1.7	gene	340	912	.	+	0	ID:core;gene=core;product=core protein;
+SAMPLE001	VADR:v1.7	gene	913	1488	.	+	0	ID:E1;gene=E1;product=E1 protein;
+SAMPLE001	VADR:v1.7	gene	1489	2595	.	+	0	ID:E2;gene=E2;product=E2 protein;
+SAMPLE001	VADR:v1.7	gene	2596	2784	.	+	0	ID:p7;gene=p7;product=p7 protein;
+SAMPLE001	VADR:v1.7	gene	2785	3435	.	+	0	ID:NS2;gene=NS2;product=NS2 protein;
+SAMPLE001	VADR:v1.7	gene	3436	5328	.	+	0	ID:NS3;gene=NS3;product=NS3 protein;
+SAMPLE001	VADR:v1.7	gene	5329	5490	.	+	0	ID:NS4A;gene=NS4A;product=NS4A protein;
+SAMPLE001	VADR:v1.7	gene	5491	6273	.	+	0	ID:NS4B;gene=NS4B;product=NS4B protein;
+SAMPLE001	VADR:v1.7	gene	6274	7629	.	+	0	ID:NS5A;gene=NS5A;product=NS5A protein;
+SAMPLE001	VADR:v1.7	gene	7630	9402	.	+	0	ID:NS5B;gene=NS5B;product=NS5B protein;
+SAMPLE001	VADR:v1.7	3'UTR	9406	9456	.	+	.	ID:3'UTR1;

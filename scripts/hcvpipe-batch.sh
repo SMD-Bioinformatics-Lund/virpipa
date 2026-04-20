@@ -1,10 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 subsample=1000000
 outdir=/fs1/jonas/hcv/results/
 logdir=/fs1/jonas/hcv/logs/
 partition=low
 dry=''
+debug=''
+inputdir=''
+csv=''
+runname=''
+scriptdir=$(cd "$(dirname "$0")" && pwd)
+refsdir=$(readlink -f "${scriptdir}/../refgenomes")
 
 showhelp(){
     cat << EOF
@@ -17,12 +23,14 @@ It can either scan a directory for R1 FastQ files or use a CSV file for mapping.
 REQUIRED ARGUMENTS (Choose one):
   -i, --inputdir PATH    Directory containing FastQ files (*R1*gz).
   -c, --csv PATH         CSV file with columns: clarity_sample_id, read1, sample_name.
+                         Output folders will use clarity_sample_id.
                          (Takes precedence over --inputdir)
 
 GENERAL OPTIONS:
   -o, --outdir PATH      Output directory (Default: $outdir)
   -l, --logdir PATH      Log directory (Default: $logdir)
   -p, --partition STR    SLURM partition (Default: $partition)
+  -r, --runname STR      Subdirectory under outdir (default: input dir basename for -i, none for -c)
   -s, --subsample INT    Number of reads to subsample (Default: $subsample)
 
 TOOLS:
@@ -45,7 +53,7 @@ if [[ $# -eq 0 ]] ; then
 	exit
 fi
 
-readopts=$(getopt -o hndo:s:l:p:i:c: --long help,dryrun,debug,outdir:,subsample:,logdir:,partition:,input:,csv: -n 'error' -- "$@")
+readopts=$(getopt -o hndo:s:l:p:r:i:c: --long help,dryrun,dry-run,debug,outdir:,subsample:,logdir:,partition:,runname:,inputdir:,csv: -n 'error' -- "$@")
 eval set -- "$readopts"
 dry=''
 
@@ -54,7 +62,7 @@ while true ; do
 		-h|--help)
 			showhelp
 			exit 1 ;;
-		-n|--dryrun)
+		-n|--dryrun|--dry-run)
 			dry='echo'
 			shift ;;
 		-d|--debug)
@@ -72,6 +80,9 @@ while true ; do
 		-p|--partition)
 			partition="$2"
 			shift 2 ;;
+		-r|--runname)
+			runname="$2"
+			shift 2 ;;
 		-i|--inputdir)
 			inputdir="$2"
 			shift 2 ;;
@@ -88,25 +99,35 @@ sbatch_sample(){
 	local jobname="$1"
 	local sample="$2"
 	local lid="$3"
+	local sample_outname="$4"
+	local target_outdir="$outdir"
+	if [[ -n "$runname" ]] ; then
+		target_outdir="${outdir%/}/${runname}"
+	fi
 	if [[ ! -z "$lid" ]] ; then
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -l "$lid" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" -l "$lid" --outname "$sample_outname" -o "$target_outdir" "$sample"
 	else
-		$dry sbatch -J HCV-"$jobname" --partition "$partition" "$(dirname "$0")"/hcvpipe.sh -s "$subsample" -o "$outdir"/"$runname" "$sample"
+		$dry sbatch -J HCV-"$jobname" --partition "$partition" "${scriptdir}"/hcvpipe.sh --scripts-dir "$scriptdir" --ref-dir "$refsdir" -s "$subsample" --outname "$sample_outname" -o "$target_outdir" "$sample"
 	fi	
 }
 
 runraw(){
 	# Uses a directory with fastq files
 	fulldir=$(readlink -f "$inputdir")
-	runname=$(basename "$fulldir")
+	if [[ -z "$runname" ]] ; then
+		runname=$(basename "$fulldir")
+	fi
+	shopt -s nullglob
 	for sample in "$inputdir"/*R1*gz ; do
 		jobname=$(basename "$sample")
 		jobname=${jobname%%_*}
+		lid=''
 		if [[ -f "$fulldir"/../"$runname".tsv ]] ; then
 			lid=$(grep "$jobname" "$fulldir"/../"$runname".tsv | cut -f2)
 		fi
-		sbatch_sample "$jobname" "$sample" "$lid"
+		sbatch_sample "$jobname" "$sample" "$lid" "$jobname"
 	done
+	shopt -u nullglob
 }
 
 runcsv(){
@@ -131,13 +152,16 @@ runcsv(){
 			echo
 		fi
 		# send the paramteres
-		sbatch_sample "${csvdata["clarity_sample_id"]}" "${csvdata["read1"]}" "${csvdata["sample_name"]}"
+		sbatch_sample "${csvdata["clarity_sample_id"]}" "${csvdata["read1"]}" "${csvdata["sample_name"]}" "${csvdata["clarity_sample_id"]}"
 	done
 }
 
 ### main program
 if [[ ! -d $outdir ]] ; then
 	echo "$outdir" is not a directory
+	exit
+elif [[ ! -d "$refsdir" ]] ; then
+	echo "Reference directory does not exist: $refsdir"
 	exit
 elif [[ -z "$inputdir" ]] && [[ -z "$csv" ]] ; then
 	echo You must provide either inputdir or csv
@@ -147,6 +171,7 @@ elif [[ ! -z "$inputdir" ]] && [[ ! -z "$csv" ]] ; then
 	exit
 fi
 
+mkdir -p "$logdir"
 cd "$logdir" || exit
 
 if [[ ! -z "$csv" ]] ; then

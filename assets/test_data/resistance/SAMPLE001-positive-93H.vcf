@@ -1,0 +1,7 @@
+##fileformat=VCFv4.2
+##contig=<ID=SAMPLE001,length=9456>
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Depth">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE001
+SAMPLE001	6550	.	T	C	60	PASS	.	GT:AD:DP	0/1:10,10:20
