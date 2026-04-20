@@ -2,6 +2,8 @@
 
 VirPipa is a modular Nextflow DSL2 pipeline for HCV probe-capture assembly and reporting. It reproduces the bash-original `results/` contract while adding a maintainable workflow graph, fixture-backed module tests, VADR annotation, and geno2pheno resistance annotation.
 
+<img src="https://cdn.pixabay.com/photo/2012/05/02/22/25/bird-46531_960_720.png" alt="Virpipare" style="display: block; margin-left: auto; margin-right: auto; width: 40%;">
+
 ## Overview
 
 The pipeline takes paired-end FASTQ input, removes host contamination, selects the best HCV reference, builds a hybrid assembly, polishes it with a pilon loop, creates final consensus and CRAM outputs, annotates with VADR, and reports subtype and resistance calls.
