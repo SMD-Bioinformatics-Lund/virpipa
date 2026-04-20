@@ -24,10 +24,11 @@ process ANNOTATE_RESISTANCE {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
     def python = container_dir ?
-        "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
+        "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
         'python3'
     
     """

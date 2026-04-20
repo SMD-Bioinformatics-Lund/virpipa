@@ -20,7 +20,18 @@ vadr_container="${VADR_CONTAINER:-/fs1/resources/containers/vadr_164.sif}"
 vadr_bind="${VADR_BIND:-/fs1:/fs1}"
 vadr_mdir="${VADR_MODELDIR:-/fs1/resources/ref/micro/vadr/vadr-models-flavi/}"
 annotate_tbl2gff="${VADR_ANNOTATE_TBL2GFF:-${scriptdir}/annotate-tbl2gff.pl}"
-vadr="apptainer -q exec -B ${vadr_bind} ${vadr_container}"
+container_runtime="${VADR_CONTAINER_RUNTIME:-}"
+if [[ -z "$container_runtime" ]]; then
+    if command -v apptainer >/dev/null 2>&1; then
+        container_runtime=apptainer
+    elif command -v singularity >/dev/null 2>&1; then
+        container_runtime=singularity
+    else
+        echo "Neither apptainer nor singularity found in PATH" >&2
+        exit 127
+    fi
+fi
+vadr="${container_runtime} -q exec -B ${vadr_bind} ${vadr_container}"
 
 if [[ ! -d "$resultsdir" ]] ; then
 	echo "$resultsdir does not exist"

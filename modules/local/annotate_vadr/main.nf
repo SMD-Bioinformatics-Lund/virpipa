@@ -19,6 +19,7 @@ process ANNOTATE_VADR {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     def vadr_container = params.vadr_container ?: "${container_dir}/vadr_164.sif"
     def configured_model_dir = params.vadr_model_dir ?: ''
@@ -30,6 +31,7 @@ process ANNOTATE_VADR {
 
         export VADR_CONTAINER='${vadr_container}'
         export VADR_BIND='${bind_paths}'
+        export VADR_CONTAINER_RUNTIME='${container_runtime}'
         export VADR_MODELDIR='${vadr_model_dir}'
         export VADR_ANNOTATE_TBL2GFF='${scripts_dir}/annotate-tbl2gff.pl'
 

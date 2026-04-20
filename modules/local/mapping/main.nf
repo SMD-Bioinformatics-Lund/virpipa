@@ -24,13 +24,14 @@ process MAP_READS {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def use_sentieon = params.use_sentieon ?: false
     def umi_prefix = "${sample_id}-${genome_name}.r11b2L25.bwa.umi"
     
     if (use_sentieon && container_dir) {
         // Use sentieon (production)
-        def sentieon = "apptainer exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
+        def sentieon = "${container_runtime} exec -B ${bind_paths} ${container_dir}/sentieon_202308.03.sif sentieon"
+        def samtools = "${container_runtime} exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
         
         """
         set -euo pipefail
@@ -79,8 +80,8 @@ process MAP_READS {
         """
     } else if (container_dir) {
         // Use bwa + samtools (alternative without sentieon)
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
-        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
+        def samtools = "${container_runtime} exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
+        def bwa = "${container_runtime} exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
         def cpus = task.cpus
         def rg = "@RG\\tID:${sample_id}\\tSM:${sample_id}\\tPL:illumina"
         

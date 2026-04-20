@@ -71,11 +71,13 @@ workflow HCVPIPE {
     def expected_reference_count = resolved_genome
         ? 1
         : new File(resolved_ref_dir.toString()).listFiles()?.count { it.isFile() && it.name.endsWith('.fa') } ?: 0
-    def resolved_sample_info_json = [
-        file("${samplesheet_dir}/clarity_sample_info.json"),
-        samplesheet_parent ? file("${samplesheet_parent}/clarity_sample_info.json") : null,
-        samplesheet_grandparent ? file("${samplesheet_grandparent}/clarity_sample_info.json") : null
-    ].find { it && it.exists() }
+    def resolved_sample_info_json = params.sample_info_json
+        ? resolvePathFromBase(params.sample_info_json, project_root)
+        : [
+            file("${samplesheet_dir}/clarity_sample_info.json"),
+            samplesheet_parent ? file("${samplesheet_parent}/clarity_sample_info.json") : null,
+            samplesheet_grandparent ? file("${samplesheet_grandparent}/clarity_sample_info.json") : null
+        ].find { it && it.exists() }
 
     // Channel: read samplesheet
     Channel

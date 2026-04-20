@@ -7,7 +7,9 @@
 #SBATCH --partition=grace-normal
 
 if command -v ml > /dev/null 2>&1 ; then
-	ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
+	if ! ml apptainer/1.0.2 GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4; then
+		ml singularity GCC/8.3.0 seqtk/1.3 pigz/2.4 datamash/1.5 Python/3.7.4
+	fi
 else
 	echo "INFO: 'ml' command not found; assuming tools are available via containers/PATH."
 fi
@@ -28,6 +30,17 @@ scripts="${HCVPIPE_SCRIPTSDIR:-$scriptdir}"
 containerdir="${HCVPIPE_CONTAINERDIR:-/fs1/resources/containers}"
 refdir="${HCVPIPE_REFDIR:-$(readlink -f "${scripts}/../refgenomes")}"
 bind_paths="${HCVPIPE_BIND_PATHS:-/fs1,/fs2,/local}"
+container_runtime="${HCVPIPE_CONTAINER_RUNTIME:-}"
+if [[ -z "$container_runtime" ]]; then
+    if command -v apptainer >/dev/null 2>&1; then
+        container_runtime=apptainer
+    elif command -v singularity >/dev/null 2>&1; then
+        container_runtime=singularity
+    else
+        echo "Neither apptainer nor singularity found in PATH" >&2
+        exit 127
+    fi
+fi
 hostile_cache_dir="${HCVPIPE_HOSTILE_CACHE_DIR:-/fs1/resources/ref/micro/hostile}"
 echo $refdir
 echo $scripts
@@ -146,19 +159,19 @@ if [[ ! -d "$refdir" ]] ; then
 	exit 1
 fi
 
-sent="apptainer exec -B ${bind_paths} ${containerdir}/sentieon_202308.03.sif sentieon"
-samt="apptainer exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif samtools"
-bgz="apptainer exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif bgzip"
-bcft="apptainer exec -B ${bind_paths} ${containerdir}/bcftools_1.21.sif bcftools"
-mum="apptainer exec -B ${bind_paths} ${containerdir}/mummer3.23.sif"
-mafftbin="apptainer exec -B ${bind_paths} ${containerdir}/mafft7.525.sif mafft"
-spadesbin="apptainer exec -B ${bind_paths} ${containerdir}/spades_3.15.5.sif spades.py"
-hostilebin="apptainer exec -B ${bind_paths} ${containerdir}/hostile_1.1.0.sif hostile"
-freebayes="apptainer exec -B ${bind_paths} ${containerdir}/freebayes_1.3.8.sif freebayes"
-blastn="apptainer exec -B ${bind_paths} ${containerdir}/blast_2.16.0.sif blastn"
-python_hcv="apptainer exec -B ${bind_paths} ${containerdir}/python_hcvpipe.sif python"
-pilon="apptainer exec -B ${bind_paths} ${containerdir}/pilon-1.24.sif pilon"
-pypolca="apptainer exec -B ${bind_paths} ${containerdir}/pypolca-0.4.0.sif pypolca"
+sent="${container_runtime} exec -B ${bind_paths} ${containerdir}/sentieon_202308.03.sif sentieon"
+samt="${container_runtime} exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif samtools"
+bgz="${container_runtime} exec -B ${bind_paths} ${containerdir}/samtools_1.21.sif bgzip"
+bcft="${container_runtime} exec -B ${bind_paths} ${containerdir}/bcftools_1.21.sif bcftools"
+mum="${container_runtime} exec -B ${bind_paths} ${containerdir}/mummer3.23.sif"
+mafftbin="${container_runtime} exec -B ${bind_paths} ${containerdir}/mafft7.525.sif mafft"
+spadesbin="${container_runtime} exec -B ${bind_paths} ${containerdir}/spades_3.15.5.sif spades.py"
+hostilebin="${container_runtime} exec -B ${bind_paths} ${containerdir}/hostile_1.1.0.sif hostile"
+freebayes="${container_runtime} exec -B ${bind_paths} ${containerdir}/freebayes_1.3.8.sif freebayes"
+blastn="${container_runtime} exec -B ${bind_paths} ${containerdir}/blast_2.16.0.sif blastn"
+python_hcv="${container_runtime} exec -B ${bind_paths} ${containerdir}/python_hcvpipe.sif python"
+pilon="${container_runtime} exec -B ${bind_paths} ${containerdir}/pilon-1.24.sif pilon"
+pypolca="${container_runtime} exec -B ${bind_paths} ${containerdir}/pypolca-0.4.0.sif pypolca"
 export HOSTILE_CACHE_DIR="${hostile_cache_dir}"
 
 if [[ -n "$reference_override" ]] ; then

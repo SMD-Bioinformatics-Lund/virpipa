@@ -22,10 +22,11 @@ process REMOVE_HOSTILE {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def hostile_cache = cache_dir ?: params.hostile_cache_dir ?: '/fs1/resources/ref/micro/hostile'
     
     if (container_dir) {
-        def hostile = "apptainer exec -B ${bind_paths} ${container_dir}/hostile_1.1.0.sif hostile"
+        def hostile = "${container_runtime} exec -B ${bind_paths} ${container_dir}/hostile_1.1.0.sif hostile"
         
         """
         set -euo pipefail

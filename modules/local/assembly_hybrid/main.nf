@@ -22,13 +22,14 @@ process ASSEMBLE_HYBRID {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
     
     if (container_dir) {
-        def mummer = "apptainer exec -B ${bind_paths} ${container_dir}/mummer3.23.sif"
-        def samtools = "apptainer exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
-        def bwa = "apptainer exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
-        def python = "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python"
+        def mummer = "${container_runtime} exec -B ${bind_paths} ${container_dir}/mummer3.23.sif"
+        def samtools = "${container_runtime} exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools"
+        def bwa = "${container_runtime} exec -B ${bind_paths} ${container_dir}/bwa-0.7.19.sif bwa"
+        def python = "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python"
         
         """
         # Align contigs to reference with mummer

@@ -19,6 +19,7 @@ process SUBTYPE_BLAST {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def fasta_name = fasta.getName()
     def blast_db_path = blast_db.toString()
     def blast_db_prefix = blast_db_path.endsWith('hcvgluerefs') ? blast_db_path : "${blast_db_path}/hcvgluerefs"
@@ -26,7 +27,7 @@ process SUBTYPE_BLAST {
     def blast_header = 'query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\t\t\tt\ts. end\tevalue\tbit score\n'
     
     if (container_dir) {
-        def blast = "apptainer exec -B ${bind_paths} ${container_dir}/blast_2.16.0.sif blastn"
+        def blast = "${container_runtime} exec -B ${bind_paths} ${container_dir}/blast_2.16.0.sif blastn"
         
         """
         set -euo pipefail

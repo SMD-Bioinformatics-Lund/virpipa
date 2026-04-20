@@ -22,14 +22,15 @@ process FINALIZE_RESULTS {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir ?: "${projectDir}/scripts"
     def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
     def published_results_dir = "${params.outdir}/${run_name}/${sample_id}/results"
     def bcftools = container_dir ?
-        "apptainer exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
+        "${container_runtime} exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
         "bcftools"
     def python = container_dir ?
-        "apptainer exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
+        "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
         "python3"
 
     """

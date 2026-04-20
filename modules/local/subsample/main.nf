@@ -23,13 +23,14 @@ process SUBSAMPLE_READS {
     def r2_out = read2 ? "${sample_id}_R2_001.fastq.gz" : ""
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     
     // Use apptainer if container_dir is set
     // Otherwise use direct commands (assumes tools in PATH)
     if (container_dir) {
-        def seqtk = "apptainer exec -B ${bind_paths} ${container_dir}/seqtk_1.3.sif seqtk"
+        def seqtk = "${container_runtime} exec -B ${bind_paths} ${container_dir}/seqtk_1.3.sif seqtk"
         def pigz_cmd = file("${container_dir}/pigz-2.3.4.sif").exists() ? 
-            "apptainer exec -B ${bind_paths} ${container_dir}/pigz-2.3.4.sif pigz" : 
+            "${container_runtime} exec -B ${bind_paths} ${container_dir}/pigz-2.3.4.sif pigz" : 
             "pigz"
         
         """

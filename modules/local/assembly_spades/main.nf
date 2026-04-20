@@ -18,9 +18,10 @@ process ASSEMBLE_SPADES {
     script:
     def container_dir = params.container_dir
     def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     
     if (container_dir) {
-        def spades = "apptainer exec -B ${bind_paths} ${container_dir}/spades_3.15.5.sif spades.py"
+        def spades = "${container_runtime} exec -B ${bind_paths} ${container_dir}/spades_3.15.5.sif spades.py"
         
         """
         ${spades} --rnaviral -1 ${read1} -2 ${read2} -o ${sample_id}.spades -t ${task.cpus}
