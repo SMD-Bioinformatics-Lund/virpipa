@@ -31,7 +31,7 @@ process ANNOTATE_VADR {
 
         export VADR_CONTAINER='${vadr_container}'
         export VADR_BIND='${bind_paths}'
-        export VADR_CONTAINER_RUNTIME='${container_runtime}'
+        export VADR_CONTAINER_RUNTIME=${container_runtime}
         export VADR_MODELDIR='${vadr_model_dir}'
         export VADR_ANNOTATE_TBL2GFF='${scripts_dir}/annotate-tbl2gff.pl'
 
