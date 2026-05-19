@@ -7,7 +7,6 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from urllib.parse import quote
 
 try:
     import pysam
@@ -362,7 +361,14 @@ def match_variant_to_rules(region, aa_pos, possible_aa, subtype, rules_index):
 
 def gff_escape(value):
     """Escape a GFF3 attribute value."""
-    return quote(str(value), safe=':_|,-.()')
+    escaped = []
+    for char in str(value):
+        codepoint = ord(char)
+        if char in '%;=,&' or codepoint < 0x20 or codepoint == 0x7F:
+            escaped.extend(f"%{byte:02X}" for byte in char.encode('utf-8'))
+        else:
+            escaped.append(char)
+    return ''.join(escaped)
 
 
 def main():
