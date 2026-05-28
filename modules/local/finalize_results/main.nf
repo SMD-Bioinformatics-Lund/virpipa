@@ -126,6 +126,6 @@ process FINALIZE_RESULTS {
     fi
 
     mkdir -p "${published_results_dir}"
-    cp -a results/. "${published_results_dir}/"
+    cp -R results/. "${published_results_dir}/"
     """
 }
