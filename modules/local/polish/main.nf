@@ -6,12 +6,12 @@ process POLISH_PILON_LOOP {
     memory '32 GB'
     time '24h'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta.*'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.changes'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.bai'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.stats'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta.*', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.changes', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.bai', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.stats', enabled: params.publish_mode == 'debug'
 
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2), path(hybrid_assembly)

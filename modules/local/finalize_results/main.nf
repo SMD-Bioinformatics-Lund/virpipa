@@ -9,7 +9,7 @@ process FINALIZE_RESULTS {
     input:
         tuple val(run_name), val(sample_id), val(lid), val(hostile_json_path),
             path(main_fasta), path(main_fai), path(main_blast), path(main_cram), path(main_crai),
-            path(iupac_fasta), path(iupac_blast), path(iupac_cram), path(iupac_crai), path(iupac_report), path(iupac_nucfreq),
+            path(iupac_fasta), path(iupac_fai), path(iupac_blast), path(iupac_cram), path(iupac_crai), path(iupac_report), path(iupac_nucfreq),
             path(bestref_fasta), path(bestref_vcf), path(bestref_vcf_index), path(bestref_vcf_stats), path(bestref_cram), path(bestref_crai), path(bestref_report), path(bestref_nucfreq),
             path(coverage_tsv), path(vadr_gff), path(vadr_bed), path(pilon_iupac_blast),
             path(resistance_tsv), path(resistance_bed), path(resistance_gff), path(resistance_drug_tsv),
@@ -25,7 +25,7 @@ process FINALIZE_RESULTS {
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir ?: "${projectDir}/scripts"
     def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
-    def published_results_dir = "${params.outdir}/${run_name}/${sample_id}/results"
+    def published_results_dir = "${params.outdir}/${run_name}/${sample_id}"
     def bcftools = container_dir ?
         "${container_runtime} exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
         "bcftools"
@@ -45,6 +45,7 @@ process FINALIZE_RESULTS {
     cp ${main_crai} results/${sample_id}.cram.crai
 
     cp ${iupac_fasta} results/${iupac_fasta.getName()}
+    cp ${iupac_fai} results/${iupac_fai.getName()}
     cp ${iupac_blast} results/${iupac_blast.getName()}
     cp ${iupac_cram} results/${iupac_cram.getName()}
     cp ${iupac_crai} results/${iupac_crai.getName()}
@@ -99,31 +100,12 @@ process FINALIZE_RESULTS {
             if (ratio <= 0.96) print ratio
         }' > ${sample_id}.mixin
 
-    ${python} ${scripts_dir}/kderug.py ${sample_id}.mixin
-    mv ${sample_id}_rug_kde_plot.png results/
-
+    plot_title="${sample_id}"
     if [[ -n "${lid}" ]] && [[ "${lid}" != "${sample_id}" ]]; then
-        touch "results/${lid}.lid"
-        mkdir -p results/lid
-
-        ${python} ${scripts_dir}/kderug.py ${sample_id}.mixin "${lid}"
-        mv ${lid}_rug_kde_plot.png results/lid/
-
-        cp results/${sample_id}.fasta results/lid/${lid}.fasta
-        cp results/${sample_id}-0.15-iupac.fasta results/lid/${lid}-0.15-iupac.fasta
-        sed -i "s/^>${sample_id}/>${lid}/" results/lid/${lid}.fasta
-        sed -i "s/^>${sample_id}/>${lid}/" results/lid/${lid}-0.15-iupac.fasta
-
-        subtype=\$(awk 'NR==2 { split(\$2, a, "_"); print a[1] }' "results/${sample_id}-0.15-iupac.fasta.blast")
-        if [[ -n "\${subtype}" ]]; then
-            subtype="HCV genotyp \${subtype}"
-        else
-            subtype="Ej typbar"
-        fi
-
-        printf "sample_id\tparameter_name\tparameter_value\tcomment\n" > results/lid/${lid}-2limsrs.txt
-        printf "%s\thcvtyp\t%s\t\n" "${lid}" "\${subtype}" >> results/lid/${lid}-2limsrs.txt
+        plot_title="${lid} (${sample_id})"
     fi
+    ${python} ${scripts_dir}/kderug.py ${sample_id}.mixin "\${plot_title}" "${sample_id}_display_rug_kde_plot.png"
+    mv ${sample_id}_display_rug_kde_plot.png results/
 
     mkdir -p "${published_results_dir}"
     cp -R results/. "${published_results_dir}/"

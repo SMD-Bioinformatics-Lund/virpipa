@@ -110,7 +110,11 @@ SAMPLE001,/path/to/R1.fastq.gz,/path/to/R2.fastq.gz,TEST001,test_run
 
 Sample outputs are published under:
 
-- `results/<run_name>/<sample_id>/results/`
+- `results/<run_name>/<sample_id>/`
+
+The default `--publish_mode routine` writes the flat Virtitta-compatible sample archive. Use
+`--publish_mode debug` to keep the same flat final files and additionally publish intermediate
+subdirectories such as `bam/`, `vcf/`, `fastq/`, `spades/`, `mummer/`, and `pilon/`.
 
 If enabled with `--pipeline_info`, Nextflow run metadata is written under:
 

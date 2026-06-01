@@ -4,6 +4,8 @@ This file collects the detailed local test matrix, fixture inventory, and parity
 
 ## Canonical local test commands
 
+Add `--publish_mode debug` to module tests when you need their intermediate files published under `--outdir`.
+
 ```bash
 nextflow run test_module.nf -profile local,tiny --module subsample --subsample_reads 25
 nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -22,6 +24,7 @@ nextflow run test_module.nf -profile local_containers --module subtype
 nextflow run test_module.nf -profile local --module report
 nextflow run test_module.nf -profile local_containers --module vadr
 nextflow run test_module.nf -profile local_containers --module resistance
+nextflow run test_module.nf -profile local_containers --module finalize_results --outdir /tmp/virpipa_finalize_routine
 ```
 
 ## Tested modules and current parity status
@@ -42,6 +45,7 @@ nextflow run test_module.nf -profile local_containers --module resistance
 - `report`: verified identical.
 - `vadr`: verified identical.
 - `resistance`: positive subtype-3a `NS5A 93H` fixture is covered.
+- `finalize_results`: flat Virtitta publish layout is fixture-backed; validate with `scripts/check_publish_layout.py`.
 
 ## Fixture inventory
 
@@ -63,6 +67,7 @@ Repo-local fixtures live under `assets/test_data/`:
 - `vadr/`
 - `resistance/`
 - `qc_summary/`
+- `finalize/`
 
 ## Important parity caveats
 

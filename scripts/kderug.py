@@ -8,7 +8,7 @@ from matplotlib.ticker import NullFormatter
 import sys
 import os
 
-def create_rug_jitter_plot(filename, custom_title=None):
+def create_rug_jitter_plot(filename, custom_title=None, output_filename=None):
     """
     Create a rug plot with a jitter plot of data from the given file.
     The plot title is either provided or derived from the filename.
@@ -57,10 +57,9 @@ def create_rug_jitter_plot(filename, custom_title=None):
     # Improve the layout
     plt.tight_layout()
 
-    # Save and show the plot
-    # We use the 'title' variable for the filename to keep it consistent with the display
-    clean_filename = "".join([c for c in title if c.isalnum() or c in (' ', '_', '-')]).strip().replace(' ', '_')
-    output_filename = f"{clean_filename}_rug_kde_plot.png"
+    if output_filename is None:
+        clean_filename = "".join([c for c in title if c.isalnum() or c in (' ', '_', '-')]).strip().replace(' ', '_')
+        output_filename = f"{clean_filename}_rug_kde_plot.png"
     
     plt.savefig(output_filename, dpi=300, bbox_inches='tight')
     print(f"Plot saved as {output_filename}")
@@ -68,7 +67,7 @@ def create_rug_jitter_plot(filename, custom_title=None):
 if __name__ == "__main__":
     # Check if filename was provided as argument
     if len(sys.argv) < 2:
-        print("Usage: python script.py <data_filename> [optional_title]")
+        print("Usage: python script.py <data_filename> [optional_title] [optional_output_filename]")
         sys.exit(1)
 
     # Get filename from command line argument
@@ -82,4 +81,6 @@ if __name__ == "__main__":
         print(f"Error: File '{filename}' not found.")
         sys.exit(1)
 
-    create_rug_jitter_plot(filename, provided_title)
+    output_filename = sys.argv[3] if len(sys.argv) > 3 else None
+
+    create_rug_jitter_plot(filename, provided_title, output_filename)

@@ -6,7 +6,7 @@ process CREATE_REPORT {
     memory '4 GB'
     time '10m'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(vcf_stats), path(cram), path(crai), path(ref_fasta), val(subtype), val(report_id)

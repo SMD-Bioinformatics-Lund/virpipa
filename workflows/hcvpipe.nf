@@ -48,6 +48,10 @@ include { SUBTYPE_BLAST as SUBTYPE_BLAST_IUPAC } from '../modules/local/subtype/
 include { SUBTYPE_BLAST as SUBTYPE_BLAST_PILON_IUPAC } from '../modules/local/subtype/main'
 
 workflow HCVPIPE {
+    if (!(params.publish_mode in ['routine', 'debug'])) {
+        error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
+    }
+
     if (params.input && params.csv && params.input.toString() != params.csv.toString()) {
         error "Provide either --input or --csv for the samplesheet, not both with different values"
     }
@@ -384,12 +388,12 @@ workflow HCVPIPE {
     
     CREATE_CONSENSUS(ch_consensus_input, "0.15")
     ch_consensus_with_meta = CREATE_CONSENSUS.out.consensus.map { run_name, sample_id, fasta, fai ->
-        tuple(run_name, sample_id, fasta)
+        tuple(run_name, sample_id, fasta, fai)
     }
     
     // Step 8b: Map the 0.15-iupac consensus with the no-opt sentieon path
     ch_iupac_mapping_input = ch_consensus_with_meta
-        .map { run_name, sample_id, fasta ->
+        .map { run_name, sample_id, fasta, fai ->
             [sample_id, [run_name, sample_id, fasta]]
         }
         .join(ch_pilon_reads.map { run_name, sample_id, read1, read2 ->
@@ -405,7 +409,7 @@ workflow HCVPIPE {
     // Step 8c: Create the 0.15-iupac CRAM from the no-opt mapped BAM
     ch_iupac_cram_input = ch_iupac_bams
         .map { run_name, sample_id, bam, bai -> [sample_id, run_name, bam, bai] }
-        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
         .map { sample_id, run_name, bam, bai, fasta ->
             def fasta_abs = file(fasta).toAbsolutePath()
             tuple(run_name, sample_id, bam, bai, fasta_abs, "${sample_id}-0.15-iupac")
@@ -422,7 +426,7 @@ workflow HCVPIPE {
         }
         .filter { sample_id, stats -> stats != null }
         .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [run_name, cram, crai]] })
-        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
         .join(ch_best_ref_with_name.map { run_name, sample_id, ref_name, fasta -> [sample_id, ref_name] })
         .map { sample_id, stats, cram_data, fasta, ref_name ->
             tuple(cram_data[0], sample_id, stats, cram_data[1], cram_data[2], fasta, ref_name, "${sample_id}-0.15-iupac")
@@ -470,7 +474,7 @@ workflow HCVPIPE {
         SUBTYPE_BLAST_MAIN(ch_main_blast_tuple.map { it[0] }, ch_main_blast_tuple.map { it[1] })
         ch_main_blast_with_meta = SUBTYPE_BLAST_MAIN.out.blast_with_meta
 
-        ch_iupac_blast_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+        ch_iupac_blast_tuple = ch_consensus_with_meta.map { run_name, sample_id, fasta, fai ->
             [ tuple(run_name, sample_id, fasta), blast_db_path ]
         }
         SUBTYPE_BLAST_IUPAC(ch_iupac_blast_tuple.map { it[0] }, ch_iupac_blast_tuple.map { it[1] })
@@ -515,7 +519,7 @@ workflow HCVPIPE {
         [sample_id, [run_name, gff]]
     }
 
-    ch_iupac_fasta_for_resistance = ch_consensus_with_meta.map { run_name, sample_id, fasta ->
+    ch_iupac_fasta_for_resistance = ch_consensus_with_meta.map { run_name, sample_id, fasta, fai ->
         [sample_id, [run_name, fasta]]
     }
 
@@ -536,7 +540,7 @@ workflow HCVPIPE {
 
     ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_json)
 
-    // Step 12: Assemble bash-style results contract in one place.
+    // Step 12: Assemble the flat published sample archive in one place.
     ch_final_results_input = ch_sample_lids
         .join(ch_hostile_json)
         .join(BAM2FASTA_PILON.out.replacement_fasta.map { run_name, sample_id, fasta, fai -> [sample_id, [fasta, fai]] })
@@ -549,7 +553,7 @@ workflow HCVPIPE {
         .join(ch_best_ref_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
         .join(CREATE_REPORT_BESTREF.out.report_with_meta.map { run_name, sample_id, report -> [sample_id, report] })
         .join(CREATE_REPORT_BESTREF.out.nucfreq_with_meta.map { run_name, sample_id, nucfreq -> [sample_id, nucfreq] })
-        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta -> [sample_id, fasta] })
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta, fai -> [sample_id, [fasta, fai]] })
         .join(ch_iupac_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
         .join(CREATE_REPORT_IUPAC.out.report_with_meta.map { run_name, sample_id, report -> [sample_id, report] })
         .join(CREATE_REPORT_IUPAC.out.nucfreq_with_meta.map { run_name, sample_id, nucfreq -> [sample_id, nucfreq] })
@@ -567,7 +571,7 @@ workflow HCVPIPE {
         .join(ANNOTATE_RESISTANCE.out.drug_tsv_with_meta.map { run_name, sample_id, drug_tsv -> [sample_id, drug_tsv] })
         .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_tsv,
                 bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
-                iupac_fasta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
+                iupac_fasta_meta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
                 filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast,
                 resistance_tsv, resistance_bed, resistance_gff, resistance_drug_tsv ->
             tuple(
@@ -580,7 +584,8 @@ workflow HCVPIPE {
                 main_blast,
                 main_cram_meta[0],
                 main_cram_meta[1],
-                iupac_fasta,
+                iupac_fasta_meta[0],
+                iupac_fasta_meta[1],
                 iupac_blast,
                 iupac_cram_meta[0],
                 iupac_cram_meta[1],

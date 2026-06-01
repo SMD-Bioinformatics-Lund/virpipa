@@ -6,7 +6,7 @@ process BUILD_QC_SUMMARY {
     memory '4 GB'
     time '30m'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy', overwrite: true
+    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', overwrite: true
 
     input:
         tuple val(run_name), val(sample_id), val(lid), path(results_dir)

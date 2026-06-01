@@ -23,8 +23,13 @@ include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
 include { POLISH_PILON_LOOP } from './modules/local/polish/main'
 include { BUILD_QC_SUMMARY } from './modules/local/qc_summary/main'
 include { AGGREGATE_QC_SUMMARY } from './modules/local/qc_summary_aggregate/main'
+include { FINALIZE_RESULTS } from './modules/local/finalize_results/main'
 
 workflow {
+    if (!(params.publish_mode in ['routine', 'debug'])) {
+        error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
+    }
+
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
     def test_outdir = params.outdir
 
@@ -52,6 +57,7 @@ Available modules to test locally:
   - vadr       : Build the VADR GFF and BED outputs from a fixture sample FASTA
   - resistance : Annotate filtered VCF variants with geno2pheno resistance rules
   - qc_summary : Build per-sample and run-level QC summary JSON fixtures
+  - finalize_results: Build and publish the flat final sample output fixture
 
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
@@ -72,10 +78,12 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module vadr --outdir test_output_vadr
   nextflow run test_module.nf -profile local_containers --module resistance --outdir test_output_resistance
   nextflow run test_module.nf -profile local_containers --module qc_summary --outdir test_output_qc_summary
+  nextflow run test_module.nf -profile local_containers --module finalize_results --outdir test_output_finalize
 
 Notes:
   - Default input is ${test_input}
   - Default output follows `params.outdir` from config unless `--outdir` is provided.
+  - Add `--publish_mode debug` when module tests need intermediate files published under `--outdir`.
   - `local` uses tools from `skrotis`; `local_containers` uses Apptainer images.
 
 ============================================
@@ -326,7 +334,57 @@ Notes:
                 .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
                 .groupTuple(by: 0)
         )
+    } else if (params.module == 'finalize_results') {
+        FINALIZE_RESULTS(
+            Channel.of(
+                tuple(
+                    'fixture_run',
+                    'SAMPLE001',
+                    'LID001',
+                    file("${projectDir}/assets/test_data/qc_summary/results/hostile.json").toString(),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.fasta"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.fasta.fai"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.fasta.blast"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.cram"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.cram.crai"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-0.15-iupac.fasta"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-0.15-iupac.fasta.fai"),
+                    file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta.blast"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-0.15-iupac.cram"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-0.15-iupac.cram.crai"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-0.15-iupac.report.tsv"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fastanucfreq.tsv"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.fasta"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.vcf.gz"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.vcf.gz.csi"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.vcf.gz.stats"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.cram"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.cram.crai"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.report.tsv"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.fastanucfreq.tsv"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-coverage.tsv"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.vadr.pass_mod.gff"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.vadr.bed"),
+                    file("${projectDir}/assets/test_data/finalize/SAMPLE001-pilon-iupac.fasta.blast"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.tsv"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.bed"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.gff"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance_by_drug.tsv"),
+                    files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz"),
+                    files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.csi"),
+                    files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.stats")
+                )
+            )
+        )
+
+        BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))
+
+        AGGREGATE_QC_SUMMARY(
+            BUILD_QC_SUMMARY.out.json_with_meta
+                .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
+                .groupTuple(by: 0)
+        )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"
     }
 }

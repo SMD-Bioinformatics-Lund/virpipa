@@ -6,7 +6,7 @@ process ASSEMBLE_SPADES {
     memory '64 GB'
     time '8h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/spades", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/spades", mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)

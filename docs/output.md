@@ -1,12 +1,16 @@
 # Output
 
-For each sample, the pipeline publishes a bash-compatible final results tree under:
+For each sample, the pipeline publishes a flat Virtitta-compatible final archive under:
 
-- `results/<run_name>/<sample_id>/results/`
+- `results/<run_name>/<sample_id>/`
 
 Example:
 
-- `results/240101_A00000_0001_XXXXXX/SAMPLE001/results/`
+- `results/240101_A00000_0001_XXXXXX/SAMPLE001/`
+
+`--publish_mode routine` is the default. `--publish_mode debug` keeps the same final files at the
+sample root and also publishes intermediate subdirectories such as `bam/`, `vcf/`, `fastq/`,
+`fasta/`, `spades/`, `mummer/`, and `pilon/`.
 
 Current final sample outputs include:
 
@@ -14,6 +18,7 @@ Current final sample outputs include:
 - `SAMPLE001.cram` and `SAMPLE001.cram.crai`
 - `SAMPLE001.fasta.blast`
 - `SAMPLE001-0.15-iupac.fasta`
+- `SAMPLE001-0.15-iupac.fasta.fai`
 - `SAMPLE001-0.15-iupac.cram` and `SAMPLE001-0.15-iupac.cram.crai`
 - `SAMPLE001-0.15-iupac.report.tsv`
 - `SAMPLE001-0.15-iupac.fastanucfreq.tsv`
@@ -32,22 +37,19 @@ Current final sample outputs include:
 - `SAMPLE001_resistance.bed`
 - `SAMPLE001_resistance.gff`
 - `SAMPLE001_resistance_by_drug.tsv`
+- `SAMPLE001_display_rug_kde_plot.png`
 - `SAMPLE001_qc_summary.json`
 - `hostile.json` when host filtering is enabled
 
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
 relative paths to key result files needed for tables, detail views, and IGV launchers.
-When LID-specific outputs exist under `results/lid/`, the QC JSON also exposes those paths together with
-preferred export/display keys such as `export_fasta`, `export_iupac_fasta`, and `display_rug_kde_plot`.
-
-Optional bash-style LID outputs are published when `sample_name` / `lid` is present:
-
-- `results/<lid>.lid`
-- `results/lid/<lid>.fasta`
-- `results/lid/<lid>-0.15-iupac.fasta`
-- `results/lid/<lid>_rug_kde_plot.png`
-- `results/lid/<lid>-2limsrs.txt`
+All QC JSON `outputs` paths are relative to the directory containing the QC JSON. Standard sidecars
+such as `<main_fasta>.fai`, `<main_cram>.crai`, and `<filtered_vcf>.csi` are published on disk but
+not listed as separate JSON keys when their names are inferable. LID-specific duplicate FASTA
+exports and `lid_2limsrs` are no longer published; Virtitta rewrites FASTA headers at export time.
+When `sample_name` / `lid` is present, `display_rug_kde_plot` points to
+`<sample_id>_display_rug_kde_plot.png`, titled `<LID> (<sample_id>)`.
 
 The per-run QC summary is written to:
 

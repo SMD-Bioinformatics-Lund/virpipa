@@ -6,7 +6,7 @@ process SUBSAMPLE_READS {
     memory '8 GB'
     time '1h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)

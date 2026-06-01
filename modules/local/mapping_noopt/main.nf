@@ -5,9 +5,9 @@ process MAP_READS_NOOPT {
     memory { params.use_sentieon ? '32 GB' : '8 GB' }
     time '8h'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bai'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.stats'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bai', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.stats', enabled: params.publish_mode == 'debug'
 
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2), path(genome), val(genome_name)

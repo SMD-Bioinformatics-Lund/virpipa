@@ -6,7 +6,7 @@ process FILTER_VCF {
     memory '8 GB'
     time '1h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/vcf", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/vcf", mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(vcf), path(vcf_index), val(vcf_prefix)

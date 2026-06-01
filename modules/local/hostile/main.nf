@@ -6,8 +6,8 @@ process REMOVE_HOSTILE {
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy', pattern: 'hostile.json'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz'
+    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', pattern: 'hostile.json', enabled: params.publish_mode == 'debug'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)

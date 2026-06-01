@@ -62,6 +62,11 @@
     "run_name": {
       "type": ["string", "null"],
       "description": "Run name folder; if null, inferred from read1 path"
+    },
+    "publish_mode": {
+      "type": "string",
+      "enum": ["routine", "debug"],
+      "description": "Published output mode. routine writes the flat Virtitta-compatible sample archive; debug also publishes intermediate subdirectories."
     }
   },
   "required": ["input"]

@@ -6,7 +6,7 @@ process VARIANT_CALLING {
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/vcf", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/vcf", mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta), val(vcf_prefix)

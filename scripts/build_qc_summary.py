@@ -344,24 +344,17 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
         f"{sample_id}.vadr.fail_mod.gff",
     )
 
-    lid_value = lid or ""
-    lid_fasta = f"lid/{lid_value}.fasta" if lid_value else None
-    lid_iupac_fasta = f"lid/{lid_value}-0.15-iupac.fasta" if lid_value else None
-    lid_rug_kde_plot = f"lid/{lid_value}_rug_kde_plot.png" if lid_value else None
-    lid_2limsrs = f"lid/{lid_value}-2limsrs.txt" if lid_value else None
-
     path_names = {
         "main_fasta": f"{sample_id}.fasta",
-        "main_fasta_index": f"{sample_id}.fasta.fai",
         "main_cram": f"{sample_id}.cram",
-        "main_cram_index": f"{sample_id}.cram.crai",
         "main_blast": f"{sample_id}.fasta.blast",
         "iupac_fasta": f"{sample_id}-0.15-iupac.fasta",
+        "iupac_blast": f"{sample_id}-0.15-iupac.fasta.blast",
         "iupac_cram": f"{sample_id}-0.15-iupac.cram",
-        "iupac_cram_index": f"{sample_id}-0.15-iupac.cram.crai",
         "iupac_report": f"{sample_id}-0.15-iupac.report.tsv",
+        "iupac_nucfreq": f"{sample_id}-0.15-iupac.fastanucfreq.tsv",
         "coverage_tsv": f"{sample_id}-coverage.tsv",
-        "rug_kde_plot": f"{sample_id}_rug_kde_plot.png",
+        "display_rug_kde_plot": f"{sample_id}_display_rug_kde_plot.png",
         "vadr_pass_gff": f"{sample_id}.vadr.pass_mod.gff",
         "vadr_fail_gff": f"{sample_id}.vadr.fail_mod.gff",
         "vadr_bed": f"{sample_id}.vadr.bed",
@@ -369,28 +362,28 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
         "resistance_bed": f"{sample_id}_resistance.bed",
         "resistance_gff": f"{sample_id}_resistance.gff",
         "resistance_by_drug_tsv": f"{sample_id}_resistance_by_drug.tsv",
+        "filtered_vcf_m001": f"{sample_id}-pilon-m0.01.vcf.gz",
+        "filtered_vcf_m001_stats": f"{sample_id}-pilon-m0.01.vcf.gz.stats",
         "filtered_vcf_m005": f"{sample_id}-pilon-m0.05.vcf.gz",
+        "filtered_vcf_m005_stats": f"{sample_id}-pilon-m0.05.vcf.gz.stats",
         "filtered_vcf_m01": f"{sample_id}-pilon-m0.1.vcf.gz",
+        "filtered_vcf_m01_stats": f"{sample_id}-pilon-m0.1.vcf.gz.stats",
         "filtered_vcf_m015": f"{sample_id}-pilon-m0.15.vcf.gz",
-        "filtered_vcf_m02": f"{sample_id}-pilon-m0.2.vcf.gz",
-        "filtered_vcf_m03": f"{sample_id}-pilon-m0.3.vcf.gz",
-        "filtered_vcf_m04": f"{sample_id}-pilon-m0.4.vcf.gz",
         "filtered_vcf_m015_stats": f"{sample_id}-pilon-m0.15.vcf.gz.stats",
+        "filtered_vcf_m02": f"{sample_id}-pilon-m0.2.vcf.gz",
+        "filtered_vcf_m02_stats": f"{sample_id}-pilon-m0.2.vcf.gz.stats",
+        "filtered_vcf_m03": f"{sample_id}-pilon-m0.3.vcf.gz",
+        "filtered_vcf_m03_stats": f"{sample_id}-pilon-m0.3.vcf.gz.stats",
+        "filtered_vcf_m04": f"{sample_id}-pilon-m0.4.vcf.gz",
+        "filtered_vcf_m04_stats": f"{sample_id}-pilon-m0.4.vcf.gz.stats",
         "hostile_json": "hostile.json",
     }
     outputs = {
         key: value if (results_dir / value).exists() else None
         for key, value in path_names.items()
     }
-    outputs["lid_fasta"] = lid_fasta if lid_fasta and (results_dir / lid_fasta).exists() else None
-    outputs["lid_iupac_fasta"] = lid_iupac_fasta if lid_iupac_fasta and (results_dir / lid_iupac_fasta).exists() else None
-    outputs["lid_rug_kde_plot"] = lid_rug_kde_plot if lid_rug_kde_plot and (results_dir / lid_rug_kde_plot).exists() else None
-    outputs["lid_2limsrs"] = lid_2limsrs if lid_2limsrs and (results_dir / lid_2limsrs).exists() else None
     outputs["selected_vadr_gff"] = selected_vadr_gff
     outputs["vadr_gff"] = selected_vadr_gff
-    outputs["display_rug_kde_plot"] = outputs["lid_rug_kde_plot"] or outputs["rug_kde_plot"]
-    outputs["export_fasta"] = outputs["lid_fasta"] or outputs["main_fasta"]
-    outputs["export_iupac_fasta"] = outputs["lid_iupac_fasta"] or outputs["iupac_fasta"]
     return outputs
 
 

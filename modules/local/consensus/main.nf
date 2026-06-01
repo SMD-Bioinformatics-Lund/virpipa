@@ -6,7 +6,7 @@ process CREATE_CONSENSUS {
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/results", mode: 'copy', pattern: "*.fasta"
+    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', pattern: "*.fasta", enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(vcf), path(reference_fasta)

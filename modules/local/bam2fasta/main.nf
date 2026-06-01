@@ -6,7 +6,7 @@ process BAM2FASTA {
     memory '16 GB'
     time '2h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/fasta", mode: 'copy'
+    publishDir "${params.outdir}/${run_name}/${sample_id}/fasta", mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(bam), path(bai), path(ref_fasta), val(ref_name)
