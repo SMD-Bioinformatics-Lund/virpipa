@@ -1,6 +1,8 @@
 .nextflow*
 work/
 results/
+!assets/test_data/qc_summary/results/
+!assets/test_data/qc_summary/results/**
 results_test/
 .singularity/
 assets/containers/

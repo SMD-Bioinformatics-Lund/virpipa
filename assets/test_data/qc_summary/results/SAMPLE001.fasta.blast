@@ -1,0 +1,2 @@
+query acc.ver	subject acc.ver	% identity	alignment length	mismatches	gap opens	q. start	q. end	s. star			t	s. end	evalue	bit score
+SAMPLE001	3a_D17763	91.514	4808	371	11	2800	7572	3068	7873	0.0	6589
