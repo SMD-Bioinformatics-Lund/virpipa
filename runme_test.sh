@@ -13,6 +13,7 @@ set -u
 
 NEXTFLOW_MODULE="${VIRPIPA_NEXTFLOW_MODULE:-nextflow/25.10.0}"
 module load Java/23.0.2 "$NEXTFLOW_MODULE" apptainer
+export NXF_SYNTAX_PARSER="${NXF_SYNTAX_PARSER:-v2}"
 
 cd /fs1/jonas/src/virpipa
 git pull
