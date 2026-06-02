@@ -26,7 +26,8 @@ process FINALIZE_RESULTS {
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def scripts_dir = params.scripts_dir != 'scripts' ? params.scripts_dir : (active_profiles.contains('hpc') ? '/fs1/jonas/src/virpipa/scripts' : "${projectDir}/scripts")
     def mamba_env = env('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
-    def published_results_dir = "${params.outdir}/${run_name}/${sample_id}"
+    def outdir_root = params.outdir.toString().startsWith('/') ? params.outdir.toString() : "${launchDir}/${params.outdir}"
+    def published_results_dir = "${outdir_root}/${run_name}/${sample_id}"
     def bcftools = container_dir ?
         "${container_runtime} exec -B ${bind_paths} ${container_dir}/bcftools_1.21.sif bcftools" :
         "bcftools"
