@@ -6,7 +6,8 @@ set -e
 
 # Load required modules
 source /etc/profile
-module load Java/23.0.2 nextflow/25.10.0 apptainer
+NEXTFLOW_MODULE="${VIRPIPA_NEXTFLOW_MODULE:-nextflow/25.10.0}"
+module load Java/23.0.2 "$NEXTFLOW_MODULE" apptainer
 
 # Change to pipeline directory
 cd /fs1/jonas/src/virpipa
