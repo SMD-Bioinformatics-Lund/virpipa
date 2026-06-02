@@ -66,6 +66,8 @@ workflow {
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
     def test_outdir = params.outdir
     def subsample_reads = coerceIntegerParam(params.subsample_reads)
+    def subtype_blast_db = resolveTestPath(params.blast_db ?: '/fs1/jonas/hcv/refgenomes/hcvglue')
+    def vadr_model_dir = resolveTestPath(params.vadr_model_dir ?: '/fs1/resources/ref/micro/vadr/vadr-models-flavi')
 
     if (params.module == 'help') {
         println """
@@ -184,8 +186,8 @@ Notes:
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
-                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz'),
-                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz'),
+                    resolveTestPath('/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz'),
+                    resolveTestPath('/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz'),
                     file("${projectDir}/assets/test_data/mapping/3a-D17763.fa"),
                     '3a-D17763'
                 )
@@ -287,7 +289,7 @@ Notes:
                     file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta")
                 )
             ),
-            channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
+            channel.value(subtype_blast_db)
         )
     } else if (params.module == 'report') {
         CREATE_REPORT(
@@ -313,7 +315,7 @@ Notes:
                     file("${projectDir}/assets/test_data/vadr/SAMPLE001.fasta")
                 )
             ),
-            channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
+            channel.value(vadr_model_dir)
         )
     } else if (params.module == 'resistance') {
         ANNOTATE_RESISTANCE(
