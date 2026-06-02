@@ -186,8 +186,8 @@ Notes:
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
-                    resolveTestPath('/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz'),
-                    resolveTestPath('/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz'),
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz"),
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz"),
                     file("${projectDir}/assets/test_data/mapping/3a-D17763.fa"),
                     '3a-D17763'
                 )
