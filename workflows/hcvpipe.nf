@@ -16,6 +16,42 @@ def resolvePathFromBase(String rawPath, def baseDir) {
     return file(new File(baseDir.toString(), pathText))
 }
 
+def coerceBooleanParam(def raw) {
+    if (raw instanceof Boolean) {
+        return raw
+    }
+    return raw?.toString()?.toBoolean()
+}
+
+def coerceIntegerParam(def raw) {
+    def text = raw?.toString()?.trim()
+    if (text && !text.equalsIgnoreCase('false')) {
+        return text.toInteger()
+    }
+    return 0
+}
+
+def extractSubtypeFromBlast(def blast_file) {
+    def blast_line = blast_file.readLines().find { line ->
+        line && !line.startsWith('query acc.ver')
+    }
+    if (!blast_line) {
+        error "Could not derive subtype from BLAST output: ${blast_file}"
+    }
+
+    def fields = blast_line.split('\t')
+    if (fields.size() < 2 || !fields[1]) {
+        error "Malformed BLAST output while deriving subtype: ${blast_file}"
+    }
+
+    def subtype = fields[1].split('_')[0]
+    if (!subtype) {
+        error "Could not parse subtype from BLAST subject '${fields[1]}' in ${blast_file}"
+    }
+
+    return subtype
+}
+
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { SUBSAMPLE_READS as SUBSAMPLE_READS_REFSEL } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
@@ -52,10 +88,16 @@ workflow HCVPIPE {
         error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
     }
 
+    if (params.partition && params.queue && params.partition.toString() != params.queue.toString()) {
+        error "Provide either --partition or --queue for the SLURM partition, not both with different values"
+    }
+
     if (params.input && params.csv && params.input.toString() != params.csv.toString()) {
         error "Provide either --input or --csv for the samplesheet, not both with different values"
     }
 
+    def remove_human = coerceBooleanParam(params.remove_human)
+    def subsample_reads = coerceIntegerParam(params.subsample_reads)
     def samplesheet_param = params.input ?: params.csv
     if (!samplesheet_param) {
         error "Missing required parameter: --input <samplesheet.csv> (alias: --csv)"
@@ -84,7 +126,7 @@ workflow HCVPIPE {
         ].find { it && it.exists() }
 
     // Channel: read samplesheet
-    Channel
+    channel
         .fromPath(samplesheet_param, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
@@ -118,7 +160,7 @@ workflow HCVPIPE {
     }
 
     // Step 1: Remove human reads first (to match bash pipeline)
-    if (params.remove_human) {
+    if (remove_human) {
         def cache_dir = params.hostile_cache_dir ?: ''
         REMOVE_HOSTILE(ch_samples, cache_dir)
         ch_prepped = REMOVE_HOSTILE.out.reads
@@ -135,10 +177,10 @@ workflow HCVPIPE {
     // Step 2: Subsample reads for pilon polishing and reference selection
     // If subsample_reads is set, use that for pilon (matching bash pipeline)
     // Reference selection should never use more than 250k reads
-    if (params.subsample_reads) {
-        SUBSAMPLE_READS(ch_prepped, params.subsample_reads)
+    if (subsample_reads) {
+        SUBSAMPLE_READS(ch_prepped, subsample_reads)
         ch_pilon_reads = SUBSAMPLE_READS.out.reads
-        if (params.subsample_reads <= 250000) {
+        if (subsample_reads <= 250000) {
             ch_subsampled = ch_pilon_reads
         } else {
             SUBSAMPLE_READS_REFSEL(ch_prepped, 250000)
@@ -154,11 +196,11 @@ workflow HCVPIPE {
     // Determine references: single genome or all in ref_dir
     if (resolved_genome) {
         def genome_file = resolved_genome
-        ch_references = Channel.value(tuple(genome_file.simpleName, genome_file))
+        ch_references = channel.value(tuple(genome_file.simpleName, genome_file))
     } else if (resolved_ref_dir) {
         def ref_dir = resolved_ref_dir
-        ch_references = Channel.fromPath("${ref_dir}/*.fa")
-            .map { tuple(it.simpleName, it) }
+        ch_references = channel.fromPath("${ref_dir}/*.fa")
+            .map { ref_file -> tuple(ref_file.simpleName, ref_file) }
     } else {
         error "Must specify either --genome or --ref_dir"
     }
@@ -323,27 +365,6 @@ workflow HCVPIPE {
     
     LOG_COVERAGE(ch_coverage_input)
     
-    def extractSubtypeFromBlast = { blast_file ->
-        def blast_line = blast_file.readLines().find { line ->
-            line && !line.startsWith('query acc.ver')
-        }
-        if (!blast_line) {
-            error "Could not derive subtype from BLAST output: ${blast_file}"
-        }
-
-        def fields = blast_line.split('\t')
-        if (fields.size() < 2 || !fields[1]) {
-            error "Malformed BLAST output while deriving subtype: ${blast_file}"
-        }
-
-        def subtype = fields[1].split('_')[0]
-        if (!subtype) {
-            error "Could not parse subtype from BLAST subject '${fields[1]}' in ${blast_file}"
-        }
-
-        return subtype
-    }
-
     // Step 7: Variant calling on pilon-polished BAM (matching bash pipeline)
     // Use pilon BAM and bam2fasta-regenerated FASTA as reference
     ch_pilon_for_varcall = ch_pilon_bam_with_index.map { run_name, sample_id, bam, bai ->
@@ -463,9 +484,9 @@ workflow HCVPIPE {
     def blast_db_path = resolved_blast_db ?: file("${resolved_ref_dir}/hcvglue")
     
     // Run BLAST on the main polished FASTA, the 0.15-iupac FASTA, and the pilon-iupac FASTA.
-    ch_main_blast_with_meta = Channel.empty()
-    ch_iupac_blast_with_meta = Channel.empty()
-    ch_pilon_iupac_blast_with_meta = Channel.empty()
+    ch_main_blast_with_meta = channel.empty()
+    ch_iupac_blast_with_meta = channel.empty()
+    ch_pilon_iupac_blast_with_meta = channel.empty()
 
     if (blast_db_path.exists()) {
         ch_main_blast_tuple = ch_pilon_regenerated.map { run_name, sample_id, fasta, fai ->

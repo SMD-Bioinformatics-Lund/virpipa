@@ -6,12 +6,12 @@ process POLISH_PILON_LOOP {
     memory '32 GB'
     time '24h'
 
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta', enabled: params.publish_mode == 'debug'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.fasta.*', enabled: params.publish_mode == 'debug'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/pilon", mode: 'copy', pattern: '*.changes', enabled: params.publish_mode == 'debug'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam', enabled: params.publish_mode == 'debug'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.bai', enabled: params.publish_mode == 'debug'
-    publishDir "${params.outdir}/${run_name}/${sample_id}/bam", mode: 'copy', pattern: '*.bam.stats', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/pilon" }, mode: 'copy', pattern: '*.fasta', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/pilon" }, mode: 'copy', pattern: '*.fasta.*', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/pilon" }, mode: 'copy', pattern: '*.changes', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/bam" }, mode: 'copy', pattern: '*.bam', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/bam" }, mode: 'copy', pattern: '*.bam.bai', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/bam" }, mode: 'copy', pattern: '*.bam.stats', enabled: params.publish_mode == 'debug'
 
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2), path(hybrid_assembly)
@@ -30,11 +30,12 @@ process POLISH_PILON_LOOP {
         path("${sample_id}-pilon*.bam.stats")
 
     script:
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
-    def use_sentieon = params.use_sentieon ?: true
-    def maxpolish = params.maxpolish ?: 10
+    def use_sentieon = params.use_sentieon instanceof Boolean ? params.use_sentieon : params.use_sentieon?.toString()?.toBoolean()
+    def maxpolish = params.maxpolish?.toString()?.trim() ? params.maxpolish.toString().toInteger() : 10
 
     if (!(use_sentieon && container_dir)) {
         error "POLISH_PILON_LOOP requires use_sentieon=true and container_dir"

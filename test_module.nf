@@ -5,6 +5,35 @@ nextflow.enable.dsl = 2
 params.module = params.module ?: 'help'
 params.subsample_reads = params.subsample_reads ?: 1000
 
+def coerceIntegerParam(def raw) {
+    def text = raw?.toString()?.trim()
+    if (text && !text.equalsIgnoreCase('false')) {
+        return text.toInteger()
+    }
+    return 0
+}
+
+def resolveTestPath(def raw_path) {
+    def input_path = raw_path.toString().trim()
+    if (!input_path) {
+        return null
+    }
+
+    def candidate = file(input_path)
+    if (candidate.exists()) {
+        return candidate
+    }
+
+    if (input_path.startsWith('/fs1/')) {
+        def mounted_path = file("/mnt${input_path}")
+        if (mounted_path.exists()) {
+            return mounted_path
+        }
+    }
+
+    return candidate
+}
+
 include { REMOVE_HOSTILE } from './modules/local/hostile/main'
 include { SUBSAMPLE_READS } from './modules/local/subsample/main'
 include { BAM2FASTA } from './modules/local/bam2fasta/main'
@@ -30,8 +59,13 @@ workflow {
         error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
     }
 
+    if (params.partition && params.queue && params.partition.toString() != params.queue.toString()) {
+        error "Provide either --partition or --queue for the SLURM partition, not both with different values"
+    }
+
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
     def test_outdir = params.outdir
+    def subsample_reads = coerceIntegerParam(params.subsample_reads)
 
     if (params.module == 'help') {
         println """
@@ -91,28 +125,7 @@ Notes:
         return
     }
 
-    def resolvePath = { raw_path ->
-        def input_path = raw_path.toString().trim()
-        if (!input_path) {
-            return null
-        }
-
-        def candidate = file(input_path)
-        if (candidate.exists()) {
-            return candidate
-        }
-
-        if (input_path.startsWith('/fs1/')) {
-            def mounted_path = file("/mnt${input_path}")
-            if (mounted_path.exists()) {
-                return mounted_path
-            }
-        }
-
-        return candidate
-    }
-
-    Channel
+    channel
         .fromPath(test_input, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
@@ -132,17 +145,17 @@ Notes:
             }
 
             def run_name = (row.run_name ?: row.sequencing_run ?: params.run_name ?: 'test').toString().trim()
-            tuple(run_name, sample_id, resolvePath(read1), resolvePath(read2))
+            tuple(run_name, sample_id, resolveTestPath(read1), resolveTestPath(read2))
         }
         .set { ch_samples }
 
     if (params.module == 'hostile') {
         REMOVE_HOSTILE(ch_samples, params.hostile_cache_dir ?: '')
     } else if (params.module == 'subsample') {
-        SUBSAMPLE_READS(ch_samples, params.subsample_reads)
+        SUBSAMPLE_READS(ch_samples, subsample_reads)
     } else if (params.module == 'bam2fasta') {
         BAM2FASTA(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -156,7 +169,7 @@ Notes:
         )
     } else if (params.module == 'bestref') {
         SELECT_BEST_REFERENCE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -167,7 +180,7 @@ Notes:
         )
     } else if (params.module == 'mapping') {
         MAP_READS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -180,7 +193,7 @@ Notes:
         )
     } else if (params.module == 'mapping_noopt') {
         MAP_READS_NOOPT(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -193,7 +206,7 @@ Notes:
         )
     } else if (params.module == 'polish') {
         POLISH_PILON_LOOP(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -205,7 +218,7 @@ Notes:
         )
     } else if (params.module == 'consensus') {
         CREATE_CONSENSUS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -217,7 +230,7 @@ Notes:
         )
     } else if (params.module == 'filter_vcf') {
         FILTER_VCF(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -229,7 +242,7 @@ Notes:
         )
     } else if (params.module == 'variantcall') {
         VARIANT_CALLING(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -242,7 +255,7 @@ Notes:
         )
     } else if (params.module == 'cram') {
         CREATE_CRAM(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -255,7 +268,7 @@ Notes:
         )
     } else if (params.module == 'coverage') {
         LOG_COVERAGE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -267,18 +280,18 @@ Notes:
         )
     } else if (params.module == 'subtype') {
         SUBTYPE_BLAST(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
                     file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta")
                 )
             ),
-            Channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
+            channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
         )
     } else if (params.module == 'report') {
         CREATE_REPORT(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -293,18 +306,18 @@ Notes:
         )
     } else if (params.module == 'vadr') {
         ANNOTATE_VADR(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
                     file("${projectDir}/assets/test_data/vadr/SAMPLE001.fasta")
                 )
             ),
-            Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
+            channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
         )
     } else if (params.module == 'resistance') {
         ANNOTATE_RESISTANCE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -313,12 +326,12 @@ Notes:
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta")
                 )
             ),
-            Channel.value('3a'),
-            Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
+            channel.value('3a'),
+            channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
         )
     } else if (params.module == 'qc_summary') {
         BUILD_QC_SUMMARY(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -326,7 +339,7 @@ Notes:
                     file("${projectDir}/assets/test_data/qc_summary/results")
                 )
             ),
-            Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString())
+            channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString())
         )
 
         AGGREGATE_QC_SUMMARY(
@@ -336,7 +349,7 @@ Notes:
         )
     } else if (params.module == 'finalize_results') {
         FINALIZE_RESULTS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -377,7 +390,7 @@ Notes:
             )
         )
 
-        BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))
+        BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))
 
         AGGREGATE_QC_SUMMARY(
             BUILD_QC_SUMMARY.out.json_with_meta
