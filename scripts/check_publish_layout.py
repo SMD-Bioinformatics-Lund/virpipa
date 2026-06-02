@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 """Validate the fixture-backed published output layout."""
 
-from __future__ import annotations
-
 import argparse
 import json
 from pathlib import Path
