@@ -315,6 +315,27 @@ def parse_subtype_pattern(pattern):
     return list(subtypes)
 
 
+def subtype_genotype(subtype):
+    """Return the leading genotype number from a subtype label."""
+    match = re.match(r'\s*(\d+)', subtype or '')
+    return match.group(1) if match else ''
+
+
+def subtype_matches_pattern(subtype, pattern):
+    """Return true when a geno2pheno subtype selector applies to subtype."""
+    subtype = (subtype or '').strip().lower()
+    if not subtype:
+        return False
+
+    for part in [p.strip().lower() for p in (pattern or '').split(',') if p.strip()]:
+        if part == subtype:
+            return True
+        if part.isdigit() and subtype_genotype(subtype) == part:
+            return True
+
+    return False
+
+
 def build_rules_index(rules_json):
     """Build tuple-keyed rule index from the normalized JSON artifact."""
     index = defaultdict(list)
@@ -326,6 +347,7 @@ def build_rules_index(rules_json):
                 'drug': rule['drug'],
                 'rule_definition': rule['rule_definition'],
                 'subtypes': expanded_subtypes,
+                'subtype_pattern': rule.get('subtype_pattern', ''),
                 'prediction': rule['prediction'],
                 'reference': rule['reference'],
                 'is_compound': len(parsed_definition) > 1,
@@ -353,7 +375,7 @@ def match_variant_to_rules(region, aa_pos, possible_aa, subtype, rules_index):
     for aa in possible_aa:
         key = (region, aa_pos, aa)
         for rule in rules_index.get(key, []):
-            if subtype in rule['subtypes']:
+            if subtype in rule['subtypes'] or subtype_matches_pattern(subtype, rule.get('subtype_pattern', '')):
                 matches.append(rule)
     
     return matches
@@ -428,7 +450,7 @@ def main():
     rules_index = build_rules_index(rules_json)
     print(f"Loaded {len(rules)} rules")
 
-    if not any(args.subtype in parse_subtype_pattern(rule.get('subtype_pattern', '')) for rule in rules):
+    if not any(subtype_matches_pattern(args.subtype, rule.get('subtype_pattern', '')) for rule in rules):
         raise SystemExit(f"No geno2pheno rules found for subtype '{args.subtype}' in {args.rules}")
     
     print(f"Parsing GFF: {args.gff}")
