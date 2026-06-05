@@ -336,6 +336,22 @@ def subtype_matches_pattern(subtype, pattern):
     return False
 
 
+def genotype_wide_patterns_for_subtype(subtype, rules):
+    """Return genotype-wide selectors that will be applied to this subtype."""
+    subtype = (subtype or '').strip().lower()
+    genotype = subtype_genotype(subtype)
+    if not subtype or not genotype or subtype == genotype:
+        return []
+
+    patterns = set()
+    for rule in rules:
+        for part in [p.strip().lower() for p in (rule.get('subtype_pattern', '') or '').split(',') if p.strip()]:
+            if part.isdigit() and part == genotype:
+                patterns.add(part)
+
+    return sorted(patterns)
+
+
 def build_rules_index(rules_json):
     """Build tuple-keyed rule index from the normalized JSON artifact."""
     index = defaultdict(list)
@@ -452,6 +468,14 @@ def main():
 
     if not any(subtype_matches_pattern(args.subtype, rule.get('subtype_pattern', '')) for rule in rules):
         raise SystemExit(f"No geno2pheno rules found for subtype '{args.subtype}' in {args.rules}")
+
+    genotype_patterns = genotype_wide_patterns_for_subtype(args.subtype, rules)
+    if genotype_patterns:
+        print(
+            "Note: applying genotype-wide geno2pheno subtype selector(s) "
+            f"{', '.join(genotype_patterns)} to subtype {args.subtype}. "
+            "This assumes genotype-level rules apply to subtype variants with the same leading genotype."
+        )
     
     print(f"Parsing GFF: {args.gff}")
     genes = parse_gff(args.gff)
