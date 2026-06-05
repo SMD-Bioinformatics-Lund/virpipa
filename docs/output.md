@@ -63,3 +63,7 @@ If enabled with `--pipeline_info`, Nextflow run metadata is also written to:
 - `results/<run_name>/pipeline_info/trace.txt`
 
 If `--run_name` is not provided, the built-in metadata path falls back to `results/pipeline_info_<timestamp>/`. DAG rendering is disabled by default; add `--pipeline_info_dag` to request `dag.svg` when Graphviz is available.
+
+If `--completion_log_dir <dir>` is provided, the pipeline also writes a legacy control-system
+completion summary to `<dir>/<samplesheet-base>.complete`. This file is intended for external
+launchers and is not written by default.
