@@ -44,6 +44,9 @@ Current final sample outputs include:
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
 relative paths to key result files needed for tables, detail views, and IGV launchers.
+In `typing`, `main_blast_genotype` is the subtype/genotype call from the top BLAST hit.
+`best_mapping_subtype` is the subtype prefix of `report_reference`, the mapping-selected reference;
+these can differ from the BLAST call.
 All QC JSON `outputs` paths are relative to the directory containing the QC JSON. Standard sidecars
 such as `<main_fasta>.fai`, `<main_cram>.crai`, and `<filtered_vcf>.csi` are published on disk but
 not listed as separate JSON keys when their names are inferable. LID-specific duplicate FASTA
