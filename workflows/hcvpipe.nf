@@ -66,6 +66,7 @@ include { ANNOTATE_RESISTANCE } from '../modules/local/resistance/main'
 include { VARIANT_CALLING } from '../modules/local/variantcall/main'
 include { BUILD_QC_SUMMARY } from '../modules/local/qc_summary/main'
 include { AGGREGATE_QC_SUMMARY } from '../modules/local/qc_summary_aggregate/main'
+include { WRITE_VIRTITTA_IMPORT_MARKER } from '../modules/local/virtitta_import_marker/main'
 
 include { POLISH_PILON_LOOP } from '../modules/local/polish/main'
 include { FILTER_VCF } from '../modules/local/filter_vcf/main'
@@ -647,6 +648,13 @@ workflow HCVPIPE {
         .groupTuple(by: 0)
 
     AGGREGATE_QC_SUMMARY(ch_qc_summary_by_run)
+
+    ch_virtitta_import_marker = AGGREGATE_QC_SUMMARY.out.summaries_with_meta
+        .map { run_name, qc_json, qc_jsonl ->
+            tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+        }
+
+    WRITE_VIRTITTA_IMPORT_MARKER(ch_virtitta_import_marker)
     
     // Output final results
     // ch_consensus_with_meta.view { "Final consensus: $it" }

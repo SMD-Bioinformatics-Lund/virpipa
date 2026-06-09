@@ -52,6 +52,7 @@ include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
 include { POLISH_PILON_LOOP } from './modules/local/polish/main'
 include { BUILD_QC_SUMMARY } from './modules/local/qc_summary/main'
 include { AGGREGATE_QC_SUMMARY } from './modules/local/qc_summary_aggregate/main'
+include { WRITE_VIRTITTA_IMPORT_MARKER } from './modules/local/virtitta_import_marker/main'
 include { FINALIZE_RESULTS } from './modules/local/finalize_results/main'
 
 workflow {
@@ -349,6 +350,13 @@ Notes:
                 .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
                 .groupTuple(by: 0)
         )
+
+        WRITE_VIRTITTA_IMPORT_MARKER(
+            AGGREGATE_QC_SUMMARY.out.summaries_with_meta
+                .map { run_name, qc_json, qc_jsonl ->
+                    tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+                }
+        )
     } else if (params.module == 'finalize_results') {
         FINALIZE_RESULTS(
             channel.of(
@@ -398,6 +406,13 @@ Notes:
             BUILD_QC_SUMMARY.out.json_with_meta
                 .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
                 .groupTuple(by: 0)
+        )
+
+        WRITE_VIRTITTA_IMPORT_MARKER(
+            AGGREGATE_QC_SUMMARY.out.summaries_with_meta
+                .map { run_name, qc_json, qc_jsonl ->
+                    tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+                }
         )
     } else {
         error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"

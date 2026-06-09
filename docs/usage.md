@@ -43,3 +43,4 @@ nextflow run . \
 - `--sample_info_json` overrides the default nearby-CSV lookup for `clarity_sample_info.json` and is useful when the samplesheet has been restored or relocated.
 - If `--sample_info_json` is not provided, the pipeline looks for `clarity_sample_info.json` in the samplesheet directory, then its parent, then its grandparent.
 - `--completion_log_dir` optionally writes a legacy `<samplesheet-base>.complete` workflow summary for external control systems.
+- `--virtitta_import_dir` writes a successful-run `<run_name>.sqlimport` marker for the Virtitta importer. It defaults to `/fs1/results/cron/virtitta`; set it to an empty string to disable this marker.

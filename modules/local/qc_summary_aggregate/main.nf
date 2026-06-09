@@ -14,6 +14,7 @@ process AGGREGATE_QC_SUMMARY {
     output:
         path "qc_summary.json", emit: json
         path "qc_summary.jsonl", emit: jsonl
+        tuple val(run_name), path("qc_summary.json"), path("qc_summary.jsonl"), emit: summaries_with_meta
 
     script:
     def active_profiles = workflow.profile ?: ''

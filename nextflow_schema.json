@@ -67,6 +67,10 @@
       "type": "string",
       "enum": ["routine", "debug"],
       "description": "Published output mode. routine writes the flat Virtitta-compatible sample archive; debug also publishes intermediate subdirectories."
+    },
+    "virtitta_import_dir": {
+      "type": ["string", "null"],
+      "description": "Directory for successful-run Virtitta import marker files named <run>.sqlimport. Set to an empty string to disable."
     }
   },
   "required": ["input"]
