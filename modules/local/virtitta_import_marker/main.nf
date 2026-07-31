@@ -5,7 +5,7 @@ process WRITE_VIRTITTA_IMPORT_MARKER {
     publishDir { params.virtitta_import_dir?.toString()?.trim() ?: '.' }, mode: 'copy', overwrite: true, enabled: params.virtitta_import_dir != null && params.virtitta_import_dir.toString().trim() != ''
 
     input:
-        tuple val(run_name), val(run_dir), path(qc_json), path(qc_jsonl)
+        tuple val(run_name), path(qc_json), path(qc_jsonl)
 
     output:
         path "${run_name}.sqlimport", emit: marker
@@ -14,7 +14,7 @@ process WRITE_VIRTITTA_IMPORT_MARKER {
         params.virtitta_import_dir != null && params.virtitta_import_dir.toString().trim() != ''
 
     script:
-    def normalized_run_dir = run_dir.endsWith('/') ? run_dir : "${run_dir}/"
+    def normalized_run_dir = "${params.virtitta_run_dir.toString().replaceFirst('/+$', '')}/${run_name}/"
     """
     set -euo pipefail
 

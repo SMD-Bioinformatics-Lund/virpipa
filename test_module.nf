@@ -354,7 +354,7 @@ Notes:
         WRITE_VIRTITTA_IMPORT_MARKER(
             AGGREGATE_QC_SUMMARY.out.summaries_with_meta
                 .map { run_name, qc_json, qc_jsonl ->
-                    tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+                    tuple(run_name, qc_json, qc_jsonl)
                 }
         )
     } else if (params.module == 'finalize_results') {
@@ -411,7 +411,7 @@ Notes:
         WRITE_VIRTITTA_IMPORT_MARKER(
             AGGREGATE_QC_SUMMARY.out.summaries_with_meta
                 .map { run_name, qc_json, qc_jsonl ->
-                    tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+                    tuple(run_name, qc_json, qc_jsonl)
                 }
         )
     } else {

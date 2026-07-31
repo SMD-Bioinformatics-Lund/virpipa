@@ -651,7 +651,7 @@ workflow HCVPIPE {
 
     ch_virtitta_import_marker = AGGREGATE_QC_SUMMARY.out.summaries_with_meta
         .map { run_name, qc_json, qc_jsonl ->
-            tuple(run_name, file("${params.outdir}/${run_name}").toAbsolutePath().toString(), qc_json, qc_jsonl)
+            tuple(run_name, qc_json, qc_jsonl)
         }
 
     WRITE_VIRTITTA_IMPORT_MARKER(ch_virtitta_import_marker)

@@ -71,6 +71,10 @@
     "virtitta_import_dir": {
       "type": ["string", "null"],
       "description": "Directory for successful-run Virtitta import marker files named <run>.sqlimport. Set to an empty string to disable."
+    },
+    "virtitta_run_dir": {
+      "type": "string",
+      "description": "Root directory for completed runs as seen by the Virtitta importer. The run name is appended when writing the import marker."
     }
   },
   "required": ["input"]
