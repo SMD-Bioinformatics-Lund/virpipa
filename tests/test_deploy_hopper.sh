@@ -21,7 +21,7 @@ printf 'workflow HCVPIPE {}\n' > "$SOURCE/workflows/hcvpipe.nf"
 printf '#!/bin/bash\n' > "$SOURCE/scripts/helper.sh"
 git -C "$SOURCE" add .
 git -C "$SOURCE" commit -qm initial
-git -C "$SOURCE" tag v-test
+git -C "$SOURCE" tag release/v-test
 git init -q --bare "$BARE"
 git -C "$SOURCE" push -q "$BARE" HEAD:master --tags
 
@@ -36,13 +36,15 @@ deploy() {
         "$PROJECT_DIR/scripts/deploy_hopper.sh" "$@"
 }
 
-deploy --dry-run v-test | grep -q 'Would deploy v-test'
+deploy --dry-run release/v-test | grep -q 'Would deploy release/v-test'
 [[ ! -e "$TARGET/current" ]]
 
-deploy v-test
+deploy release/v-test
 FIRST=$(readlink -f "$TARGET/current")
 [[ -f "$FIRST/VERSION" && -f "$FIRST/SHA256SUMS" ]]
-grep -q '^ref=v-test$' "$FIRST/VERSION"
+[[ "$(basename "$FIRST")" == *-release_v-test ]]
+grep -q '^ref=release/v-test$' "$FIRST/VERSION"
+grep -q '^describe=release/v-test$' "$FIRST/VERSION"
 (cd "$FIRST" && sha256sum -c SHA256SUMS >/dev/null)
 
 printf '# hotfix\n' >> "$FIRST/main.nf"

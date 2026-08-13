@@ -36,9 +36,11 @@ done
 COMMIT=$(git --git-dir="$SOURCE_REPO" rev-parse --verify "${SOURCE_REF}^{commit}" 2>/dev/null) || die "Git ref not found: $SOURCE_REF"
 SHORT_COMMIT=$(git --git-dir="$SOURCE_REPO" rev-parse --short=12 "$COMMIT")
 DESCRIBE=$(git --git-dir="$SOURCE_REPO" describe --tags --always "$COMMIT" 2>/dev/null || echo "$SHORT_COMMIT")
+SAFE_DESCRIBE=$(printf '%s' "$DESCRIBE" | sed -e 's#[^A-Za-z0-9._-]#_#g' -e 's#^\.*##')
+[[ -n "$SAFE_DESCRIBE" ]] || SAFE_DESCRIBE="$SHORT_COMMIT"
 COMMIT_TIME=$(git --git-dir="$SOURCE_REPO" show -s --format=%ci "$COMMIT")
 DEPLOY_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-${SHORT_COMMIT}"
+RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-${SAFE_DESCRIBE}"
 RELEASES_DIR="$DEPLOY_ROOT/releases"
 RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
 

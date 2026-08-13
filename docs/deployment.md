@@ -18,10 +18,11 @@ bash scripts/deploy_hopper.sh v1.1
 ```
 
 The utility extracts the complete tracked tree into
-`/fs1/pipelines/virpipa/releases/<timestamp>-<commit>/`, validates the production
+`/fs1/pipelines/virpipa/releases/<timestamp>-<git-describe>/`, validates the production
 Nextflow configuration, writes `VERSION` and `SHA256SUMS`, and atomically points
-`current` at the new release. Deployments are locked so that only one can run at
-a time. Existing releases are retained.
+`current` at the new release. Characters unsuitable for a directory name are
+replaced with `_`; `VERSION` retains the exact description and full commit.
+Deployments are locked so that only one can run at a time. Existing releases are retained.
 
 Before promotion, the current release is checked for failed checksums,
 unexpected files, and files newer than its deployment metadata. Deployment
