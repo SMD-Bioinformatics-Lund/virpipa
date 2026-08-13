@@ -74,7 +74,7 @@
     },
     "virtitta_run_dir": {
       "type": "string",
-      "description": "Root directory for completed runs as seen by the Virtitta importer. The run name is appended when writing the import marker."
+      "description": "Root directory for completed HCV runs as seen by the Virtitta importer. Defaults to /access/virpipa/hcv; the run name is appended when writing the import marker."
     }
   },
   "required": ["input"]
