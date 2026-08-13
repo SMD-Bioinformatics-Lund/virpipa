@@ -51,6 +51,10 @@ Important workflow for code updates:
 - Let the Hopper wrapper pull/update as part of its normal flow.
 - Do not manually pull in the Hopper working clone unless there is a specific recovery reason.
 
+Production deployment is separate from this development workflow. Deploy an
+explicit bare-repository ref under `/fs1/pipelines/virpipa/releases/` with
+`scripts/deploy_hopper.sh`; see `docs/deployment.md`.
+
 ## Current branch / repo expectations
 
 - `master` is the active base branch after the first release.
