@@ -27,7 +27,9 @@ git -C "$SOURCE" push -q "$BARE" HEAD:master --tags
 
 cat > "$BIN/nextflow" <<'EOF'
 #!/bin/bash
-[[ "$1" == config && "$2" == -profile && "$3" == slurm,hpc,apptainer ]]
+[[ "$1" == config && -d "$2" && "$3" == -profile && "$4" == slurm,hpc,apptainer ]]
+touch .nextflow.log
+mkdir -p .nextflow/cache
 EOF
 chmod +x "$BIN/nextflow"
 
@@ -42,6 +44,7 @@ deploy --dry-run release/v-test | grep -q 'Would deploy release/v-test'
 deploy release/v-test
 FIRST=$(readlink -f "$TARGET/current")
 [[ -f "$FIRST/VERSION" && -f "$FIRST/SHA256SUMS" ]]
+[[ ! -e "$FIRST/.nextflow" && ! -e "$FIRST/.nextflow.log" ]]
 [[ "$(basename "$FIRST")" == *-release_v-test ]]
 grep -q '^ref=release/v-test$' "$FIRST/VERSION"
 grep -q '^describe=release/v-test$' "$FIRST/VERSION"

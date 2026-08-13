@@ -90,6 +90,7 @@ check_current_release
 STAGING_DIR=$(mktemp -d "$RELEASES_DIR/.staging.${RELEASE_ID}.XXXXXX")
 cleanup() {
     [[ -z "${STAGING_DIR:-}" || ! -d "$STAGING_DIR" ]] || rm -r "$STAGING_DIR"
+    [[ -z "${VALIDATION_DIR:-}" || ! -d "$VALIDATION_DIR" ]] || rm -r "$VALIDATION_DIR"
     [[ -z "${LINK_TMP:-}" || ! -L "$LINK_TMP" ]] || rm "$LINK_TMP"
 }
 trap cleanup EXIT
@@ -115,7 +116,10 @@ if ! command -v nextflow >/dev/null 2>&1; then
     module load Java/23.0.2 nextflow/26.04.3 singularity/3.8.0
     set -u
 fi
-(cd "$STAGING_DIR" && nextflow config -profile slurm,hpc,apptainer >/dev/null)
+VALIDATION_DIR=$(mktemp -d /tmp/virpipa-deploy-validation.XXXXXX)
+(cd "$VALIDATION_DIR" && nextflow config "$STAGING_DIR" -profile slurm,hpc,apptainer >/dev/null)
+rm -r "$VALIDATION_DIR"
+VALIDATION_DIR=''
 
 (cd "$STAGING_DIR" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
 mv "$STAGING_DIR" "$RELEASE_DIR"

@@ -36,6 +36,23 @@ readlink -f /fs1/pipelines/virpipa/current
 cat /fs1/pipelines/virpipa/current/VERSION
 ```
 
+Do not `cd` into a release before running Nextflow or Python-based smoke tests.
+Nextflow otherwise creates `.nextflow`, `.nextflow.log`, and `work/` in the
+release, while Python may create `__pycache__`. Launch from a disposable external
+directory, use the resolved release as the pipeline argument, and provide an
+external work directory:
+
+```bash
+release=$(readlink -f /fs1/pipelines/virpipa/current)
+test_root=$(mktemp -d /tmp/virpipa-smoke.XXXXXX)
+cd "$test_root"
+nextflow run "$release/test_module.nf" \
+  -profile hpc,apptainer \
+  --module resistance \
+  --outdir "$test_root/results" \
+  -work-dir "$test_root/work"
+```
+
 ## Launcher integration
 
 The live `[HCV]` entry in `/fs2/sw/bnf-scripts/pipeline_files.config` should use
