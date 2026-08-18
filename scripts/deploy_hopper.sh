@@ -56,10 +56,10 @@ check_current_release() {
 
     checksum_status=$(cd "$current_dir" && { sha256sum -c SHA256SUMS 2>&1 || true; } | awk '$NF != "OK" { print }')
     unexpected_status=$(cd "$current_dir" && {
-        find . -type f -o -type l
+        find . \( -type f -o -type l \) ! -path '*/__pycache__/*'
         echo ./SHA256SUMS
     } | sed 's#^\./##' | sort -u | comm -13 <(awk '{print $2}' SHA256SUMS | sed -e 's#^\*##' -e 's#^\./##' | { cat; echo SHA256SUMS; } | sort -u) -)
-    newer_status=$(find "$current_dir" \( -type f -o -type l \) -newer "$current_dir/VERSION" ! -name VERSION ! -name SHA256SUMS -printf '%P\n' | sort)
+    newer_status=$(find "$current_dir" \( -type f -o -type l \) -newer "$current_dir/VERSION" ! -name VERSION ! -name SHA256SUMS ! -path '*/__pycache__/*' -printf '%P\n' | sort)
 
     if [[ -n "$checksum_status" || -n "$unexpected_status" || -n "$newer_status" ]]; then
         echo "Current release drift detected: $current_dir" >&2

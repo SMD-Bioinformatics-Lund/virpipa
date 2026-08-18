@@ -64,6 +64,10 @@ SECOND=$(readlink -f "$TARGET/current")
 grep -q '# hotfix' "$FIRST/main.nf"
 ! grep -q '# hotfix' "$SECOND/main.nf"
 
+mkdir -p "$SECOND/scripts/__pycache__"
+touch "$SECOND/scripts/__pycache__/helper.cpython-313.pyc"
+deploy --dry-run master >/dev/null
+
 touch "$SECOND/untracked-hotfix.txt"
 if deploy master >"$TEST_ROOT/unexpected.out" 2>&1; then
     echo 'Expected unexpected-file detection to abort deployment' >&2

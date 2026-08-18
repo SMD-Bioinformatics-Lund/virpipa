@@ -26,7 +26,8 @@ Deployments are locked so that only one can run at a time. Existing releases are
 
 Before promotion, the current release is checked for failed checksums,
 unexpected files, and files newer than its deployment metadata. Deployment
-stops if direct changes are found. After reviewing and preserving any hotfix,
+stops if direct changes are found. Python bytecode inside `__pycache__/` directories is ignored as
+disposable runtime state. After reviewing and preserving any hotfix,
 `--force` permits creation of a new release without modifying the old one.
 
 Inspect the active version with:
