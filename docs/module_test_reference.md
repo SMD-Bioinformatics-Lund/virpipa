@@ -31,16 +31,16 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 
 - `hostile`: verified identical.
 - `subsample`: verified identical.
-- `bam2fasta`: FASTA identical; VCF/stats differ only in embedded header path/date metadata.
+- `bam2fasta`: FASTA sequence is identical case-insensitively and intentionally uppercase; VCF/stats differ only in embedded header path/date metadata.
 - `bestref`: verified identical selected FASTA for the fixture.
 - `mapping`: SAM payload verified; stats differ only in embedded command-line/path metadata.
 - `mapping_noopt`: SAM payload verified; stats differ only in embedded command-line/path metadata.
 - `polish`: final FASTAs and BAM SAM payloads verified; `samtools stats` differ only in embedded command-line/path metadata.
-- `consensus`: verified identical.
+- `consensus`: sequence is identical case-insensitively and intentionally uppercase.
 - `variantcall`: VCF body verified; header differs only in embedded reference path metadata.
 - `filter_vcf`: filtered VCF bodies verified; stats differ only in embedded filename/path metadata.
 - `cram`: SAM payload verified; CRAM/header/index differ only in embedded reference path metadata.
-- `coverage`: verified identical.
+- `coverage`: aggregate TSV verified identical; the additional BED records merged depth >=1 intervals.
 - `subtype`: verified identical.
 - `report`: verified identical.
 - `vadr`: verified identical.

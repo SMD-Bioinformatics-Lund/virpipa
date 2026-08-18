@@ -31,6 +31,7 @@ Current final sample outputs include:
 - full `SAMPLE001-pilon-m*.vcf.gz`, `.csi`, `.stats` set
 - `SAMPLE001-pilon-iupac.fasta.blast`
 - `SAMPLE001-coverage.tsv`
+- `SAMPLE001-coverage-1x.bed`
 - `SAMPLE001.vadr.pass_mod.gff`
 - `SAMPLE001.vadr.bed`
 - `SAMPLE001_resistance.tsv`
@@ -53,6 +54,12 @@ not listed as separate JSON keys when their names are inferable. LID-specific du
 exports and `lid_2limsrs` are no longer published; Virtitta rewrites FASTA headers at export time.
 When `sample_name` / `lid` is present, `display_rug_kde_plot` points to
 `<sample_id>_display_rug_kde_plot.png`, titled `<LID> (<sample_id>)`.
+
+Consensus FASTA sequence lines are uniformly uppercase. This is an intentional case-only departure
+from legacy output; hybrid-assembly and Pilon debug/intermediate FASTAs retain their provenance case.
+The `<sample_id>-coverage-1x.bed` file contains merged, 0-based half-open intervals where the final
+main CRAM has at least one aligned read base against the main FASTA. The existing coverage TSV remains
+the aggregate percentage summary and is unchanged.
 
 The per-run QC summary is written to:
 

@@ -121,7 +121,7 @@ FILENAME == ARGV[fasta_index] {
     out = "";
     for (i = 1; i <= length(seq); i++) {
         pos++;
-        base = substr(seq, i, 1);
+        base = toupper(substr(seq, i, 1));
         key = curchr SUBSEP pos;
         if (key in replacement) {
             out = out replacement[key];

@@ -386,6 +386,7 @@ Notes:
                     file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.report.tsv"),
                     file("${projectDir}/assets/test_data/finalize/SAMPLE001-3a-D17763.fastanucfreq.tsv"),
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-coverage.tsv"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001-coverage-1x.bed"),
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.vadr.pass_mod.gff"),
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001.vadr.bed"),
                     file("${projectDir}/assets/test_data/finalize/SAMPLE001-pilon-iupac.fasta.blast"),

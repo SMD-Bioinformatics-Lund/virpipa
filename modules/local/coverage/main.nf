@@ -12,8 +12,9 @@ process LOG_COVERAGE {
         tuple val(run_name), val(sample_id), path(cram), path(crai), path(ref_fasta)
     
     output:
-        path "*.tsv", emit: coverage_tsv
-        tuple val(run_name), val(sample_id), path("*.tsv"), emit: coverage_with_meta
+        path "${sample_id}-coverage.tsv", emit: coverage_tsv
+        path "${sample_id}-coverage-1x.bed", emit: coverage_1x_bed
+        tuple val(run_name), val(sample_id), path("${sample_id}-coverage.tsv"), path("${sample_id}-coverage-1x.bed"), emit: coverage_with_meta
     
     script:
     def active_profiles = workflow.profile ?: ''
@@ -38,5 +39,25 @@ process LOG_COVERAGE {
             printf "%.2f\\t", (cov100/total)*100;
             printf "%.2f\\n", (cov1000/total)*100;
         }' >> ${sample_id}-coverage.tsv
+
+    ${samtools} depth -aa --reference ${ref_fasta} ${cram} | \
+        awk 'BEGIN { OFS="\\t" }
+        \$3 >= 1 {
+            start = \$2 - 1
+            if (active && \$1 == chrom && start == end) {
+                end = \$2
+            } else {
+                if (active) print chrom, interval_start, end
+                chrom = \$1
+                interval_start = start
+                end = \$2
+                active = 1
+            }
+        }
+        \$3 < 1 && active {
+            print chrom, interval_start, end
+            active = 0
+        }
+        END { if (active) print chrom, interval_start, end }' > ${sample_id}-coverage-1x.bed
     """
 }
