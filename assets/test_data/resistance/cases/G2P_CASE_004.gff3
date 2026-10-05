@@ -1,0 +1,12 @@
+G2P_CASE_004	VADR:v1.7	5'UTR	1	341	.	+	.	ID:5'UTR1;
+G2P_CASE_004	VADR:v1.7	gene	342	914	.	+	0	ID:core;gene=core;product=core protein;
+G2P_CASE_004	VADR:v1.7	gene	915	1490	.	+	0	ID:E1;gene=E1;product=E1 protein;
+G2P_CASE_004	VADR:v1.7	gene	1491	2579	.	+	0	ID:E2;gene=E2;product=E2 protein;
+G2P_CASE_004	VADR:v1.7	gene	2580	2768	.	+	0	ID:p7;gene=p7;product=p7 protein;
+G2P_CASE_004	VADR:v1.7	gene	2769	3419	.	+	0	ID:NS2;gene=NS2;product=NS2 protein;
+G2P_CASE_004	VADR:v1.7	gene	3420	5312	.	+	0	ID:NS3;gene=NS3;product=NS3 protein;
+G2P_CASE_004	VADR:v1.7	gene	5313	5474	.	+	0	ID:NS4A;gene=NS4A;product=NS4A protein;
+G2P_CASE_004	VADR:v1.7	gene	5475	6257	.	+	0	ID:NS4B;gene=NS4B;product=NS4B protein;
+G2P_CASE_004	VADR:v1.7	gene	6258	7601	.	+	0	ID:NS5A;gene=NS5A;product=NS5A protein;
+G2P_CASE_004	VADR:v1.7	gene	7602	9374	.	+	0	ID:NS5B;gene=NS5B;product=NS5B protein;
+G2P_CASE_004	VADR:v1.7	3'UTR	9378	9644	.	+	.	ID:3'UTR1;

@@ -525,17 +525,9 @@ workflow HCVPIPE {
     ANNOTATE_VADR(ch_vadr_fasta, ch_vadr_model)
     ch_vadr_gff = ANNOTATE_VADR.out.gff
     
-    // Step 11: Annotate resistance from the filtered m0.15 VCF and the 0.15 typing result
+    // Step 11: Call resistance from the 15% IUPAC consensus and codon evidence.
     def rules_json = resolved_rules_path
-
-    ch_vcf_for_resistance = FILTER_VCF.out.filtered_vcfs
-        .map { run_name, sample_id, vcfs ->
-            def filtered_vcf = vcfs.find { it.getName() == "${sample_id}-pilon-m0.15.vcf.gz" }
-            if (!filtered_vcf) {
-                error "Could not find ${sample_id}-pilon-m0.15.vcf.gz in FILTER_VCF output"
-            }
-            [sample_id, [run_name, filtered_vcf]]
-        }
+    def h77_fasta = file(resolvePathFromBase('refgenomes/1a-AF009606.fa', project_root))
 
     ch_gff_for_resistance = ANNOTATE_VADR.out.gff.map { run_name, sample_id, gff ->
         [sample_id, [run_name, gff]]
@@ -545,22 +537,26 @@ workflow HCVPIPE {
         [sample_id, [run_name, fasta]]
     }
 
+    ch_iupac_cram_for_resistance = ch_iupac_cram_output.map { run_name, sample_id, cram, crai ->
+        [sample_id, [run_name, cram, crai]]
+    }
+
     ch_subtype_for_resistance = ch_iupac_blast_with_meta.map { run_name, sample_id, blast ->
         [sample_id, [run_name, extractSubtypeFromBlast(blast)]]
     }
 
-    ch_resistance_full = ch_vcf_for_resistance
-        .join(ch_gff_for_resistance)
+    ch_resistance_full = ch_gff_for_resistance
         .join(ch_iupac_fasta_for_resistance)
+        .join(ch_iupac_cram_for_resistance)
         .join(ch_subtype_for_resistance)
-        .map { sample_id, vcf_meta, gff_meta, fasta_meta, subtype_meta ->
+        .map { sample_id, gff_meta, fasta_meta, cram_meta, subtype_meta ->
             [
-                tuple(vcf_meta[0], sample_id, vcf_meta[1], gff_meta[1], fasta_meta[1]),
+                tuple(gff_meta[0], sample_id, gff_meta[1], fasta_meta[1], cram_meta[1], cram_meta[2]),
                 subtype_meta[1]
             ]
         }
 
-    ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_json)
+    ANNOTATE_RESISTANCE(ch_resistance_full.map { it[0] }, ch_resistance_full.map { it[1] }, rules_json, h77_fasta)
 
     // Step 12: Assemble the flat published sample archive in one place.
     ch_final_results_input = ch_sample_lids
@@ -591,11 +587,13 @@ workflow HCVPIPE {
         .join(ANNOTATE_RESISTANCE.out.bed_with_meta.map { run_name, sample_id, bed -> [sample_id, bed] })
         .join(ANNOTATE_RESISTANCE.out.gff_with_meta.map { run_name, sample_id, gff -> [sample_id, gff] })
         .join(ANNOTATE_RESISTANCE.out.drug_tsv_with_meta.map { run_name, sample_id, drug_tsv -> [sample_id, drug_tsv] })
+        .join(ANNOTATE_RESISTANCE.out.json_with_meta.map { run_name, sample_id, json -> [sample_id, json] })
+        .join(ANNOTATE_RESISTANCE.out.sites_gff_with_meta.map { run_name, sample_id, sites_gff -> [sample_id, sites_gff] })
         .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_meta,
                 bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
                 iupac_fasta_meta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
                 filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast,
-                resistance_tsv, resistance_bed, resistance_gff, resistance_drug_tsv ->
+                resistance_tsv, resistance_bed, resistance_gff, resistance_drug_tsv, resistance_json, resistance_sites_gff ->
             tuple(
                 sample_meta[0],
                 sample_id,
@@ -630,6 +628,8 @@ workflow HCVPIPE {
                 resistance_bed,
                 resistance_gff,
                 resistance_drug_tsv,
+                resistance_json,
+                resistance_sites_gff,
                 filtered_vcfs,
                 filtered_indices,
                 filtered_stats

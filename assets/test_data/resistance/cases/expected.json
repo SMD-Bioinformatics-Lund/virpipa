@@ -1,0 +1,60 @@
+{
+  "G2P_CASE_001": {
+    "mutations": [
+      "NS5A:30R",
+      "NS5A:58D"
+    ],
+    "subtype": "1a"
+  },
+  "G2P_CASE_002": {
+    "mutations": [
+      "NS5A:30K",
+      "NS5A:31V",
+      "NS5A:62S"
+    ],
+    "subtype": "1a"
+  },
+  "G2P_CASE_003": {
+    "mutations": [
+      "NS5A:30K",
+      "NS5A:62L"
+    ],
+    "subtype": "1a"
+  },
+  "G2P_CASE_004": {
+    "mutations": [
+      "NS3:174S",
+      "NS5A:93N"
+    ],
+    "subtype": "1a"
+  },
+  "G2P_CASE_005": {
+    "mutations": [],
+    "subtype": "3a"
+  },
+  "G2P_CASE_006": {
+    "mutations": [
+      "NS5A:28T"
+    ],
+    "subtype": "1a"
+  },
+  "G2P_CASE_007": {
+    "mutations": [
+      "NS5A:30K",
+      "NS5A:62T"
+    ],
+    "subtype": "3a"
+  },
+  "G2P_CASE_008": {
+    "mutations": [
+      "NS5A:93H"
+    ],
+    "subtype": "3a"
+  },
+  "G2P_CASE_009": {
+    "mutations": [
+      "NS5A:31M"
+    ],
+    "subtype": "1a"
+  }
+}

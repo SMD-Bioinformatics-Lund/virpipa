@@ -160,8 +160,11 @@ def best_prediction(predictions: list[str]) -> str | None:
     return cleaned[0] if cleaned else None
 
 
-def read_resistance(resistance_path: Path, resistance_by_drug_path: Path) -> dict:
-    analysis_present = resistance_path.exists() or resistance_by_drug_path.exists()
+def read_resistance(resistance_path: Path, resistance_by_drug_path: Path, resistance_json_path: Path | None = None) -> dict:
+    evidence = None
+    if resistance_json_path is not None and resistance_json_path.exists():
+        evidence = json.loads(resistance_json_path.read_text(encoding="utf-8"))
+    analysis_present = resistance_path.exists() or resistance_by_drug_path.exists() or evidence is not None
     if not analysis_present:
         return {
             "analysis_present": False,
@@ -294,7 +297,7 @@ def read_resistance(resistance_path: Path, resistance_by_drug_path: Path) -> dic
             for drug, record in sorted(derived_by_drug.items())
         ]
 
-    return {
+    result = {
         "analysis_present": True,
         "has_resistance": bool(rows),
         "mutation_count": len(rows),
@@ -304,6 +307,15 @@ def read_resistance(resistance_path: Path, resistance_by_drug_path: Path) -> dic
         "by_drug": by_drug_records,
         "mutations": mutations,
     }
+    if evidence is not None:
+        result["by_drug"] = evidence.get("drug_outcomes", [])
+        result["baseline_cutoff"] = evidence.get("baseline_cutoff")
+        result["baseline_source"] = evidence.get("baseline_source")
+        result["rules_sha256"] = evidence.get("rules_sha256")
+        result["warnings"] = evidence.get("warnings", [])
+        result["sites"] = evidence.get("sites", [])
+        result["codon_evidence_parameters"] = evidence.get("codon_evidence_parameters", {})
+    return result
 
 
 def read_sample_info(sample_info_path: Path | None, sample_id: str) -> dict:
@@ -363,6 +375,8 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
         "resistance_bed": f"{sample_id}_resistance.bed",
         "resistance_gff": f"{sample_id}_resistance.gff",
         "resistance_by_drug_tsv": f"{sample_id}_resistance_by_drug.tsv",
+        "resistance_json": f"{sample_id}_resistance.json",
+        "resistance_sites_gff3": f"{sample_id}_resistance_sites.gff3",
         "filtered_vcf_m001": f"{sample_id}-pilon-m0.01.vcf.gz",
         "filtered_vcf_m001_stats": f"{sample_id}-pilon-m0.01.vcf.gz.stats",
         "filtered_vcf_m005": f"{sample_id}-pilon-m0.05.vcf.gz",
@@ -401,6 +415,7 @@ def main() -> None:
     resistance = read_resistance(
         results_dir / f"{sample_id}_resistance.tsv",
         results_dir / f"{sample_id}_resistance_by_drug.tsv",
+        results_dir / f"{sample_id}_resistance.json",
     )
     sample_info = read_sample_info(Path(args.sample_info) if args.sample_info else None, sample_id)
 

@@ -1,103 +1,33 @@
-# HCV Drug Resistance Annotation Pipeline
+# HCV resistance calling
 
-## Overview
+VirPipa calls resistance from the 15% IUPAC consensus. The VCF is not used for resistance calling: it is relative to the sample's polished consensus and therefore cannot represent majority substitutions reliably.
 
-This pipeline annotates HCV VCF variants with drug resistance information from the geno2pheno database. It matches variants against resistance rules based on genotype subtype.
+`scripts/annotate_vcf_resistance.py` aligns translated NS3, NS5A, and NS5B genes to H77 and evaluates the committed geno2pheno rules in H77 amino-acid numbering. IUPAC codons are expanded before translation, simple and compound rules are evaluated explicitly, and missing sequence is reported as not assessed. The default clinical result remains the 15% consensus result.
 
-## Files
+When the matching CRAM is supplied, the caller also counts complete codons from usable primary alignments. Bases require quality 13, sites require seven complete codons, overlapping mates count once, and conflicting mate codons are discarded. These frequencies are supporting evidence for exploratory 2–50% thresholds; they do not replace the authoritative 15% result.
 
-### 1. `scripts/update_geno2pheno_rules.py`
-Downloads the resistance rules table from https://hcv.geno2pheno.org/index.php?page=Rules and can also rebuild normalized data from an existing CSV snapshot.
+## Outputs
 
-Usage:
-```bash
-python scripts/update_geno2pheno_rules.py --output-csv assets/hcv_geno2pheno_rules.csv
-```
+- `*_resistance.tsv`: resistance-associated substitutions supporting fully matched rules.
+- `*_resistance.bed` and `*_resistance.gff`: compatibility tracks containing called resistance substitutions.
+- `*_resistance_by_drug.tsv`: every applicable drug with an explicit outcome (`resistant`, `reduced susceptibility`, `susceptible`, `susceptible with scored substitutions`, `not licensed`, or `not assessed`).
+- `*_resistance.json`: versioned baseline calls, rule provenance/checksum, compound-rule state, all resistance sites, codon frequencies, counting parameters, and consistency warnings.
+- `*_resistance_sites.gff3`: all resistance-rule positions for IGV. Popup attributes include H77 and sample amino-acid positions, codons, observed amino acids, drugs, rules, depth, and frequencies.
 
-### 2. `scripts/annotate_vcf_resistance.py` (Main Script)
-Annotates VCF variants with drug resistance information.
+The rules snapshot is `assets/hcv_geno2pheno_rules.csv`; refresh it outside Hopper with `scripts/update_geno2pheno_rules.py` and review the diff before use.
 
-**Required arguments:**
-- `--vcf` - VCF file (e.g., SAMPLE001-pilon.vcf.gz)
-- `--gff` - VADR GFF file (e.g., SAMPLE001.vadr.pass_mod.gff)
-- `--fasta` - IUPAC FASTA (e.g., SAMPLE001-0.15-iupac.fasta)
-- `--subtype` - HCV subtype (e.g., 3a, 1b)
+## Historical re-call
 
-**Optional arguments:**
-- `--sample-name` - Sample ID (default: derived from VCF filename)
-- `--output-dir` - Output directory (default: results subfolder of sample)
-- `--rules` - Rules JSON or CSV (default: assets/hcv_geno2pheno_rules.csv)
-- `--assets-dir` - Directory for reference files (default: assets)
-- `--ref-bed` - Also generate reference BED with all resistance positions
-
-**Example:**
-```bash
-python scripts/annotate_vcf_resistance.py \
-    --vcf /path/to/vcf/SAMPLE001-pilon.vcf.gz \
-    --gff /path/to/results/SAMPLE001.vadr.pass_mod.gff \
-    --fasta /path/to/fasta/SAMPLE001-0.15-iupac.fasta \
-    --subtype 3a \
-    --sample-name SAMPLE001 \
-    --rules assets/hcv_geno2pheno_rules.csv
-```
-
-**Output:**
-- Results go to sample's `results/` folder (e.g., `results/SAMPLE001_resistance.tsv`)
-- Reference files go to `assets/` folder (e.g., `assets/hcv_geno2pheno_rules.csv`, `assets/resistance_reference.bed`)
-
-**Environment:**
-Use the `skrotis` environment or the pipeline python container.
-
-## Output Files
-
-Output goes to `results/` directory by default.
-
-### 1. `sample_resistance.tsv`
-Variant-focused results sorted by genomic position.
-
-Columns:
-- sample, gene, genomic_start, genomic_end, ref_nuc, alt_nuc, aa_pos, ref_aa, alt_aa, rule_definition, drugs, prediction, reference, strand
-
-### 2. `sample_resistance.bed`
-BED file for IGV visualization. One entry per unique amino acid change. Coordinates cover the full codon.
-
-### 3. `sample_resistance.gff`
-GFF3 file for IGV visualization. One `resistance_mutation` feature per unique amino acid change, with codon-span coordinates and attributes for gene, amino-acid change, drugs, prediction, rule definition, and reference.
-
-### 4. `sample_resistance_by_drug.tsv`
-Drug-focused results with sections per drug.
-
-## Pipeline Integration
-
-The resistance module is now wired in the Nextflow pipeline. It consumes:
-- `SAMPLE001-pilon-m0.15.vcf.gz` for the resistance-call set
-- `SAMPLE001.vadr.pass_mod.gff` for gene coordinates
-- `SAMPLE001-0.15-iupac.fasta` for codon translation
-- subtype parsed from `SAMPLE001-0.15-iupac.fasta.blast`
-
-## Data Locations (example sample SAMPLE001)
-
-- VCF: `results/SAMPLE001-pilon-m0.15.vcf.gz`
-- GFF: `results/SAMPLE001.vadr.pass_mod.gff`
-- FASTA: `results/SAMPLE001-0.15-iupac.fasta`
-- Subtype: extracted from the first hit in `results/SAMPLE001-0.15-iupac.fasta.blast`
-
-## Testing
-
-Fixture-backed positive test data lives in `assets/test_data/resistance/` and uses a synthetic `NS5A 93H` variant for subtype `3a`.
-Run with:
+Preview a lightweight re-call without changing archives:
 
 ```bash
-nextflow run test_module.nf -profile local_containers --module resistance
+python scripts/recall_resistance.py /path/to/sample-archives \
+  --rules assets/hcv_geno2pheno_rules.csv \
+  --h77-fasta refgenomes/1a-AF009606.fa
 ```
 
-## Notes
+Add `--apply` to generate outputs in temporary directories and atomically replace resistance files. Existing resistance files are copied to a timestamped backup first. Samples lacking the 15% FASTA, its report, or a single VADR GFF are skipped. If a CRAM is absent, the baseline call is still produced but dynamic frequency evidence is unavailable.
 
-- The geno2pheno rules table should be refreshed manually outside the HPC when needed
-- BED coordinates use codon boundaries (not just variant position)
-- Results default to the `results/` folder
+## Validation
 
-## Notes
-
-- The pipeline currently consumes the committed rules CSV by default through `params.resistance_rules`
-- A normalized JSON artifact is still supported if you want a stricter machine-facing rules contract later
+`python -m unittest discover -s tests -v` covers IUPAC translation, H77 indel mapping, compound rules, and nine anonymized consensus cases previously submitted to online geno2pheno. The private fixture re-identification key must remain outside Git.

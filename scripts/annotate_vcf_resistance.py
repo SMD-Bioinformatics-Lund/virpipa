@@ -1,729 +1,660 @@
 #!/usr/bin/env python3
-"""Annotate VCF variants with HCV drug resistance information."""
-
+"""Call HCV resistance from a 15% IUPAC consensus and optional read evidence."""
 import argparse
 import csv
+import hashlib
+import json
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 try:
     import pysam
 except ImportError:
-    sys.stderr.write("Error: pysam not installed. Install with: pip install pysam\n")
-    sys.exit(1)
+    pysam = None
+from update_geno2pheno_rules import (
+    load_rules_json,
+    load_rules_rows_from_csv,
+    normalize_rows,
+)
 
-from update_geno2pheno_rules import load_rules_json, load_rules_rows_from_csv, normalize_rows
-
-
-def parse_vcf(vcf_file):
-    """Parse VCF file and return list of variants."""
-    variants = []
-    
-    vcf = pysam.VariantFile(vcf_file)
-    
-    for record in vcf:
-        chrom = record.contig
-        pos = record.pos
-        
-        ref = record.ref
-        alts = record.alts
-        
-        if alts is None:
-            continue
-        
-        for alt in alts:
-            if alt is None:
-                continue
-            
-            qual = record.qual if record.qual else 0
-            filter_status = 'PASS' if record.filter is None or len(record.filter) == 0 else ';'.join(record.filter)
-            
-            info = {}
-            if record.info:
-                for key in record.info:
-                    info[key] = record.info[key]
-            
-            ad = None
-            dp = None
-            if 'AD' in record.samples[0]:
-                ad = record.samples[0]['AD']
-            if 'DP' in record.samples[0]:
-                dp = record.samples[0]['DP']
-            
-            freq = None
-            if ad is not None and dp is not None and dp > 0:
-                total_alt = sum(ad[1:]) if len(ad) > 1 else 0
-                freq = total_alt / dp
-            
-            variants.append({
-                'chrom': chrom,
-                'pos': pos,
-                'ref': ref,
-                'alt': alt,
-                'qual': qual,
-                'filter': filter_status,
-                'dp': dp,
-                'af': freq,
-                'info': info
-            })
-    
-    return variants
-
-
-IUPAC_CODE = {
-    'A': ['A'], 'C': ['C'], 'G': ['G'], 'T': ['T'],
-    'R': ['A', 'G'], 'Y': ['C', 'T'], 'S': ['G', 'C'], 'W': ['A', 'T'],
-    'K': ['G', 'T'], 'M': ['A', 'C'], 'B': ['C', 'G', 'T'], 'D': ['A', 'G', 'T'],
-    'H': ['A', 'C', 'T'], 'V': ['A', 'C', 'G'], 'N': ['A', 'C', 'G', 'T']
+IUPAC = {
+    "A": "A",
+    "C": "C",
+    "G": "G",
+    "T": "T",
+    "R": "AG",
+    "Y": "CT",
+    "S": "CG",
+    "W": "AT",
+    "K": "GT",
+    "M": "AC",
+    "B": "CGT",
+    "D": "AGT",
+    "H": "ACT",
+    "V": "ACG",
+    "N": "ACGT",
 }
-
-CODON_TABLE = {
-    'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
-    'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
-    'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*',
-    'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
-    'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
-    'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-    'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
-    'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-    'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M',
-    'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
-    'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
-    'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
-    'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
-    'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-    'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
-    'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'
+TABLE = {
+    a + b + c: x
+    for a, row in zip(
+        "TCAG",
+        (
+            "FFLLSSSSYY**CC*W",
+            "LLLLPPPPHHQQRRRR",
+            "IIIMTTTTNNKKSSRR",
+            "VVVVAAAADDEEGGGG",
+        ),
+    )
+    for b, part in zip("TCAG", (row[0:4], row[4:8], row[8:12], row[12:16]))
+    for c, x in zip("TCAG", part)
 }
+H77 = {"NS3": (3420, 5312), "NS5A": (6258, 7601), "NS5B": (7602, 9374)}
+RANK = {"resistant": 0, "reduced susceptibility": 1}
 
 
-def parse_gff(gff_file):
-    """Parse VADR GFF file to get gene coordinates."""
-    genes = {}
-    
-    with open(gff_file, 'r') as f:
-        for line in f:
-            if line.startswith('#'):
-                continue
-            
-            parts = line.strip().split('\t')
-            if len(parts) < 9:
-                continue
-            
-            chrom, source, feature, start, end, score, strand, phase, attributes = parts
-            
-            if feature != 'gene':
-                continue
-            
-            gene_id = None
-            gene_name = None
-            product = None
-            
-            for attr in attributes.split(';'):
-                if '=' in attr:
-                    key, value = attr.split('=', 1)
-                    if key == 'ID':
-                        gene_id = value
-                    elif key == 'gene':
-                        gene_name = value
-                    elif key == 'product':
-                        product = value
-            
-            if gene_name:
-                genes[gene_name] = {
-                    'chrom': chrom,
-                    'start': int(start),
-                    'end': int(end),
-                    'strand': strand,
-                    'id': gene_id,
-                    'product': product
-                }
-    
-    return genes
-
-
-def parse_fasta(fasta_file):
-    """Parse FASTA file, returning sequence as string."""
-    seq = []
+def fasta(path):
+    out = {}
     name = None
-    
-    with open(fasta_file, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith('>'):
-                if name is None:
-                    name = line[1:].split()[0]
-                continue
-            seq.append(line.upper())
-    
-    return name, ''.join(seq)
-
-
-def expand_iupac_codon(codon):
-    """Expand ambiguous codon to list of all possible codons."""
-    if not codon or len(codon) != 3:
-        return []
-    
-    codon = codon.upper()
-    bases = [IUPAC_CODE.get(b, [b]) for b in codon]
-    
-    codons = []
-    for b0 in bases[0]:
-        for b1 in bases[1]:
-            for b2 in bases[2]:
-                codons.append(b0 + b1 + b2)
-    
-    return codons
-
-
-def translate_codon(codon):
-    """Translate codon to amino acid."""
-    return CODON_TABLE.get(codon.upper(), 'X')
-
-
-def get_possible_aa(codon):
-    """Get all possible amino acids from an ambiguous codon."""
-    codons = expand_iupac_codon(codon)
-    aa_set = set()
-    for c in codons:
-        aa = translate_codon(c)
-        if aa:
-            aa_set.add(aa)
-    return aa_set
-
-
-def find_gene_for_position(pos, genes):
-    """Find which gene contains the given position."""
-    for gene_name, gene_info in genes.items():
-        if gene_info['start'] <= pos <= gene_info['end']:
-            return gene_name, gene_info
-    return None, None
-
-
-def calculate_aa_position(genomic_pos, gene_start, gene_end, strand):
-    """Calculate amino acid position from genomic position."""
-    if strand == '+':
-        offset = genomic_pos - gene_start
-    else:
-        offset = gene_end - genomic_pos
-    
-    aa_pos = (offset // 3) + 1
-    codon_offset = offset % 3
-    
-    return aa_pos, codon_offset
-
-
-def extract_codon_from_fasta(genomic_pos, gene_start, gene_end, fasta_seq, strand, codon_offset):
-    """Extract codon from FASTA at the given genomic position."""
-    codons = []
-    
-    if strand == '+':
-        codon_start = genomic_pos - codon_offset
-    else:
-        codon_start = genomic_pos + codon_offset
-    
-    for i in range(3):
-        pos = codon_start + i
-        if strand == '-':
-            pos = codon_start - i
-        
-        if pos < 1 or pos > len(fasta_seq):
-            codons.append('N')
-        else:
-            codons.append(fasta_seq[pos - 1])
-    
-    ref_codon = ''.join(codons)
-    
-    return ref_codon, codon_start
-
-
-def generate_alt_codons(ref_codon, ref_bases, alt_bases):
-    """Generate alternative codons with the variant base(s) substituted."""
-    alt_codons = set()
-    
-    for ref_base, alt_base in zip(ref_bases, alt_bases):
-        if ref_base == alt_base:
+    parts = []
+    for raw in open(path, encoding="utf-8"):
+        line = raw.strip()
+        if not line:
             continue
-        
-        alt_codon_list = list(ref_codon)
-        
-        for i, (rb, ab) in enumerate(zip(ref_bases, alt_bases)):
-            if rb != ab:
-                alt_codon_list[i] = ab
-        
-        alt_codons.add(''.join(alt_codon_list))
-    
-    return list(alt_codons)
+        if line.startswith(">"):
+            if name is not None:
+                out[name] = "".join(parts).upper()
+            name = line[1:].split()[0]
+            parts = []
+        else:
+            parts.append(line)
+    if name is not None:
+        out[name] = "".join(parts).upper()
+    if not out:
+        raise ValueError(f"No sequence found in {path}")
+    return out
 
 
-def parse_rule_definition(rule_def):
-    """Parse rule definition into list of (position, amino_acid) tuples."""
-    rule_def = rule_def.strip()
-    if not rule_def:
-        return []
-    
-    rules = []
-    parts = re.split(r'\s+and\s+', rule_def, flags=re.IGNORECASE)
-    
-    for part in parts:
-        part = part.strip()
-        match = re.match(r'(\d+)\s*(del|[A-Za-z*]+)?', part)
+def gff(path):
+    out = {}
+    for raw in open(path, encoding="utf-8"):
+        fields = raw.rstrip().split("\t")
+        if raw.startswith("#") or len(fields) != 9 or fields[2] != "gene":
+            continue
+        attrs = {}
+        for item in fields[8].split(";"):
+            separator = "=" if "=" in item else (":" if ":" in item else None)
+            if separator:
+                key, value = item.split(separator, 1)
+                attrs[key] = value
+        if attrs.get("gene"):
+            out[attrs["gene"]] = {
+                "chrom": fields[0],
+                "start": int(fields[3]),
+                "end": int(fields[4]),
+                "strand": fields[6],
+            }
+    return out
+
+
+def rc(seq):
+    return seq.translate(str.maketrans("ACGTRYMKSWBDHVN", "TGCAYRKMSWVHDBN"))[::-1]
+
+
+def codons(codon):
+    result = [""]
+    for char in codon.upper():
+        result = [prefix + base for prefix in result for base in IUPAC.get(char, "N")]
+    return result
+
+
+def aas(codon):
+    return (
+        {TABLE.get(item, "X") for item in codons(codon)} if len(codon) == 3 else set()
+    )
+
+
+def protein(seq):
+    result = []
+    for offset in range(0, len(seq) - 2, 3):
+        choices = sorted(aas(seq[offset : offset + 3]) - {"X"})
+        result.append(choices[0] if choices else "X")
+    return "".join(result)
+
+
+def position_map(reference, query):
+    """Needleman-Wunsch map from 1-based H77 residues to sample residues."""
+    rows, cols = len(reference) + 1, len(query) + 1
+    score = [[0] * cols for _ in range(rows)]
+    trace = [[0] * cols for _ in range(rows)]
+    for i in range(1, rows):
+        score[i][0] = -2 * i
+        trace[i][0] = 1
+    for j in range(1, cols):
+        score[0][j] = -2 * j
+        trace[0][j] = 2
+    for i in range(1, rows):
+        for j in range(1, cols):
+            values = (
+                score[i - 1][j - 1] + (2 if reference[i - 1] == query[j - 1] else -1),
+                score[i - 1][j] - 2,
+                score[i][j - 1] - 2,
+            )
+            score[i][j] = max(values)
+            trace[i][j] = values.index(score[i][j])
+    result = {}
+    i, j = len(reference), len(query)
+    while i or j:
+        direction = trace[i][j]
+        if i and j and direction == 0:
+            result[i] = j
+            i -= 1
+            j -= 1
+        elif i and (not j or direction == 1):
+            result[i] = None
+            i -= 1
+        else:
+            j -= 1
+    return result
+
+
+def parts(definition):
+    result = []
+    for raw in re.split(r"\s+and\s+", (definition or "").strip(), flags=re.I):
+        match = re.fullmatch(r"(\d+)\s*(del|[A-Za-z*]+)?", raw.strip())
         if match:
-            pos = int(match.group(1))
-            aa = match.group(2) if match.group(2) else ''
-            if aa == 'del':
-                aa = 'del'
-            rules.append({
-                'position': pos,
-                'aa': aa,
-                'raw': part
-            })
-    
-    return rules
+            result.append(
+                {
+                    "position": int(match.group(1)),
+                    "aa": match.group(2) or "",
+                    "raw": raw.strip(),
+                }
+            )
+    return result
 
 
-def parse_subtype_pattern(pattern):
-    """Parse subtype pattern and return list of subtypes it applies to."""
-    pattern = pattern.strip()
-    if not pattern:
-        return []
-    
-    subtypes = set()
-    parts = [p.strip() for p in pattern.split(',')]
-    
-    for part in parts:
-        if part == '1':
-            subtypes.update([f'1{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm']])
-        elif part == '2':
-            subtypes.update([f'2{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'k', 'l', 'm']])
-        elif part == '3':
-            subtypes.update([f'3{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm']])
-        elif part == '4':
-            subtypes.update([f'4{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r']])
-        elif part == '5':
-            subtypes.update([f'5{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q']])
-        elif part == '6':
-            subtypes.update([f'6{suffix}' for suffix in ['', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 't', 'u', 'v', 'w', 'x']])
-        elif part.startswith('1') or part.startswith('2') or part.startswith('3') or \
-             part.startswith('4') or part.startswith('5') or part.startswith('6'):
-            subtypes.add(part)
-        else:
-            subtypes.add(part)
-    
-    return list(subtypes)
+def genotype(subtype):
+    match = re.match(r"\d+", subtype.strip())
+    return match.group() if match else ""
 
 
-def subtype_genotype(subtype):
-    """Return the leading genotype number from a subtype label."""
-    match = re.match(r'\s*(\d+)', subtype or '')
-    return match.group(1) if match else ''
+def subtype_match(subtype, selector):
+    return any(
+        item == subtype.lower() or (item.isdigit() and item == genotype(subtype))
+        for item in (x.strip().lower() for x in (selector or "").split(","))
+    )
 
 
-def subtype_matches_pattern(subtype, pattern):
-    """Return true when a geno2pheno subtype selector applies to subtype."""
-    subtype = (subtype or '').strip().lower()
-    if not subtype:
-        return False
-
-    for part in [p.strip().lower() for p in (pattern or '').split(',') if p.strip()]:
-        if part == subtype:
-            return True
-        if part.isdigit() and subtype_genotype(subtype) == part:
-            return True
-
-    return False
+def licensed(subtype, selector):
+    return genotype(subtype) in {x.strip() for x in (selector or "").split(",")}
 
 
-def genotype_wide_patterns_for_subtype(subtype, rules):
-    """Return genotype-wide selectors that will be applied to this subtype."""
-    subtype = (subtype or '').strip().lower()
-    genotype = subtype_genotype(subtype)
-    if not subtype or not genotype or subtype == genotype:
-        return []
-
-    patterns = set()
-    for rule in rules:
-        for part in [p.strip().lower() for p in (rule.get('subtype_pattern', '') or '').split(',') if p.strip()]:
-            if part.isdigit() and part == genotype:
-                patterns.add(part)
-
-    return sorted(patterns)
+def rules(path):
+    if Path(path).suffix.lower() == ".json":
+        return load_rules_json(path)["rules"]
+    _, rows = load_rules_rows_from_csv(path)
+    data = normalize_rows(rows)
+    return [dict(zip(data["columns"], row)) for row in data["rules"]]
 
 
-def build_rules_index(rules_json):
-    """Build tuple-keyed rule index from the normalized JSON artifact."""
-    index = defaultdict(list)
-    for rule in rules_json.get('rules', []):
-        parsed_definition = parse_rule_definition(rule['rule_definition'])
-        expanded_subtypes = parse_subtype_pattern(rule.get('subtype_pattern', ''))
-        for parsed_rule in parsed_definition:
-            index[(rule['region'], parsed_rule['position'], parsed_rule['aa'])].append({
-                'drug': rule['drug'],
-                'rule_definition': rule['rule_definition'],
-                'subtypes': expanded_subtypes,
-                'subtype_pattern': rule.get('subtype_pattern', ''),
-                'prediction': rule['prediction'],
-                'reference': rule['reference'],
-                'is_compound': len(parsed_definition) > 1,
-            })
-    return index
+def h77_genes(path):
+    genome = next(iter(fasta(path).values()))
+    out = {}
+    for gene, (start, end) in H77.items():
+        nuc = genome[start - 1 : end]
+        out[gene] = {"nuc": nuc, "protein": protein(nuc)}
+    return out
 
 
-def load_rules_data(rules_path):
-    rules_path = Path(rules_path)
-    if rules_path.suffix.lower() == '.json':
-        return load_rules_json(rules_path)
-    if rules_path.suffix.lower() == '.csv':
-        _, rows = load_rules_rows_from_csv(rules_path)
-        data = normalize_rows(rows)
-        columns = data.get('columns', [])
-        data['rules'] = [dict(zip(columns, row)) for row in data.get('rules', [])]
-        return data
-    raise ValueError(f"Unsupported rules file format: {rules_path}")
+def make_sites(sequence, genes, h77, applicable):
+    sites = {}
+    for gene in sorted({r["region"] for r in applicable} & H77.keys()):
+        if gene not in genes:
+            continue
+        info = genes[gene]
+        nuc = sequence[info["start"] - 1 : info["end"]]
+        if info["strand"] == "-":
+            nuc = rc(nuc)
+        mapping = position_map(h77[gene]["protein"], protein(nuc))
+        positions = sorted(
+            {
+                p["position"]
+                for r in applicable
+                if r["region"] == gene
+                for p in parts(r["rule_definition"])
+            }
+        )
+        for pos in positions:
+            sample_pos = mapping.get(pos)
+            ref_codon = h77[gene]["nuc"][(pos - 1) * 3 : pos * 3]
+            ref_aa = next(iter(aas(ref_codon)))
+            if sample_pos is None:
+                sites[(gene, pos)] = {
+                    "gene": gene,
+                    "h77_position": pos,
+                    "sample_aa_position": None,
+                    "genomic_start": None,
+                    "genomic_end": None,
+                    "strand": info["strand"],
+                    "h77_codon": ref_codon,
+                    "sample_codon": "---",
+                    "h77_aa": ref_aa,
+                    "amino_acids": ["del"],
+                    "assessed": True,
+                }
+                continue
+            offset = (sample_pos - 1) * 3
+            sample_codon = nuc[offset : offset + 3]
+            if info["strand"] == "+":
+                start = info["start"] + offset
+                end = start + 2
+            else:
+                end = info["end"] - offset
+                start = end - 2
+            possible = sorted(aas(sample_codon))
+            assessed = (
+                len(sample_codon) == 3
+                and bool(possible)
+                and not ({"X", "*"} & set(possible))
+            )
+            sites[(gene, pos)] = {
+                "gene": gene,
+                "h77_position": pos,
+                "sample_aa_position": sample_pos,
+                "genomic_start": start,
+                "genomic_end": end,
+                "strand": info["strand"],
+                "h77_codon": ref_codon,
+                "sample_codon": sample_codon,
+                "h77_aa": ref_aa,
+                "amino_acids": possible,
+                "assessed": assessed,
+            }
+    return sites
 
 
-def match_variant_to_rules(region, aa_pos, possible_aa, subtype, rules_index):
-    """Match a variant against resistance rules."""
-    matches = []
-    
-    for aa in possible_aa:
-        key = (region, aa_pos, aa)
-        for rule in rules_index.get(key, []):
-            if subtype in rule['subtypes'] or subtype_matches_pattern(subtype, rule.get('subtype_pattern', '')):
-                matches.append(rule)
-    
-    return matches
+def read_codon(read, positions, min_bq):
+    found = {}
+    qualities = read.query_qualities or []
+    for query_pos, ref_pos in read.get_aligned_pairs(matches_only=False):
+        if (
+            ref_pos in positions
+            and query_pos is not None
+            and query_pos < len(read.query_sequence or "")
+            and query_pos < len(qualities)
+            and qualities[query_pos] >= min_bq
+        ):
+            found[ref_pos] = read.query_sequence[query_pos].upper()
+    if len(found) != 3 or any(found[p] not in "ACGT" for p in positions):
+        return None
+    return "".join(found[p] for p in positions)
 
 
-def gff_escape(value):
-    """Escape a GFF3 attribute value."""
-    escaped = []
+def evidence(sites, cram, reference, min_bq, min_depth):
+    if not cram:
+        return
+    if pysam is None:
+        raise RuntimeError("pysam is required with --cram")
+    with pysam.AlignmentFile(cram, "rc", reference_filename=reference) as handle:
+        for site in sites.values():
+            start, end = site["genomic_start"], site["genomic_end"]
+            if start is None:
+                site["codon_evidence"] = {
+                    "depth": 0,
+                    "amino_acid_frequencies": {},
+                    "assessed": False,
+                }
+                continue
+            positions = list(range(start - 1, end))
+            ordered = positions if site["strand"] == "+" else list(reversed(positions))
+            templates = defaultdict(set)
+            for read in handle.fetch(
+                site.get("chrom", handle.references[0]), start - 1, end
+            ):
+                if (
+                    read.is_unmapped
+                    or read.is_secondary
+                    or read.is_supplementary
+                    or read.is_qcfail
+                    or read.is_duplicate
+                ):
+                    continue
+                codon = read_codon(read, ordered, min_bq)
+                if codon:
+                    templates[read.query_name].add(
+                        rc(codon) if site["strand"] == "-" else codon
+                    )
+            counts = Counter(
+                next(iter(value)) for value in templates.values() if len(value) == 1
+            )
+            aa_counts = Counter()
+            for codon, count in counts.items():
+                aa_counts[TABLE.get(codon, "X")] += count
+            depth = sum(counts.values())
+            site["codon_evidence"] = {
+                "depth": depth,
+                "codon_counts": dict(sorted(counts.items())),
+                "amino_acid_frequencies": (
+                    {
+                        aa: round(count / depth, 6)
+                        for aa, count in sorted(aa_counts.items())
+                    }
+                    if depth
+                    else {}
+                ),
+                "assessed": depth >= min_depth,
+            }
+
+
+def evaluate(applicable, sites, subtype):
+    out = []
+    for index, rule in enumerate(applicable, 1):
+        rule_parts = parts(rule["rule_definition"])
+        assessed = []
+        matched = []
+        for part in rule_parts:
+            site = sites.get((rule["region"], part["position"]))
+            ok = bool(site and site["assessed"])
+            assessed.append(ok)
+            matched.append(ok and part["aa"] in site["amino_acids"])
+        state = "not_assessed"
+        if rule_parts and all(assessed):
+            state = (
+                "full"
+                if all(matched)
+                else ("partial" if len(rule_parts) > 1 and any(matched) else "none")
+            )
+        out.append(
+            {
+                "id": f"rule-{index}",
+                **rule,
+                "parts": rule_parts,
+                "match_state": state,
+                "licensed": licensed(
+                    subtype, rule.get("drug_licensed_for_genotype", "")
+                ),
+            }
+        )
+    return out
+
+
+def outcome(drug_rules, sites):
+    if not any(r["licensed"] for r in drug_rules):
+        return "not licensed", None
+    full = [r for r in drug_rules if r["match_state"] == "full"]
+    if full:
+        prediction = min(
+            (r["prediction"] for r in full), key=lambda x: RANK.get(x.lower(), 9)
+        )
+        return prediction, prediction
+    if not any(r["match_state"] != "not_assessed" for r in drug_rules):
+        return "not assessed", None
+    changed = any(
+        (site := sites.get((r["region"], p["position"])))
+        and site["assessed"]
+        and set(site["amino_acids"]) != {site["h77_aa"]}
+        for r in drug_rules
+        for p in r["parts"]
+    )
+    return ("susceptible with scored substitutions" if changed else "susceptible"), None
+
+
+def escape(value):
+    out = []
     for char in str(value):
-        codepoint = ord(char)
-        if char in '%;=,&' or codepoint < 0x20 or codepoint == 0x7F:
-            escaped.extend(f"%{byte:02X}" for byte in char.encode('utf-8'))
-        else:
-            escaped.append(char)
-    return ''.join(escaped)
+        out.extend(
+            [f"%{byte:02X}" for byte in char.encode()]
+            if char in "%\t\n\r;=,&"
+            else [char]
+        )
+    return "".join(out)
+
+
+def checksum(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def write(output, sample, subtype, sites, evaluations, rules_path, args):
+    output.mkdir(parents=True, exist_ok=True)
+    matched = defaultdict(list)
+    relevant = defaultdict(list)
+    for rule in evaluations:
+        for part in rule["parts"]:
+            key = (rule["region"], part["position"])
+            relevant[key].append(rule)
+            if rule["match_state"] == "full" and part["aa"] in sites.get(key, {}).get(
+                "amino_acids", []
+            ):
+                matched[key].append(rule)
+    rows = []
+    for key, site_rules in sorted(matched.items()):
+        site = sites[key]
+        alt = (
+            ",".join(sorted(set(site["amino_acids"]) - {site["h77_aa"]}))
+            or site["h77_aa"]
+        )
+        rows.append(
+            {
+                "sample": sample,
+                "gene": site["gene"],
+                "genomic_start": site["genomic_start"],
+                "genomic_end": site["genomic_end"],
+                "ref_nuc": site["h77_codon"],
+                "alt_nuc": site["sample_codon"],
+                "aa_pos": site["h77_position"],
+                "ref_aa": site["h77_aa"],
+                "alt_aa": alt,
+                "rule_definition": "; ".join(
+                    sorted({r["rule_definition"] for r in site_rules})
+                ),
+                "drugs": ", ".join(sorted({r["drug"] for r in site_rules})),
+                "prediction": "; ".join(sorted({r["prediction"] for r in site_rules})),
+                "reference": "; ".join(sorted({r["reference"] for r in site_rules})),
+                "strand": site["strand"],
+            }
+        )
+    fields = "sample gene genomic_start genomic_end ref_nuc alt_nuc aa_pos ref_aa alt_aa rule_definition drugs prediction reference strand".split()
+    with open(
+        output / f"{sample}_resistance.tsv", "w", newline="", encoding="utf-8"
+    ) as handle:
+        writer = csv.DictWriter(handle, fields, delimiter="\t", lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    with open(output / f"{sample}_resistance.bed", "w", encoding="utf-8") as handle:
+        handle.write("#chrom\tstart\tend\tname\tscore\tstrand\n")
+        for r in rows:
+            handle.write(
+                f"{sample}\t{r['genomic_start']-1}\t{r['genomic_end']}\t{r['gene']}:{r['aa_pos']}:{r['ref_aa']}>{r['alt_aa']}\t0\t{r['strand']}\n"
+            )
+    with open(output / f"{sample}_resistance.gff", "w", encoding="utf-8") as handle:
+        handle.write("##gff-version 3\n")
+        for r in rows:
+            attrs = {
+                "ID": f"{r['gene']}:{r['aa_pos']}",
+                "gene": r["gene"],
+                "aa_pos": r["aa_pos"],
+                "aa_change": f"{r['ref_aa']}>{r['alt_aa']}",
+                "ref_codon": r["ref_nuc"],
+                "sample_codon": r["alt_nuc"],
+                "drugs": r["drugs"],
+                "prediction": r["prediction"],
+                "rule_definition": r["rule_definition"],
+                "reference": r["reference"],
+            }
+            handle.write(
+                f"{sample}\tgeno2pheno\tresistance_mutation\t{r['genomic_start']}\t{r['genomic_end']}\t.\t{r['strand']}\t.\t"
+                + ";".join(f"{k}={escape(v)}" for k, v in attrs.items())
+                + "\n"
+            )
+    by_drug = defaultdict(list)
+    for rule in evaluations:
+        by_drug[rule["drug"]].append(rule)
+    drug_outcomes = []
+    with open(
+        output / f"{sample}_resistance_by_drug.tsv", "w", newline="", encoding="utf-8"
+    ) as handle:
+        writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+        writer.writerow(
+            [
+                "drug",
+                "outcome",
+                "prediction",
+                "licensed",
+                "matched_rules",
+                "partial_rules",
+            ]
+        )
+        for drug, drug_rules in sorted(by_drug.items()):
+            state, prediction = outcome(drug_rules, sites)
+            record = {
+                "drug": drug,
+                "outcome": state,
+                "prediction": prediction,
+                "licensed": any(r["licensed"] for r in drug_rules),
+                "matched_rules": sorted(
+                    {
+                        r["rule_definition"]
+                        for r in drug_rules
+                        if r["match_state"] == "full"
+                    }
+                ),
+                "partial_rules": sorted(
+                    {
+                        r["rule_definition"]
+                        for r in drug_rules
+                        if r["match_state"] == "partial"
+                    }
+                ),
+            }
+            drug_outcomes.append(record)
+            writer.writerow(
+                [
+                    drug,
+                    state,
+                    prediction or "",
+                    str(record["licensed"]).lower(),
+                    "; ".join(record["matched_rules"]),
+                    "; ".join(record["partial_rules"]),
+                ]
+            )
+    with open(
+        output / f"{sample}_resistance_sites.gff3", "w", encoding="utf-8"
+    ) as handle:
+        handle.write("##gff-version 3\n")
+        for key, site in sorted(sites.items()):
+            if site["genomic_start"] is None:
+                continue
+            rs = relevant[key]
+            ev = site.get("codon_evidence", {})
+            frequencies = ",".join(
+                f"{aa}:{freq:.1%}"
+                for aa, freq in ev.get("amino_acid_frequencies", {}).items()
+            )
+            state = (
+                "not_assessed"
+                if not site["assessed"]
+                else ("resistance" if key in matched else "observed")
+            )
+            attrs = {
+                "ID": f"site:{site['gene']}:{site['h77_position']}",
+                "gene": site["gene"],
+                "h77_position": site["h77_position"],
+                "sample_aa_position": site["sample_aa_position"],
+                "h77_aa": site["h77_aa"],
+                "observed_aa": ",".join(site["amino_acids"]),
+                "h77_codon": site["h77_codon"],
+                "sample_codon": site["sample_codon"],
+                "state": state,
+                "drugs": ", ".join(sorted({r["drug"] for r in rs})),
+                "rules": "; ".join(sorted({r["rule_definition"] for r in rs})),
+                "codon_depth": ev.get("depth", ""),
+                "aa_frequencies": frequencies,
+            }
+            handle.write(
+                f"{sample}\tgeno2pheno\tresistance_site\t{site['genomic_start']}\t{site['genomic_end']}\t.\t{site['strand']}\t.\t"
+                + ";".join(f"{k}={escape(v)}" for k, v in attrs.items())
+                + "\n"
+            )
+    payload = {
+        "schema_version": "2.0",
+        "caller": "annotate_vcf_resistance.py",
+        "caller_version": "2.0",
+        "sample": sample,
+        "subtype": subtype,
+        "baseline_cutoff": 0.15,
+        "baseline_source": "15% IUPAC consensus",
+        "rules_sha256": checksum(rules_path),
+        "h77_sha256": checksum(args.h77_fasta),
+        "exploratory_cutoff_range": {"minimum": 0.02, "maximum": 0.50},
+        "codon_evidence_parameters": {
+            "minimum_base_quality": args.minimum_base_quality,
+            "minimum_depth": args.minimum_depth,
+            "primary_alignments_only": True,
+            "overlapping_mates_count_once": True,
+            "mate_conflicts_discarded": True,
+        },
+        "warnings": [],
+        "drug_outcomes": drug_outcomes,
+        "sites": [site for _, site in sorted(sites.items())],
+        "rules": [
+            {k: v for k, v in rule.items() if k != "reference"} for rule in evaluations
+        ],
+    }
+    for site in payload["sites"]:
+        ev = site.get("codon_evidence")
+        if ev and ev["assessed"]:
+            called = {
+                aa for aa, freq in ev["amino_acid_frequencies"].items() if freq >= 0.15
+            }
+            if set(site["amino_acids"]) != called:
+                payload["warnings"].append(
+                    f"15% IUPAC/codon evidence disagreement at {site['gene']} {site['h77_position']}: {site['amino_acids']} vs {sorted(called)}"
+                )
+    with open(output / f"{sample}_resistance.json", "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Annotate VCF variants with HCV drug resistance information'
-    )
-    parser.add_argument(
-        '--vcf', '-v',
-        required=True,
-        help='Input VCF file'
-    )
-    parser.add_argument(
-        '--gff', '-g',
-        required=True,
-        help='VADR GFF file with gene coordinates'
-    )
-    parser.add_argument(
-        '--fasta', '-f',
-        required=True,
-        help='IUPAC FASTA file'
-    )
-    parser.add_argument(
-        '--subtype', '-s',
-        required=True,
-        help='HCV subtype (e.g., 3a, 1b)'
-    )
-    parser.add_argument(
-        '--rules', '-r',
-        default='hcv_geno2pheno_rules.csv',
-        help='Rules JSON or CSV file (default: hcv_geno2pheno_rules.csv)'
-    )
-    parser.add_argument(
-        '--output-dir', '-o',
-        default='results',
-        help='Output directory (default: results subfolder of VCF location)'
-    )
-    parser.add_argument(
-        '--sample-name',
-        help='Sample name (default: derived from VCF)'
-    )
-    parser.add_argument(
-        '--ref-bed',
-        action='store_true',
-        help='Also generate reference BED with all resistance positions from rules'
-    )
-    parser.add_argument(
-        '--assets-dir',
-        default='assets',
-        help='Directory for reference files (default: assets)'
-    )
-    
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--fasta", "-f", required=True)
+    parser.add_argument("--gff", "-g", required=True)
+    parser.add_argument("--subtype", "-s", required=True)
+    parser.add_argument("--rules", "-r", required=True)
+    parser.add_argument("--h77-fasta", required=True)
+    parser.add_argument("--cram")
+    parser.add_argument("--vcf", help="Deprecated and ignored")
+    parser.add_argument("--sample-name")
+    parser.add_argument("--output-dir", "-o", default="results")
+    parser.add_argument("--minimum-base-quality", type=int, default=13)
+    parser.add_argument("--minimum-depth", type=int, default=7)
     args = parser.parse_args()
-    
-    print(f"Loading rules from {args.rules}...")
-    rules_json = load_rules_data(args.rules)
-    rules = rules_json.get('rules', [])
-    rules_index = build_rules_index(rules_json)
-    print(f"Loaded {len(rules)} rules")
-
-    if not any(subtype_matches_pattern(args.subtype, rule.get('subtype_pattern', '')) for rule in rules):
-        raise SystemExit(f"No geno2pheno rules found for subtype '{args.subtype}' in {args.rules}")
-
-    genotype_patterns = genotype_wide_patterns_for_subtype(args.subtype, rules)
-    if genotype_patterns:
-        print(
-            "Note: applying genotype-wide geno2pheno subtype selector(s) "
-            f"{', '.join(genotype_patterns)} to subtype {args.subtype}. "
-            "This assumes genotype-level rules apply to subtype variants with the same leading genotype."
-        )
-    
-    print(f"Parsing GFF: {args.gff}")
-    genes = parse_gff(args.gff)
-    print(f"Found {len(genes)} genes: {', '.join(genes.keys())}")
-    
-    print(f"Parsing FASTA: {args.fasta}")
-    fasta_name, fasta_seq = parse_fasta(args.fasta)
-    print(f"FASTA length: {len(fasta_seq)} bp")
-    
-    sample_name = args.sample_name
-    if not sample_name:
-        sample_name = Path(args.vcf).stem.replace('.vcf', '').replace('.gz', '')
-    
-    output_dir = Path(args.output_dir)
-    
-    assets_dir = Path(args.assets_dir)
-    
-    if args.ref_bed:
-        ref_bed_file = assets_dir / "resistance_reference.bed"
-        print(f"\nGenerating reference BED: {ref_bed_file}")
-        assets_dir.mkdir(parents=True, exist_ok=True)
-        with open(ref_bed_file, 'w') as f:
-            f.write("#chrom\tstart\tend\tname\tscore\tstrand\tgene\tdrugs\tprediction\n")
-            for rule in sorted(rules, key=lambda item: (item['region'], item['drug'], item['rule_definition'])):
-                gene = rule['region']
-                if gene not in genes:
-                    continue
-                gene_info = genes[gene]
-                strand = gene_info.get('strand', '+')
-                gene_start = gene_info['start']
-                for parsed_rule in parse_rule_definition(rule['rule_definition']):
-                    pos = parsed_rule['position']
-                    aa = parsed_rule['aa']
-                    drug = rule['drug']
-                    pred = rule['prediction']
-                    codon_start = gene_start + (pos - 1) * 3
-                    codon_end = codon_start + 3
-                    f.write(f"REF\t{codon_start-1}\t{codon_end}\t{gene}:{pos}:{aa}\t0\t{strand}\t{gene}\t{drug}\t{pred}\n")
-        print(f"Reference BED written with {len(rules)} entries")
-    
-    print(f"Parsing VCF: {args.vcf}")
-    variants = parse_vcf(args.vcf)
-    print(f"Found {len(variants)} variants with ALT alleles")
-    
-    print(f"\nAnalyzing variants for subtype {args.subtype}...")
-    
-    results = []
-    found_variants = defaultdict(set)
-    
-    for var in variants:
-        chrom = var['chrom']
-        pos = var['pos']
-        ref = var['ref']
-        alt = var['alt']
-        
-        gene_name, gene_info = find_gene_for_position(pos, genes)
-        
-        if not gene_name:
-            continue
-        
-        if gene_name not in ['NS3', 'NS5A', 'NS5B', 'NS2', 'E1', 'E2', 'core', 'p7', 'NS4A', 'NS4B']:
-            continue
-        
-        aa_pos, codon_offset = calculate_aa_position(
-            pos, gene_info['start'], gene_info['end'], gene_info['strand']
-        )
-        
-        ref_codon, codon_start = extract_codon_from_fasta(
-            pos, gene_info['start'], gene_info['end'], fasta_seq,
-            gene_info['strand'], codon_offset
-        )
-        
-        codon_end = codon_start + 2
-        
-        possible_ref_aa = get_possible_aa(ref_codon)
-        
-        ref_base = ref[0] if ref else ''
-        alt_base = alt[0] if alt else ''
-        
-        if len(ref) > 1 or len(alt) > 1:
-            continue
-        
-        alt_codons = generate_alt_codons(ref_codon, ref_base, alt_base)
-        possible_alt_aa = set()
-        for ac in alt_codons:
-            possible_alt_aa.update(get_possible_aa(ac))
-        
-        matches = match_variant_to_rules(
-            gene_name, aa_pos, possible_alt_aa, args.subtype, rules_index
-        )
-        found_variants[(gene_name, aa_pos)].update(possible_alt_aa)
-        
-        for match in matches:
-            ref_aa_str = ','.join(sorted(possible_ref_aa)) if possible_ref_aa else '-'
-            alt_aa_str = ','.join(sorted(possible_alt_aa)) if possible_alt_aa else '-'
-            
-            results.append({
-                'sample': sample_name,
-                'gene': gene_name,
-                'genomic_pos': pos,
-                'codon_start': codon_start,
-                'codon_end': codon_end,
-                'ref_nuc': ref,
-                'alt_nuc': alt,
-                'aa_pos': aa_pos,
-                'ref_aa': ref_aa_str,
-                'alt_aa': alt_aa_str,
-                'rule_definition': match['rule_definition'],
-                'drug': match['drug'],
-                'prediction': match['prediction'],
-                'reference': match['reference'],
-                'is_compound': match.get('is_compound', False),
-                'strand': gene_info['strand']
-            })
-
-    filtered_results = []
-    for result in results:
-        if not result['is_compound']:
-            filtered_results.append(result)
-            continue
-
-        compound_parts = parse_rule_definition(result['rule_definition'])
-        if all(
-            part['aa'] in found_variants.get((result['gene'], part['position']), set())
-            for part in compound_parts
-        ):
-            filtered_results.append(result)
-
-    print(f"Found {len(filtered_results)} rule matches after compound-rule filtering")
-    
-    grouped = defaultdict(lambda: {
-        'codon_start': None,
-        'codon_end': None,
-        'ref_nuc': '',
-        'alt_nuc': '',
-        'drugs': set(),
-        'predictions': set(),
-        'references': set(),
-        'rule_definitions': set()
-    })
-    
-    for r in filtered_results:
-        key = (r['gene'], r['aa_pos'], r['ref_aa'], r['alt_aa'])
-        if grouped[key]['codon_start'] is None:
-            grouped[key]['codon_start'] = r['codon_start']
-            grouped[key]['codon_end'] = r['codon_end']
-        grouped[key]['ref_nuc'] = r['ref_nuc']
-        grouped[key]['alt_nuc'] = r['alt_nuc']
-        grouped[key]['drugs'].add(r['drug'])
-        grouped[key]['predictions'].add(r['prediction'])
-        grouped[key]['references'].add(r['reference'])
-        grouped[key]['rule_definitions'].add(r['rule_definition'])
-        grouped[key]['strand'] = r['strand']
-    
-    consolidated = []
-    for (gene, aa_pos, ref_aa, alt_aa), data in sorted(grouped.items()):
-        consolidated.append({
-            'sample': sample_name,
-            'gene': gene,
-            'genomic_start': data['codon_start'],
-            'genomic_end': data['codon_end'],
-            'ref_nuc': data['ref_nuc'],
-            'alt_nuc': data['alt_nuc'],
-            'aa_pos': aa_pos,
-            'ref_aa': ref_aa,
-            'alt_aa': alt_aa,
-            'rule_definition': '; '.join(sorted(data['rule_definitions'])),
-            'drugs': ', '.join(sorted(data['drugs'])),
-            'prediction': '; '.join(sorted(data['predictions'])),
-            'reference': '; '.join(sorted(data['references'])),
-            'strand': data['strand']
-        })
-    
-    print(f"Consolidated to {len(consolidated)} unique amino acid changes")
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    tsv_file = output_dir / f"{sample_name}_resistance.tsv"
-    print(f"\nWriting TSV: {tsv_file}")
-    with open(tsv_file, 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=[
-            'sample', 'gene', 'genomic_start', 'genomic_end', 'ref_nuc', 'alt_nuc',
-            'aa_pos', 'ref_aa', 'alt_aa', 'rule_definition',
-            'drugs', 'prediction', 'reference', 'strand'
-        ], delimiter='\t', lineterminator='\n')
-        writer.writeheader()
-        for r in consolidated:
-            writer.writerow(r)
-    
-    bed_file = output_dir / f"{sample_name}_resistance.bed"
-    print(f"Writing BED: {bed_file}")
-    with open(bed_file, 'w') as f:
-        f.write("#chrom\tstart\tend\tname\tscore\tstrand\n")
-        for r in consolidated:
-            bed_name = f"{r['gene']}:{r['aa_pos']}:{r['ref_aa']}>{r['alt_aa']}"
-            f.write(f"{sample_name}\t{r['genomic_start']-1}\t{r['genomic_end']}\t{bed_name}\t0\t{r['strand']}\n")
-
-    gff_file = output_dir / f"{sample_name}_resistance.gff"
-    print(f"Writing GFF: {gff_file}")
-    with open(gff_file, 'w') as f:
-        f.write("##gff-version 3\n")
-        for r in consolidated:
-            feature_id = f"{r['gene']}:{r['aa_pos']}:{r['ref_aa']}>{r['alt_aa']}"
-            aa_change = f"{r['ref_aa']}>{r['alt_aa']}"
-            attributes = [
-                f"ID={gff_escape(feature_id)}",
-                f"gene={gff_escape(r['gene'])}",
-                f"aa_pos={gff_escape(r['aa_pos'])}",
-                f"aa_change={gff_escape(aa_change)}",
-                f"ref_nuc={gff_escape(r['ref_nuc'])}",
-                f"alt_nuc={gff_escape(r['alt_nuc'])}",
-                f"drugs={gff_escape(r['drugs'])}",
-                f"prediction={gff_escape(r['prediction'])}",
-                f"rule_definition={gff_escape(r['rule_definition'])}",
-                f"reference={gff_escape(r['reference'])}",
-            ]
-            f.write(
-                f"{sample_name}\tgeno2pheno\tresistance_mutation\t{r['genomic_start']}\t{r['genomic_end']}\t.\t"
-                f"{r['strand']}\t.\t{';'.join(attributes)}\n"
-            )
-
-    drug_focused = defaultdict(list)
-    for r in consolidated:
-        for drug in r['drugs'].split(', '):
-            drug_focused[drug.strip()].append(r)
-    
-    drug_tsv_file = output_dir / f"{sample_name}_resistance_by_drug.tsv"
-    print(f"Writing drug-focused TSV: {drug_tsv_file}")
-    with open(drug_tsv_file, 'w') as f:
-        f.write(f"#Resistance analysis for {sample_name} (subtype: {args.subtype})\n")
-        f.write(f"#Generated by annotate_vcf_resistance.py\n\n")
-        
-        for drug in sorted(drug_focused.keys()):
-            f.write(f"## {drug}\n")
-            writer = csv.DictWriter(f, fieldnames=[
-                'sample', 'gene', 'genomic_start', 'genomic_end', 'ref_nuc', 'alt_nuc',
-                'aa_pos', 'ref_aa', 'alt_aa', 'rule_definition',
-                'prediction', 'reference'
-            ], delimiter='\t', extrasaction='ignore', lineterminator='\n')
-            writer.writeheader()
-            for r in sorted(drug_focused[drug], key=lambda item: (item['gene'], item['aa_pos'], item['alt_aa'])):
-                writer.writerow(r)
-            f.write("\n")
-    
-    print("\nDone!")
-    
-    return 0
+    records = fasta(args.fasta)
+    name, sequence = next(iter(records.items()))
+    name = args.sample_name or name
+    all_rules = rules(args.rules)
+    applicable = [
+        r for r in all_rules if subtype_match(args.subtype, r["subtype_pattern"])
+    ]
+    if not applicable:
+        raise SystemExit(f"No geno2pheno rules apply to subtype {args.subtype}")
+    sites = make_sites(sequence, gff(args.gff), h77_genes(args.h77_fasta), all_rules)
+    evidence(
+        sites, args.cram, args.fasta, args.minimum_base_quality, args.minimum_depth
+    )
+    evaluations = evaluate(applicable, sites, args.subtype)
+    write(
+        Path(args.output_dir), name, args.subtype, sites, evaluations, args.rules, args
+    )
+    print(
+        f"Called {sum(r['match_state']=='full' for r in evaluations)} matching rules across {len(sites)} resistance sites"
+    )
 
 
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError) as exc:
+        sys.stderr.write(f"ERROR: {exc}\n")
+        raise SystemExit(1)

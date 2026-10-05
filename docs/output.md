@@ -38,6 +38,8 @@ Current final sample outputs include:
 - `SAMPLE001_resistance.bed`
 - `SAMPLE001_resistance.gff`
 - `SAMPLE001_resistance_by_drug.tsv`
+- `SAMPLE001_resistance.json`
+- `SAMPLE001_resistance_sites.gff3`
 - `SAMPLE001_display_rug_kde_plot.png`
 - `SAMPLE001_qc_summary.json`
 - `hostile.json` when host filtering is enabled

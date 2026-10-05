@@ -7,19 +7,24 @@ process ANNOTATE_RESISTANCE {
     time '1h'
     
     input:
-        tuple val(run_name), val(sample_id), path(vcf), path(gff), path(fasta)
+        tuple val(run_name), val(sample_id), path(gff), path(fasta), path(cram), path(crai)
         val subtype
         path rules_json
+        path h77_fasta
     
     output:
         path "*_resistance.tsv", emit: tsv, optional: true
         path "*_resistance.bed", emit: bed, optional: true
         path "*_resistance.gff", emit: gff, optional: true
         path "*_resistance_by_drug.tsv", emit: drug_tsv, optional: true
+        path "*_resistance.json", emit: json, optional: true
+        path "*_resistance_sites.gff3", emit: sites_gff, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance.tsv"), emit: tsv_with_meta, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance.bed"), emit: bed_with_meta, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance.gff"), emit: gff_with_meta, optional: true
         tuple val(run_name), val(sample_id), path("*_resistance_by_drug.tsv"), emit: drug_tsv_with_meta, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance.json"), emit: json_with_meta, optional: true
+        tuple val(run_name), val(sample_id), path("*_resistance_sites.gff3"), emit: sites_gff_with_meta, optional: true
     
     script:
     def active_profiles = workflow.profile ?: ''
@@ -33,6 +38,6 @@ process ANNOTATE_RESISTANCE {
         'python3'
     
     """
-    ${python} ${scripts_dir}/annotate_vcf_resistance.py --vcf ${vcf} --gff ${gff} --fasta ${fasta} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_json} --output-dir .
+    ${python} ${scripts_dir}/annotate_vcf_resistance.py --gff ${gff} --fasta ${fasta} --cram ${cram} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_json} --h77-fasta ${h77_fasta} --output-dir .
     """
 }

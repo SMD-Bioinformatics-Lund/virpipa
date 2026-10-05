@@ -1,2 +1,0 @@
-##gff-version 3
-SAMPLE001	geno2pheno	resistance_mutation	6550	6552	.	+	.	ID=NS5A:93:Y>H;gene=NS5A;aa_pos=93;aa_change=Y>H;ref_nuc=T;alt_nuc=C;drugs=Daclatasvir%2C Elbasvir%2C Ledipasvir%2C Ombitasvir%2C Velpatasvir;prediction=resistant;rule_definition=93H;reference=Hernandez et al. 2013%3B Hernandez et al. 2013%3BWang et al. 2013%3BLeroy et al. (26822022)%3B Lawitz et al. 2016%3B Liu et al. 2015%3Bhttp://www.ema.europa.eu/docs/en%3BGB/document%3Blibrary/EPAR%3B-%3BProduct%3BInformation/human/004126/WC500211235.pdf%3B g2p%3BExpert opinion

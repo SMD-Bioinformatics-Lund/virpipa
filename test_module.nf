@@ -324,13 +324,15 @@ Notes:
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
-                    file("${projectDir}/assets/test_data/resistance/SAMPLE001-positive-93H.vcf"),
                     file("${projectDir}/assets/test_data/vadr/SAMPLE001.vadr.pass_mod.gff"),
-                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta")
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram"),
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai")
                 )
             ),
             channel.value('3a'),
-            channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
+            channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv")),
+            channel.value(file("${projectDir}/refgenomes/1a-AF009606.fa"))
         )
     } else if (params.module == 'qc_summary') {
         BUILD_QC_SUMMARY(
@@ -394,6 +396,8 @@ Notes:
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.bed"),
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.gff"),
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance_by_drug.tsv"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance.json"),
+                    file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance_sites.gff3"),
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz"),
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.csi"),
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.stats")

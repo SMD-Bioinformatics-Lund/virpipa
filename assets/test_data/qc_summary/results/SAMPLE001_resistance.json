@@ -1,0 +1,10 @@
+{
+  "baseline_cutoff": 0.15,
+  "baseline_source": "15% IUPAC consensus",
+  "codon_evidence_parameters": {},
+  "drug_outcomes": [],
+  "rules_sha256": "fixture",
+  "schema_version": "2.0",
+  "sites": [],
+  "warnings": []
+}
