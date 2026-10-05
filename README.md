@@ -64,6 +64,10 @@ For a test-module run on Hopper:
 bash runme_test.sh resistance
 ```
 
+Production releases are installed separately from the development checkout.
+See [`docs/deployment.md`](docs/deployment.md) for deployment, version inspection,
+launcher integration, drift detection, and rollback instructions.
+
 ### Local Laptop
 
 Use the `skrotis` environment for local development:

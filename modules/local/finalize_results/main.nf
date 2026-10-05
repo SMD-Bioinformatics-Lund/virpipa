@@ -11,7 +11,7 @@ process FINALIZE_RESULTS {
             path(main_fasta), path(main_fai), path(main_blast), path(main_cram), path(main_crai),
             path(iupac_fasta), path(iupac_fai), path(iupac_blast), path(iupac_cram), path(iupac_crai), path(iupac_report), path(iupac_nucfreq),
             path(bestref_fasta), path(bestref_vcf), path(bestref_vcf_index), path(bestref_vcf_stats), path(bestref_cram), path(bestref_crai), path(bestref_report), path(bestref_nucfreq),
-            path(coverage_tsv), path(vadr_gff), path(vadr_bed), path(pilon_iupac_blast),
+            path(coverage_tsv), path(coverage_1x_bed), path(vadr_gff), path(vadr_bed), path(pilon_iupac_blast),
             path(resistance_tsv), path(resistance_bed), path(resistance_gff), path(resistance_drug_tsv),
             path(filtered_vcfs), path(filtered_indices), path(filtered_stats)
 
@@ -24,7 +24,7 @@ process FINALIZE_RESULTS {
     def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
     def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
-    def scripts_dir = params.scripts_dir != 'scripts' ? params.scripts_dir : (active_profiles.contains('hpc') ? '/fs1/jonas/src/virpipa/scripts' : "${projectDir}/scripts")
+    def scripts_dir = params.scripts_dir != 'scripts' ? params.scripts_dir : "${projectDir}/scripts"
     def mamba_env = env('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
     def outdir_root = params.outdir.toString().startsWith('/') ? params.outdir.toString() : "${launchDir}/${params.outdir}"
     def published_results_dir = "${outdir_root}/${run_name}/${sample_id}"
@@ -64,6 +64,7 @@ process FINALIZE_RESULTS {
     cp ${bestref_nucfreq} results/${bestref_nucfreq.getName()}
 
     cp ${coverage_tsv} results/${coverage_tsv.getName()}
+    cp ${coverage_1x_bed} results/${coverage_1x_bed.getName()}
     cp ${vadr_gff} results/${vadr_gff.getName()}
     cp ${vadr_bed} results/${vadr_bed.getName()}
     cp ${resistance_tsv} results/${resistance_tsv.getName()}

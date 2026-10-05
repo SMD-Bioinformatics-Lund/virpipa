@@ -354,6 +354,7 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
         "iupac_report": f"{sample_id}-0.15-iupac.report.tsv",
         "iupac_nucfreq": f"{sample_id}-0.15-iupac.fastanucfreq.tsv",
         "coverage_tsv": f"{sample_id}-coverage.tsv",
+        "coverage_1x_bed": f"{sample_id}-coverage-1x.bed",
         "display_rug_kde_plot": f"{sample_id}_display_rug_kde_plot.png",
         "vadr_pass_gff": f"{sample_id}.vadr.pass_mod.gff",
         "vadr_fail_gff": f"{sample_id}.vadr.fail_mod.gff",

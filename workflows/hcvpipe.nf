@@ -567,7 +567,7 @@ workflow HCVPIPE {
         .join(ch_hostile_json)
         .join(BAM2FASTA_PILON.out.replacement_fasta.map { run_name, sample_id, fasta, fai -> [sample_id, [fasta, fai]] })
         .join(ch_cram_output.map { run_name, sample_id, cram, crai -> [sample_id, [cram, crai]] })
-        .join(LOG_COVERAGE.out.coverage_with_meta.map { run_name, sample_id, coverage -> [sample_id, coverage] })
+        .join(LOG_COVERAGE.out.coverage_with_meta.map { run_name, sample_id, coverage, coverage_bed -> [sample_id, [coverage, coverage_bed]] })
         .join(BAM2FASTA_BESTREF.out.fasta.map { run_name, sample_id, fasta, fai -> [sample_id, fasta] })
         .join(BAM2FASTA_BESTREF.out.vcf_with_meta.map { run_name, sample_id, vcf -> [sample_id, vcf] })
         .join(BAM2FASTA_BESTREF.out.vcf_index_with_meta.map { run_name, sample_id, vcf_index -> [sample_id, vcf_index] })
@@ -591,7 +591,7 @@ workflow HCVPIPE {
         .join(ANNOTATE_RESISTANCE.out.bed_with_meta.map { run_name, sample_id, bed -> [sample_id, bed] })
         .join(ANNOTATE_RESISTANCE.out.gff_with_meta.map { run_name, sample_id, gff -> [sample_id, gff] })
         .join(ANNOTATE_RESISTANCE.out.drug_tsv_with_meta.map { run_name, sample_id, drug_tsv -> [sample_id, drug_tsv] })
-        .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_tsv,
+        .map { sample_id, sample_meta, hostile_json_path, main_fasta_meta, main_cram_meta, coverage_meta,
                 bestref_fasta, bestref_vcf, bestref_vcf_index, bestref_vcf_stats, bestref_cram_meta, bestref_report, bestref_nucfreq,
                 iupac_fasta_meta, iupac_cram_meta, iupac_report, iupac_nucfreq, vadr_gff, vadr_bed,
                 filtered_vcfs, filtered_indices, filtered_stats, main_blast, iupac_blast, pilon_iupac_blast,
@@ -621,7 +621,8 @@ workflow HCVPIPE {
                 bestref_cram_meta[1],
                 bestref_report,
                 bestref_nucfreq,
-                coverage_tsv,
+                coverage_meta[0],
+                coverage_meta[1],
                 vadr_gff,
                 vadr_bed,
                 pilon_iupac_blast,
