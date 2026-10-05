@@ -2,9 +2,21 @@
 
 nextflow.enable.dsl = 2
 
+def coerceIntegerParam(def raw) {
+    def text = raw?.toString()?.trim()
+    if (text && !text.equalsIgnoreCase('false')) {
+        return text.toInteger()
+    }
+    return 0
+}
+
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 
 workflow {
+    if (params.partition && params.queue && params.partition.toString() != params.queue.toString()) {
+        error "Provide either --partition or --queue for the SLURM partition, not both with different values"
+    }
+
     if (params.input && params.csv && params.input.toString() != params.csv.toString()) {
         error "Provide either --input or --csv for the samplesheet, not both with different values"
     }
@@ -14,7 +26,7 @@ workflow {
         error "Missing required parameter: --input <samplesheet.csv> (alias: --csv)"
     }
 
-    Channel
+    channel
         .fromPath(samplesheet_param, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
@@ -37,5 +49,5 @@ workflow {
         .set { ch_samples }
 
     // Pass nreads as separate parameter
-    SUBSAMPLE_READS(ch_samples, params.subsample_reads)
+    SUBSAMPLE_READS(ch_samples, coerceIntegerParam(params.subsample_reads))
 }

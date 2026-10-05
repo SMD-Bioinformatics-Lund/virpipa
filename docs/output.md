@@ -44,6 +44,9 @@ Current final sample outputs include:
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
 relative paths to key result files needed for tables, detail views, and IGV launchers.
+In `typing`, `main_blast_genotype` is the subtype/genotype call from the top BLAST hit.
+`best_mapping_subtype` is the subtype prefix of `report_reference`, the mapping-selected reference;
+these can differ from the BLAST call.
 All QC JSON `outputs` paths are relative to the directory containing the QC JSON. Standard sidecars
 such as `<main_fasta>.fai`, `<main_cram>.crai`, and `<filtered_vcf>.csi` are published on disk but
 not listed as separate JSON keys when their names are inferable. LID-specific duplicate FASTA
@@ -63,3 +66,7 @@ If enabled with `--pipeline_info`, Nextflow run metadata is also written to:
 - `results/<run_name>/pipeline_info/trace.txt`
 
 If `--run_name` is not provided, the built-in metadata path falls back to `results/pipeline_info_<timestamp>/`. DAG rendering is disabled by default; add `--pipeline_info_dag` to request `dag.svg` when Graphviz is available.
+
+If `--completion_log_dir <dir>` is provided, the pipeline also writes a legacy control-system
+completion summary to `<dir>/<run_name>-HCV.complete`. This file is intended for external
+launchers and is not written by default.

@@ -6,7 +6,7 @@ process ASSEMBLE_HYBRID {
     memory '32 GB'
     time '4h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/mummer", mode: 'copy', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/mummer" }, mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(contigs)
@@ -20,10 +20,11 @@ process ASSEMBLE_HYBRID {
         path "*.log", emit: logs
     
     script:
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
-    def scripts_dir = params.scripts_dir ?: '${projectDir}/scripts'
+    def scripts_dir = params.scripts_dir != 'scripts' ? params.scripts_dir : (active_profiles.contains('hpc') ? '/fs1/jonas/src/virpipa/scripts' : "${projectDir}/scripts")
     
     if (container_dir) {
         def mummer = "${container_runtime} exec -B ${bind_paths} ${container_dir}/mummer3.23.sif"
@@ -47,7 +48,7 @@ process ASSEMBLE_HYBRID {
         ${bwa} index ${sample_id}.hybrid.fasta 2>/dev/null || true
         """
     } else {
-        def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
+        def mamba_env = env('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
         
         """
         export PATH="${mamba_env}/bin:\$PATH"

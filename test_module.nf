@@ -5,6 +5,35 @@ nextflow.enable.dsl = 2
 params.module = params.module ?: 'help'
 params.subsample_reads = params.subsample_reads ?: 1000
 
+def coerceIntegerParam(def raw) {
+    def text = raw?.toString()?.trim()
+    if (text && !text.equalsIgnoreCase('false')) {
+        return text.toInteger()
+    }
+    return 0
+}
+
+def resolveTestPath(def raw_path) {
+    def input_path = raw_path.toString().trim()
+    if (!input_path) {
+        return null
+    }
+
+    def candidate = file(input_path)
+    if (candidate.exists()) {
+        return candidate
+    }
+
+    if (input_path.startsWith('/fs1/')) {
+        def mounted_path = file("/mnt${input_path}")
+        if (mounted_path.exists()) {
+            return mounted_path
+        }
+    }
+
+    return candidate
+}
+
 include { REMOVE_HOSTILE } from './modules/local/hostile/main'
 include { SUBSAMPLE_READS } from './modules/local/subsample/main'
 include { BAM2FASTA } from './modules/local/bam2fasta/main'
@@ -23,6 +52,7 @@ include { MAP_READS_NOOPT } from './modules/local/mapping_noopt/main'
 include { POLISH_PILON_LOOP } from './modules/local/polish/main'
 include { BUILD_QC_SUMMARY } from './modules/local/qc_summary/main'
 include { AGGREGATE_QC_SUMMARY } from './modules/local/qc_summary_aggregate/main'
+include { WRITE_VIRTITTA_IMPORT_MARKER } from './modules/local/virtitta_import_marker/main'
 include { FINALIZE_RESULTS } from './modules/local/finalize_results/main'
 
 workflow {
@@ -30,8 +60,15 @@ workflow {
         error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
     }
 
+    if (params.partition && params.queue && params.partition.toString() != params.queue.toString()) {
+        error "Provide either --partition or --queue for the SLURM partition, not both with different values"
+    }
+
     def test_input = params.input ?: "${projectDir}/assets/test_samplesheet.csv"
     def test_outdir = params.outdir
+    def subsample_reads = coerceIntegerParam(params.subsample_reads)
+    def subtype_blast_db = resolveTestPath(params.blast_db ?: '/fs1/jonas/hcv/refgenomes/hcvglue')
+    def vadr_model_dir = resolveTestPath(params.vadr_model_dir ?: '/fs1/resources/ref/micro/vadr/vadr-models-flavi')
 
     if (params.module == 'help') {
         println """
@@ -91,28 +128,7 @@ Notes:
         return
     }
 
-    def resolvePath = { raw_path ->
-        def input_path = raw_path.toString().trim()
-        if (!input_path) {
-            return null
-        }
-
-        def candidate = file(input_path)
-        if (candidate.exists()) {
-            return candidate
-        }
-
-        if (input_path.startsWith('/fs1/')) {
-            def mounted_path = file("/mnt${input_path}")
-            if (mounted_path.exists()) {
-                return mounted_path
-            }
-        }
-
-        return candidate
-    }
-
-    Channel
+    channel
         .fromPath(test_input, checkIfExists: true)
         .splitCsv(header: true)
         .map { row ->
@@ -132,17 +148,17 @@ Notes:
             }
 
             def run_name = (row.run_name ?: row.sequencing_run ?: params.run_name ?: 'test').toString().trim()
-            tuple(run_name, sample_id, resolvePath(read1), resolvePath(read2))
+            tuple(run_name, sample_id, resolveTestPath(read1), resolveTestPath(read2))
         }
         .set { ch_samples }
 
     if (params.module == 'hostile') {
         REMOVE_HOSTILE(ch_samples, params.hostile_cache_dir ?: '')
     } else if (params.module == 'subsample') {
-        SUBSAMPLE_READS(ch_samples, params.subsample_reads)
+        SUBSAMPLE_READS(ch_samples, subsample_reads)
     } else if (params.module == 'bam2fasta') {
         BAM2FASTA(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -156,7 +172,7 @@ Notes:
         )
     } else if (params.module == 'bestref') {
         SELECT_BEST_REFERENCE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -167,12 +183,12 @@ Notes:
         )
     } else if (params.module == 'mapping') {
         MAP_READS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
-                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz'),
-                    file('/mnt/fs1/jonas/hcv/results/test_run_bash_original/SAMPLE001-nextflow-nfcore-scaffold/fastq/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz'),
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R1_001.sub.fastq.gz"),
+                    file("${projectDir}/assets/test_data/polish/SAMPLE001_122-634521_S26_R2_001.sub.fastq.gz"),
                     file("${projectDir}/assets/test_data/mapping/3a-D17763.fa"),
                     '3a-D17763'
                 )
@@ -180,7 +196,7 @@ Notes:
         )
     } else if (params.module == 'mapping_noopt') {
         MAP_READS_NOOPT(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -193,7 +209,7 @@ Notes:
         )
     } else if (params.module == 'polish') {
         POLISH_PILON_LOOP(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -205,7 +221,7 @@ Notes:
         )
     } else if (params.module == 'consensus') {
         CREATE_CONSENSUS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -217,7 +233,7 @@ Notes:
         )
     } else if (params.module == 'filter_vcf') {
         FILTER_VCF(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -229,7 +245,7 @@ Notes:
         )
     } else if (params.module == 'variantcall') {
         VARIANT_CALLING(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -242,7 +258,7 @@ Notes:
         )
     } else if (params.module == 'cram') {
         CREATE_CRAM(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -255,7 +271,7 @@ Notes:
         )
     } else if (params.module == 'coverage') {
         LOG_COVERAGE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -267,18 +283,18 @@ Notes:
         )
     } else if (params.module == 'subtype') {
         SUBTYPE_BLAST(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
                     file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta")
                 )
             ),
-            Channel.value(file('/mnt/fs1/jonas/hcv/refgenomes/hcvglue'))
+            channel.value(subtype_blast_db)
         )
     } else if (params.module == 'report') {
         CREATE_REPORT(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -293,18 +309,18 @@ Notes:
         )
     } else if (params.module == 'vadr') {
         ANNOTATE_VADR(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
                     file("${projectDir}/assets/test_data/vadr/SAMPLE001.fasta")
                 )
             ),
-            Channel.value(params.vadr_model_dir ?: '/mnt/fs1/resources/ref/micro/vadr/vadr-models-flavi')
+            channel.value(vadr_model_dir)
         )
     } else if (params.module == 'resistance') {
         ANNOTATE_RESISTANCE(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -313,12 +329,12 @@ Notes:
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta")
                 )
             ),
-            Channel.value('3a'),
-            Channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
+            channel.value('3a'),
+            channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv"))
         )
     } else if (params.module == 'qc_summary') {
         BUILD_QC_SUMMARY(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -326,7 +342,7 @@ Notes:
                     file("${projectDir}/assets/test_data/qc_summary/results")
                 )
             ),
-            Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString())
+            channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString())
         )
 
         AGGREGATE_QC_SUMMARY(
@@ -334,9 +350,16 @@ Notes:
                 .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
                 .groupTuple(by: 0)
         )
+
+        WRITE_VIRTITTA_IMPORT_MARKER(
+            AGGREGATE_QC_SUMMARY.out.summaries_with_meta
+                .map { run_name, qc_json, qc_jsonl ->
+                    tuple(run_name, qc_json, qc_jsonl)
+                }
+        )
     } else if (params.module == 'finalize_results') {
         FINALIZE_RESULTS(
-            Channel.of(
+            channel.of(
                 tuple(
                     'fixture_run',
                     'SAMPLE001',
@@ -377,12 +400,19 @@ Notes:
             )
         )
 
-        BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, Channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))
+        BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))
 
         AGGREGATE_QC_SUMMARY(
             BUILD_QC_SUMMARY.out.json_with_meta
                 .map { run_name, sample_id, qc_json -> tuple(run_name, qc_json) }
                 .groupTuple(by: 0)
+        )
+
+        WRITE_VIRTITTA_IMPORT_MARKER(
+            AGGREGATE_QC_SUMMARY.out.summaries_with_meta
+                .map { run_name, qc_json, qc_jsonl ->
+                    tuple(run_name, qc_json, qc_jsonl)
+                }
         )
     } else {
         error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"

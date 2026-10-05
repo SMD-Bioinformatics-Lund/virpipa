@@ -16,7 +16,9 @@ process RUN_HCVPIPE {
 
     script:
     def lidArg = lid ? "-l '${lid}'" : ''
-    def hostileArg = params.remove_human ? '' : '-H'
+    def remove_human = params.remove_human instanceof Boolean ? params.remove_human : params.remove_human?.toString()?.toBoolean()
+    def subsample_reads = params.subsample_reads?.toString()?.trim() ? params.subsample_reads.toString().toInteger() : 0
+    def hostileArg = remove_human ? '' : '-H'
     def containerArg = params.container_dir ? "--container-dir '${params.container_dir}'" : ''
     def bindArg = params.bind_paths ? "--bind-paths '${params.bind_paths}'" : ''
     def hostileCacheArg = params.hostile_cache_dir ? "--hostile-cache-dir '${params.hostile_cache_dir}'" : ''
@@ -33,7 +35,7 @@ process RUN_HCVPIPE {
       ${hostileCacheArg} \\
       -o "\${work_root}/${run_name}" \\
       --outname '${sample_id}' \\
-      -s ${params.subsample_reads} \\
+      -s ${subsample_reads} \\
       -c ${task.cpus} \\
       ${lidArg} \\
       ${hostileArg} \\

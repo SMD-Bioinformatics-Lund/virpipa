@@ -6,7 +6,7 @@ process SUBSAMPLE_READS {
     memory '8 GB'
     time '1h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/fastq", mode: 'copy', pattern: '*.fastq.gz', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/fastq" }, mode: 'copy', pattern: '*.fastq.gz', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)
@@ -21,8 +21,9 @@ process SUBSAMPLE_READS {
     def r2base = read2 ? read2.baseName : ''
     def r2_arg = read2 ? "${read2}" : ""
     def r2_out = read2 ? "${sample_id}_R2_001.fastq.gz" : ""
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     
     // Use apptainer if container_dir is set

@@ -6,7 +6,7 @@ process SUBTYPE_BLAST {
     memory '8 GB'
     time '1h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}", mode: 'copy', pattern: '*.blast', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}" }, mode: 'copy', pattern: '*.blast', enabled: params.publish_mode == 'debug'
 
     input:
         tuple val(run_name), val(sample_id), path(fasta)
@@ -17,8 +17,9 @@ process SUBTYPE_BLAST {
         tuple val(run_name), val(sample_id), path("*.blast"), emit: blast_with_meta
 
     script:
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     def fasta_name = fasta.getName()
     def blast_db_path = blast_db.toString()

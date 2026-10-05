@@ -145,8 +145,8 @@
       "main_blast_genotype": "3a",
       "main_blast_identity": 91.514,
       "main_blast_reference": "3a_D17763",
-      "report_reference": "3a-D17763",
-      "report_subtype": "3a"
+      "best_mapping_subtype": "3a",
+      "report_reference": "3a-D17763"
     },
     "variants": {
       "af_counts": {

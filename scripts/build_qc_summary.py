@@ -414,7 +414,7 @@ def main() -> None:
         "lid": args.lid or None,
         "typing": {
             **blast_info,
-            "report_subtype": report.get("subtype"),
+            "best_mapping_subtype": report.get("subtype"),
             "report_reference": report.get("reference"),
         },
         "qc": {

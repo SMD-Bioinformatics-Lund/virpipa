@@ -6,7 +6,7 @@ process ASSEMBLE_SPADES {
     memory '64 GB'
     time '8h'
     
-    publishDir "${params.outdir}/${run_name}/${sample_id}/spades", mode: 'copy', enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}/spades" }, mode: 'copy', enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(read1), path(read2)
@@ -16,8 +16,9 @@ process ASSEMBLE_SPADES {
         path "${sample_id}.spades/*.txt", emit: logs
     
     script:
-    def container_dir = params.container_dir
-    def bind_paths = params.bind_paths ?: '/fs1,/fs2,/local'
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def bind_paths = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (active_profiles.contains('local') ? '/mnt,/home,/tmp' : (active_profiles.contains('hpc') ? '/fs1,/fs2,/local,/mnt/beegfs' : params.bind_paths))
     def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
     
     if (container_dir) {
@@ -30,7 +31,7 @@ process ASSEMBLE_SPADES {
         """
     } else {
         // Direct execution (local testing with mamba)
-        def mamba_env = System.getenv('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
+        def mamba_env = env('CONDA_PREFIX') ?: '/home/jonas/miniforge3/envs/skrotis'
         
         """
         export PATH="${mamba_env}/bin:\$PATH"
