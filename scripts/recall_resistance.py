@@ -14,30 +14,37 @@ SUFFIXES = (
 )
 
 
-def subtype(report):
-    for line in report.read_text(encoding="utf-8").splitlines():
+def subtype(blast):
+    for line in blast.read_text(encoding="utf-8").splitlines():
+        if not line.strip() or line.startswith("query acc.ver"):
+            continue
         fields = line.split("\t")
-        if len(fields) >= 2 and fields[0] == "reference":
-            return fields[1].split("-", 1)[0]
-    raise ValueError(f"No reference subtype in {report}")
+        if len(fields) >= 2 and fields[1]:
+            return fields[1].split("_", 1)[0]
+        raise ValueError(f"Malformed BLAST hit in {blast}")
+    raise ValueError(f"No subtype hit in {blast}")
 
 
 def inputs(directory):
     sample = directory.name
     sequence = directory / f"{sample}-0.15-iupac.fasta"
-    report = directory / f"{sample}-0.15-iupac.report.tsv"
+    blast = directory / f"{sample}-0.15-iupac.fasta.blast"
     annotations = sorted(directory.glob(f"{sample}.vadr.*.gff"))
     cram = directory / f"{sample}-0.15-iupac.cram"
-    if not sequence.exists() or not report.exists() or len(annotations) != 1:
+    if not sequence.exists() or not blast.exists() or len(annotations) != 1:
         return None
-    return sample, sequence, report, annotations[0], cram if cram.exists() else None
+    return sample, sequence, blast, annotations[0], cram if cram.exists() else None
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archives", type=Path)
     parser.add_argument("--rules", type=Path, required=True)
-    parser.add_argument("--h77-fasta", type=Path, required=True)
+    parser.add_argument(
+        "--h77-fasta",
+        type=Path,
+        default=Path(__file__).resolve().parents[1] / "refgenomes/resistance/AF011751.1.fasta",
+    )
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--backup-dir", type=Path)
     args = parser.parse_args()
@@ -50,7 +57,7 @@ def main():
     if not args.apply:
         for directory, item in candidates:
             print(
-                f"WOULD RECALL\t{item[0]}\t{directory}\t{'with CRAM evidence' if item[4] else 'baseline only'}"
+                f"WOULD RECALL\t{item[0]}\t{directory}\tsubtype={subtype(item[2])}\t{'with CRAM evidence' if item[4] else 'baseline only'}"
             )
         print(f"Dry run: {len(candidates)} sample(s); use --apply to write outputs")
         return
@@ -58,7 +65,7 @@ def main():
     backup_root = args.backup_dir or args.archives.with_name(
         f"{args.archives.name}-resistance-backup-{stamp}"
     )
-    for directory, (sample, sequence, report, annotation, cram) in candidates:
+    for directory, (sample, sequence, blast, annotation, cram) in candidates:
         with tempfile.TemporaryDirectory(dir=directory) as temporary:
             command = [
                 sys.executable,
@@ -68,7 +75,7 @@ def main():
                 "--gff",
                 str(annotation),
                 "--subtype",
-                subtype(report),
+                subtype(blast),
                 "--rules",
                 str(args.rules.resolve()),
                 "--h77-fasta",

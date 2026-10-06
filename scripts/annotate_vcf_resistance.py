@@ -586,6 +586,7 @@ def write(output, sample, subtype, sites, evaluations, rules_path, args):
         "baseline_source": "15% IUPAC consensus",
         "rules_sha256": checksum(rules_path),
         "h77_sha256": checksum(args.h77_fasta),
+        "h77_reference": next(iter(fasta(args.h77_fasta))),
         "exploratory_cutoff_range": {"minimum": 0.02, "maximum": 0.50},
         "codon_evidence_parameters": {
             "minimum_base_quality": args.minimum_base_quality,
@@ -622,7 +623,10 @@ def main():
     parser.add_argument("--gff", "-g", required=True)
     parser.add_argument("--subtype", "-s", required=True)
     parser.add_argument("--rules", "-r", required=True)
-    parser.add_argument("--h77-fasta", required=True)
+    parser.add_argument(
+        "--h77-fasta",
+        default=str(Path(__file__).resolve().parents[1] / "refgenomes/resistance/AF011751.1.fasta"),
+    )
     parser.add_argument("--cram")
     parser.add_argument("--vcf", help="Deprecated and ignored")
     parser.add_argument("--sample-name")

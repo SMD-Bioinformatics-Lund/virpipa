@@ -332,7 +332,7 @@ Notes:
             ),
             channel.value('3a'),
             channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv")),
-            channel.value(file("${projectDir}/refgenomes/1a-AF009606.fa"))
+            channel.value(file("${projectDir}/refgenomes/resistance/AF011751.1.fasta"))
         )
     } else if (params.module == 'qc_summary') {
         BUILD_QC_SUMMARY(

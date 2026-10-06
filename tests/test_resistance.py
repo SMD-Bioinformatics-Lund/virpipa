@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -16,6 +17,23 @@ SPEC.loader.exec_module(RESISTANCE)
 
 
 class ResistanceUnitTests(unittest.TestCase):
+    def test_geno2pheno_reference_preserves_scored_residues(self):
+        reference = ROOT / "refgenomes/resistance/AF011751.1.fasta"
+        records = RESISTANCE.fasta(reference)
+        self.assertEqual(list(records), ["AF011751.1"])
+        self.assertEqual(len(records["AF011751.1"]), 9599)
+        genes = RESISTANCE.h77_genes(reference)
+        previous = RESISTANCE.h77_genes(ROOT / "refgenomes/1a-AF009606.fa")
+        self.assertEqual(genes["NS3"]["protein"][175], "G")
+        for rule in RESISTANCE.rules(ROOT / "assets/hcv_geno2pheno_rules.csv"):
+            for part in RESISTANCE.parts(rule["rule_definition"]):
+                gene, position = rule["region"], part["position"] - 1
+                self.assertEqual(
+                    genes[gene]["protein"][position],
+                    previous[gene]["protein"][position],
+                    (gene, position + 1),
+                )
+
     def test_iupac_codon_reports_every_possible_amino_acid(self):
         self.assertEqual(RESISTANCE.aas("CAY"), {"H"})
         self.assertEqual(RESISTANCE.aas("TAY"), {"Y"})
@@ -69,8 +87,6 @@ class OnlineParityCases(unittest.TestCase):
                         expectation["subtype"],
                         "--rules",
                         str(ROOT / "assets/hcv_geno2pheno_rules.csv"),
-                        "--h77-fasta",
-                        str(ROOT / "refgenomes/1a-AF009606.fa"),
                         "--sample-name",
                         case,
                         "--output-dir",
@@ -81,6 +97,7 @@ class OnlineParityCases(unittest.TestCase):
                     text=True,
                 )
                 payload = json.loads((output / f"{case}_resistance.json").read_text())
+                self.assertEqual(payload["h77_reference"], "AF011751.1")
                 observed = {
                     f"{site['gene']}:{site['h77_position']}{aa}"
                     for site in payload["sites"]
@@ -90,6 +107,49 @@ class OnlineParityCases(unittest.TestCase):
                 self.assertTrue(set(expectation["mutations"]).issubset(observed), case)
                 resistance_rows = (output / f"{case}_resistance.tsv").read_text()
                 self.assertNotIn("\t156\tA\tT\t", resistance_rows, case)
+
+
+class HistoricalRecallTests(unittest.TestCase):
+    def test_recall_uses_blast_subtype_and_geno2pheno_reference(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            archives = Path(temporary) / "archives"
+            name = "G2P_CASE_008"
+            sample = archives / name
+            sample.mkdir(parents=True)
+            fixture = ROOT / "assets/test_data/resistance/cases"
+            shutil.copy2(fixture / f"{name}.fasta", sample / f"{name}-0.15-iupac.fasta")
+            shutil.copy2(fixture / f"{name}.gff3", sample / f"{name}.vadr.pass_mod.gff")
+            (sample / f"{name}-0.15-iupac.fasta.blast").write_text(
+                "query acc.ver\tsubject acc.ver\n"
+                f"{name}\t3a_D17763\t99\t1000\t0\t0\t1\t1000\t1\t1000\t0\t1000\n"
+            )
+            (sample / f"{name}-0.15-iupac.report.tsv").write_text(
+                "reference\t1a-AF009606\n"
+            )
+            previous = sample / f"{name}_resistance.tsv"
+            previous.write_text("previous result\n")
+            backup = Path(temporary) / "backup"
+            command = [
+                sys.executable,
+                str(ROOT / "scripts/recall_resistance.py"),
+                str(archives),
+                "--rules", str(ROOT / "assets/hcv_geno2pheno_rules.csv"),
+            ]
+            preview = subprocess.run(command, check=True, capture_output=True, text=True)
+            self.assertIn("subtype=3a", preview.stdout)
+            self.assertEqual(previous.read_text(), "previous result\n")
+            subprocess.run(
+                command + ["--apply", "--backup-dir", str(backup)],
+                check=True, capture_output=True, text=True,
+            )
+            payload = json.loads((sample / f"{name}_resistance.json").read_text())
+            self.assertEqual(payload["subtype"], "3a")
+            self.assertEqual(payload["h77_reference"], "AF011751.1")
+            self.assertIn("\t93\tY\tH\t", previous.read_text())
+            self.assertEqual(
+                (backup / name / f"{name}_resistance.tsv").read_text(),
+                "previous result\n",
+            )
 
 
 if __name__ == "__main__":

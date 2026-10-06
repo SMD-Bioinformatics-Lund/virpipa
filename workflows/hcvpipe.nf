@@ -527,7 +527,7 @@ workflow HCVPIPE {
     
     // Step 11: Call resistance from the 15% IUPAC consensus and codon evidence.
     def rules_json = resolved_rules_path
-    def h77_fasta = file(resolvePathFromBase('refgenomes/1a-AF009606.fa', project_root))
+    def h77_fasta = file(resolvePathFromBase('refgenomes/resistance/AF011751.1.fasta', project_root))
 
     ch_gff_for_resistance = ANNOTATE_VADR.out.gff.map { run_name, sample_id, gff ->
         [sample_id, [run_name, gff]]

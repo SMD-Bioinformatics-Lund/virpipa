@@ -44,7 +44,7 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 - `subtype`: verified identical.
 - `report`: verified identical.
 - `vadr`: verified identical.
-- `resistance`: positive subtype-3a `NS5A 93H` fixture is covered.
+- `resistance`: the standard module fixture has subtype 3a and NS5A Y93, with no fully matched resistance rules. The anonymized consensus tests separately cover positive calls including NS5A 93H.
 - `finalize_results`: flat Virtitta publish layout is fixture-backed; validate with `scripts/check_publish_layout.py`.
 
 ## Fixture inventory
