@@ -379,9 +379,19 @@ def evaluate(applicable, sites, subtype):
     return out
 
 
-def outcome(drug_rules, sites):
-    if not any(r["licensed"] for r in drug_rules):
+def outcome(drug_rules, sites, drug_licensed, catalogue):
+    if not drug_licensed:
         return "not licensed", None
+    if not drug_rules:
+        positions = {
+            (r["region"], p["position"])
+            for r in catalogue
+            for p in parts(r["rule_definition"])
+        }
+        assessed = bool(positions) and all(
+            sites.get(key, {}).get("assessed", False) for key in positions
+        )
+        return ("susceptible" if assessed else "not assessed"), None
     full = [r for r in drug_rules if r["match_state"] == "full"]
     if full:
         prediction = min(
@@ -415,7 +425,7 @@ def checksum(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def write(output, sample, subtype, sites, evaluations, rules_path, args):
+def write(output, sample, subtype, sites, evaluations, all_rules, rules_path, args):
     output.mkdir(parents=True, exist_ok=True)
     matched = defaultdict(list)
     relevant = defaultdict(list)
@@ -490,6 +500,9 @@ def write(output, sample, subtype, sites, evaluations, rules_path, args):
     by_drug = defaultdict(list)
     for rule in evaluations:
         by_drug[rule["drug"]].append(rule)
+    catalogue = defaultdict(list)
+    for rule in all_rules:
+        catalogue[rule["drug"]].append(rule)
     drug_outcomes = []
     with open(
         output / f"{sample}_resistance_by_drug.tsv", "w", newline="", encoding="utf-8"
@@ -505,13 +518,19 @@ def write(output, sample, subtype, sites, evaluations, rules_path, args):
                 "partial_rules",
             ]
         )
-        for drug, drug_rules in sorted(by_drug.items()):
-            state, prediction = outcome(drug_rules, sites)
+        for drug, drug_catalogue in sorted(catalogue.items()):
+            drug_rules = by_drug[drug]
+            drug_licensed = any(
+                licensed(subtype, r.get("drug_licensed_for_genotype", ""))
+                for r in drug_catalogue
+            )
+            state, prediction = outcome(drug_rules, sites, drug_licensed, drug_catalogue)
             record = {
                 "drug": drug,
                 "outcome": state,
                 "prediction": prediction,
-                "licensed": any(r["licensed"] for r in drug_rules),
+                "licensed": drug_licensed,
+                "applicable_rule_count": len(drug_rules),
                 "matched_rules": sorted(
                     {
                         r["rule_definition"]
@@ -649,7 +668,7 @@ def main():
     )
     evaluations = evaluate(applicable, sites, args.subtype)
     write(
-        Path(args.output_dir), name, args.subtype, sites, evaluations, args.rules, args
+        Path(args.output_dir), name, args.subtype, sites, evaluations, all_rules, args.rules, args
     )
     print(
         f"Called {sum(r['match_state']=='full' for r in evaluations)} matching rules across {len(sites)} resistance sites"

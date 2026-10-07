@@ -10,11 +10,13 @@ When the matching CRAM is supplied, the caller also counts complete codons from 
 
 - `*_resistance.tsv`: resistance-associated substitutions supporting fully matched rules.
 - `*_resistance.bed` and `*_resistance.gff`: compatibility tracks containing called resistance substitutions.
-- `*_resistance_by_drug.tsv`: every applicable drug with an explicit outcome (`resistant`, `reduced susceptibility`, `susceptible`, `susceptible with scored substitutions`, `not licensed`, or `not assessed`).
+- `*_resistance_by_drug.tsv`: every drug in the rules catalogue with an explicit outcome (`resistant`, `reduced susceptibility`, `susceptible`, `susceptible with scored substitutions`, `not licensed`, or `not assessed`). Licensing uses the catalogue's genotype metadata independently of subtype-specific mutation rules. A licensed drug with no applicable mutation rules is susceptible only when all its catalogue scoring positions are assessed; otherwise it is not assessed. This does not extrapolate another subtype's resistance rules.
 - `*_resistance.json`: versioned baseline calls, rule provenance/checksum, compound-rule state, all resistance sites, codon frequencies, counting parameters, and consistency warnings.
 - `*_resistance_sites.gff3`: all resistance-rule positions for IGV. Popup attributes include H77 and sample amino-acid positions, codons, observed amino acids, drugs, rules, depth, and frequencies.
 
 The rules snapshot is `assets/hcv_geno2pheno_rules.csv`; refresh it outside Hopper with `scripts/update_geno2pheno_rules.py` and review the diff before use.
+
+Each JSON drug outcome includes `applicable_rule_count`, so an outcome with no applicable mutation rules remains distinguishable from evaluated rules with no matching mutations. The rules snapshot currently contains 16 drugs. Susceptible* presentation remains under investigation; see the reference audit.
 
 ## Historical re-call
 
@@ -32,4 +34,4 @@ Both Python entry points default to AF011751.1 when `--h77-fasta` is omitted. Th
 
 ## Validation
 
-`python -m unittest discover -s tests -v` covers IUPAC translation, H77 indel mapping, compound rules, and nine anonymized consensus cases previously submitted to online geno2pheno. The private fixture re-identification key must remain outside Git.
+`python -m unittest discover -s tests -v` covers IUPAC translation, H77 indel mapping, compound rules, nine original anonymized consensus cases, and eleven additional subtype cases submitted to online geno2pheno. The additional cases check all 16 drug rows and resistant/reduced-susceptibility predictions, but do not establish susceptible* or scored-mutation-list parity. The private fixture re-identification keys must remain outside Git.

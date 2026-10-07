@@ -1,0 +1,4 @@
+##gff-version 3
+G2P_RARE_006	VADR:v1.7	gene	3422	5313	.	+	0	ID:NS3;gene=NS3;product=NS3 protein;
+G2P_RARE_006	VADR:v1.7	gene	6260	7588	.	+	0	ID:NS5A;gene=NS5A;product=NS5A protein;
+G2P_RARE_006	VADR:v1.7	gene	7589	9361	.	+	0	ID:NS5B;gene=NS5B;product=NS5B protein;

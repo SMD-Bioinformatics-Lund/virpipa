@@ -1,0 +1,356 @@
+{
+  "schema_version": "1.0",
+  "status": "candidate panel; not yet used for pipeline subtype selection",
+  "numbering_reference": "AF011751.1",
+  "reference_policy": "one reporting genome per assigned subtype; AJ851228.1 is an observed genotype-1 reference for the unassigned-subtype case",
+  "retrieved_on": "2026-10-06",
+  "sequence_source": "NCBI GenBank, accession.version pinned",
+  "coordinate_source": {
+    "database": "refgenomes/hcvglue/hcvgluerefs",
+    "sequence_volume_sha256": "9838ab27f9226aa3e3db57e6f57dbfa74fdeb24a870a2d659a86778e4806babb",
+    "method": "project H77 gene boundaries through the installed alignment after verifying each non-padding sequence against its original GenBank record and checking CDS phase"
+  },
+  "region_alignments": {
+    "NS3": "alignments/NS3.fasta",
+    "NS5A": "alignments/NS5A.fasta",
+    "NS5B": "alignments/NS5B.fasta"
+  },
+  "references": [
+    {
+      "accession": "AF011751.1",
+      "genotype": "1",
+      "subtype": "1a",
+      "genome_fasta": "AF011751.1.fasta",
+      "length": 9599,
+      "sequence_sha256": "72fb77d5ba74c2d865e542b48e27f8662d3173752dbf217a6e5f08dc1537aa73",
+      "regions": {
+        "NS3": {
+          "start": 3420,
+          "end": 5312,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6258,
+          "end": 7601,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7602,
+          "end": 9374,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "D50409.1",
+      "genotype": "2",
+      "subtype": "2c_D50409",
+      "genome_fasta": "genomes/D50409.1.fasta",
+      "sequence_sha256": "39011f187b67dc9b65fee198f01c22d82cdd99836dc39d4b07e1bbc277e14305",
+      "length": 9513,
+      "regions": {
+        "NS3": {
+          "start": 3431,
+          "end": 5323,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6269,
+          "end": 7678,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7679,
+          "end": 9451,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "DQ155561.1",
+      "genotype": "2",
+      "subtype": "2i_DQ155561",
+      "genome_fasta": "genomes/DQ155561.1.fasta",
+      "sequence_sha256": "da5d310ce94f1467f48a537dd71cea577598e84e66b642cecfaf5e046244a223",
+      "length": 9370,
+      "regions": {
+        "NS3": {
+          "start": 3404,
+          "end": 5296,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6242,
+          "end": 7636,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7637,
+          "end": 9370,
+          "strand": "+",
+          "complete": false
+        }
+      }
+    },
+    {
+      "accession": "AB031663.1",
+      "genotype": "2",
+      "subtype": "2k_AB031663",
+      "genome_fasta": "genomes/AB031663.1.fasta",
+      "sequence_sha256": "fb590469e83e47683b1057933d27a1ba92f48f839409f7636b007615115bd079",
+      "length": 9488,
+      "regions": {
+        "NS3": {
+          "start": 3432,
+          "end": 5324,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6270,
+          "end": 7667,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7668,
+          "end": 9440,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "JF735121.1",
+      "genotype": "3",
+      "subtype": "3h_JF735121",
+      "genome_fasta": "genomes/JF735121.1.fasta",
+      "sequence_sha256": "0f87be5bf71361489290f37246d7d60b98cbc23815520bfe171bce9a31fdd3c6",
+      "length": 9579,
+      "regions": {
+        "NS3": {
+          "start": 3433,
+          "end": 5325,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6271,
+          "end": 7623,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7624,
+          "end": 9396,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "FJ462436.1",
+      "genotype": "4",
+      "subtype": "4c_FJ462436",
+      "genome_fasta": "genomes/FJ462436.1.fasta",
+      "sequence_sha256": "ec041ca7619c0c222c046a5350d8021035f36e38a930979c81d275aa3b4f677e",
+      "length": 9468,
+      "regions": {
+        "NS3": {
+          "start": 3419,
+          "end": 5311,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6257,
+          "end": 7633,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7634,
+          "end": 9406,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "DQ418786.1",
+      "genotype": "4",
+      "subtype": "4d_DQ418786",
+      "genome_fasta": "genomes/DQ418786.1.fasta",
+      "sequence_sha256": "8f83387387a9cc7c19b49095eb8a2fdb176805f164feadc170968f20a82999b2",
+      "length": 9273,
+      "regions": {
+        "NS3": {
+          "start": 3310,
+          "end": 5202,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6148,
+          "end": 7482,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7483,
+          "end": 9255,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "EU392173.1",
+      "genotype": "4",
+      "subtype": "4k_EU392173",
+      "genome_fasta": "genomes/EU392173.1.fasta",
+      "sequence_sha256": "80c3b4d3ed44663e9cab723f4388c5bde740a807e34e92cbd5e8b7c9e85e5159",
+      "length": 9312,
+      "regions": {
+        "NS3": {
+          "start": 3342,
+          "end": 5234,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6180,
+          "end": 7523,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7524,
+          "end": 9296,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "FJ462433.1",
+      "genotype": "4",
+      "subtype": "4m_FJ462433",
+      "genome_fasta": "genomes/FJ462433.1.fasta",
+      "sequence_sha256": "b1ef600a1c05ece0700cf58281582bb4ba94d70a32e3119542cc18e40da68952",
+      "length": 9425,
+      "regions": {
+        "NS3": {
+          "start": 3417,
+          "end": 5309,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6255,
+          "end": 7586,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7587,
+          "end": 9359,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "FJ462439.1",
+      "genotype": "4",
+      "subtype": "4r_FJ462439",
+      "genome_fasta": "genomes/FJ462439.1.fasta",
+      "sequence_sha256": "b6c37dfe66a315ebb38b8b2e0f0f044cb47f0642b532bc6f30fb60b873f7aaf7",
+      "length": 9440,
+      "regions": {
+        "NS3": {
+          "start": 3419,
+          "end": 5311,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6257,
+          "end": 7600,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7601,
+          "end": 9373,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "DQ314805.1",
+      "genotype": "6",
+      "subtype": "6e_DQ314805",
+      "genome_fasta": "genomes/DQ314805.1.fasta",
+      "sequence_sha256": "239309bf9d815387ed5884057fbf9be5da0d8a3d926ab5cacb6c0bf9b56e2daf",
+      "length": 9468,
+      "regions": {
+        "NS3": {
+          "start": 3429,
+          "end": 5321,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6267,
+          "end": 7631,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7632,
+          "end": 9404,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "AJ851228.1",
+      "genotype": "1",
+      "subtype": "1_AJ851228",
+      "genome_fasta": "genomes/AJ851228.1.fasta",
+      "sequence_sha256": "d421ca2789458215a510a40437cbe36a7bb062a9fa680d4d6894be4270a4c4dd",
+      "length": 9481,
+      "regions": {
+        "NS3": {
+          "start": 3396,
+          "end": 5288,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6234,
+          "end": 7574,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7575,
+          "end": 9347,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    }
+  ]
+}

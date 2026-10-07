@@ -46,6 +46,57 @@ Database sequence-volume SHA-256 (`hcvgluerefs.nsq`): `9838ab27f9226aa3e3db57e6f
 
 The committed 2026 rules snapshot includes genotype-wide selectors and explicit lists of rarer subtypes. Therefore rare-subtype handling must respect each rule's actual selector: an applicable genotype-wide rule is different from extrapolating a rule restricted to another subtype. The older paper alone does not establish how today's web service combines these cases.
 
-Recommended next step: compare anonymized online reports for the ten subtypes against the local region sequences. Record the input checksum, web-service/rules version when available, subtype and selected reference accession separately for each region, reference used for substitution labels, scored substitutions, and drug outcomes. Extract only the matching NS3/NS5A/NS5B sequences from verified public accessions for a versioned resistance panel. Include validation cases with mixtures, missing sequence, indels, and discordant region subtypes. Keep any re-identification key outside Git.
+## Observed online results
+
+Fourteen supplied geno2pheno PDF reports dated 2026-10-06 cover all ten additional subtypes. Their title states version 1.0, but they do not identify a resistance-rule snapshot or reference-panel revision. Original identifiers and PDFs were not added to Git. Subsequently supplied sequences have been anonymized in `assets/test_data/resistance/rare_cases/`. The temporary re-identification key was lost during a WSL restart and recovered from restored original sequences on 2026-10-07; it is now stored persistently outside Git. The fixture README describes checksum-based recovery without guessing identifiers.
+
+All 42 region assignments and all 224 drug-table rows were extracted. Within every report, NS3, NS5A, and NS5B agree on subtype and use the same accession for the subtype-relative substitution list. All observed accessions are present in the installed BLAST database.
+
+| Subtype | Reports | Reference displayed for all three regions |
+| --- | --- | --- |
+| 2c | 1 | D50409 |
+| 2i | 1 | DQ155561 |
+| 2k | 1 | AB031663 |
+| 3h | 1 | JF735121 |
+| 4c | 1 | FJ462436 |
+| 4d | 4 | DQ418786 |
+| 4k | 1 | EU392173 |
+| 4m | 1 | FJ462433 |
+| 4r | 2 | FJ462439 |
+| 6e | 1 | DQ314805 |
+
+These are observed reporting references, not proof that every possible query of a subtype selects the same accession, nor a table translating rare subtypes into common subtypes for rule evaluation.
+
+The subsequently supplied combined CSV contains 15 rows and 95 columns. All 14 PDF cases match the CSV on regional subtype, similarity, reporting reference, and all 224 drug predictions/scored-mutation lists. PDF `susceptible*` is explicitly exported as `substitution on scored position`. The CSV also supplies per-drug fold and evidence fields; for example, the 4m daclatasvir and ledipasvir rows contain fold `150` and evidence code `CR`. These fields should retain their exported meanings until the service's definitions are verified.
+
+One additional CSV-only case is labelled `1*2` in all three regions, with reporting reference AJ851228. The user confirms that this sample was assigned genotype 1 without a letter subtype. Record genotype `1`, subtype unassigned, and the raw service label `1*2` separately. Its drug results are susceptible or substitution on scored position. The precise meaning of the service's `*2` suffix has not been established; do not convert it to 1a or 1b for rule selection.
+
+The regional `all_resistance_muts_*` fields do not include every per-drug scored mutation. In the 3h case, the NS5A aggregate contains `93H`, while the pibrentasvir scored list contains `28I,93H`. Future comparison fixtures and IGV scored-position annotations should therefore use the per-drug lists, not only the regional aggregates. The identifier-bearing CSV remains outside Git.
+
+The reports give direct resistant predictions for some rare subtypes:
+
+- 3h: NS5A 93H is scored as resistant for daclatasvir, elbasvir, ledipasvir, and velpatasvir. Pibrentasvir is susceptible* with scored amino acids 28I and 93H; the subtype-relative list contains the 28IM mixture.
+- 4m: daclatasvir and ledipasvir are resistant with scored amino acids 30S and 31L; elbasvir has reduced susceptibility with 30S; ombitasvir is susceptible* with 31L.
+- 4r: one report is resistant to several NS5A inhibitors with 93H, while the other has susceptible* calls for daclatasvir (30R) and ombitasvir (28M).
+
+The genotype-wide rules in the committed CSV support direct resistant predictions for these 93H and 30S observations. Automatically downgrading all rare-subtype hits to a related-subtype warning would contradict the supplied web results. The PDFs do not reveal the website's internal common-subtype selection procedure.
+
+The susceptible* observations expose a limitation of comparing only against H77:
+
+- 4m NS5A 31L matches H77 L31 but differs from the displayed subtype reference (M31L); the website scores 31L for ombitasvir as susceptible*.
+- 4r NS5A 28M matches H77 M28 but differs from the displayed subtype reference (I28M); the website scores 28M for ombitasvir as susceptible*.
+- Conversely, NS5A 30R appears in the H77-relative list but not the subtype-relative list for the supplied 4c, 4k, and 4r reports, yet is scored for daclatasvir as susceptible*. The four 4d reports also have H77-relative Q30R, but daclatasvir is susceptible with no scored mutations.
+
+Thus neither a universal H77 difference check nor a universal difference check against the displayed subtype reference reproduces the website's scored-mutation presentation. The subtype/drug scoring baseline needs further verification; these observations should become regression cases once the corresponding input sequences are supplied.
+
+The drug-table coverage issue has been corrected: the caller now constructs outcomes for all drugs in the catalogue and determines licensing from the full catalogue's genotype metadata, separately from subtype-specific mutation rules. For 2c, for example, the committed rules select no glecaprevir, pibrentasvir, sofosbuvir, or voxilaprevir rows, while the online report lists all four as susceptible. Without applicable rules, susceptibility requires assessed catalogue positions and does not extrapolate rules from another subtype; missing positions produce not assessed.
+
+The original public accessions have now been retrieved and verified. `refgenomes/resistance/panel.json` stages one reporting genome per observed assigned subtype, with NS3/NS5A/NS5B gene coordinates and linking alignments to AF011751.1. The eleven supplied sample genomes each match one CSV row and cover each additional subtype plus the unassigned genotype-1 case once. Their anonymized expectations retain per-drug predictions and scored amino acids.
+
+Next steps: validate subtype selection and scored-mutation presentation against these cases, resolve the susceptible* baseline, and expand the candidate panel's subtype coverage before activating it in the workflow. Include mixtures, missing sequence, indels, and discordant region subtypes in validation. Keep any re-identification key outside Git.
+
+After local VADR annotation and boundary review on 2026-10-07, regression fixtures retain the original resistance-gene coordinates, including three non-triplet intervals with documented caveats. All 176 expected drug rows are now emitted. All seven resistant/reduced-susceptibility predictions match; the 23 remaining outcome differences are susceptible versus susceptible*. This does not establish per-drug scored-mutation-list parity. Five supplied cases are user-identified mixtures and are retained as IUPAC comparison cases, not phased strain-level truth.
+
+Deferred pipeline work includes coding-integrity warnings (definite/possible stops, non-triplet indels and uncertain boundaries), site-level mapping reliability, and target-gene nucleotide/codon/amino-acid alignment artifacts. Mixed-population and compound-mutation linkage limitations must remain separate from integrity warnings. Virtitta presentation dependencies are tracked in its `docs/PLANS.md`.
 
 The main workflow and historical re-call currently take one subtype from the first 15% whole-consensus BLAST data hit. The historical re-call bug that took the assembly-reference label from the report has been corrected. Neither entry point implements region-specific assignment or the related-subtype procedure yet.

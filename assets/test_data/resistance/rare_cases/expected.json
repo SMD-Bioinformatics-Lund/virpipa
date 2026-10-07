@@ -1,0 +1,1581 @@
+{
+  "schema_version": "1.0",
+  "source": "geno2pheno CSV export supplied 2026-10-06",
+  "cases": {
+    "G2P_RARE_001": {
+      "sequence_sha256": "74e40d6a7e59db973b77aae6746f4f639ba846755243d061c382b35f9d9afe33",
+      "regions": {
+        "NS3": {
+          "genotype": "2",
+          "subtype": "2i",
+          "service_subtype": "2i",
+          "reference_accession": "DQ155561",
+          "nucleotide_similarity": 0.8729,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "L14M, Q29H, K92KR, Q119R, T134S, S146P"
+        },
+        "NS5A": {
+          "genotype": "2",
+          "subtype": "2i",
+          "service_subtype": "2i",
+          "reference_accession": "DQ155561",
+          "nucleotide_similarity": 0.8809,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "V63I, V99M, P104H, I110V, R123Q, V140I, P167Q, T180N, P181S, Y182F, S183A, K197E"
+        },
+        "NS5B": {
+          "genotype": "2",
+          "subtype": "2i",
+          "service_subtype": "2i",
+          "reference_accession": "DQ155561",
+          "nucleotide_similarity": 0.8868,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "A9T, G19E, V37I, C39R, L47Q, S79NS, L85V, K106KM, S110G, P130S, V147I, A179T, R184Q, E199Q, R206Q, E210D, V235T, S244ST, Q267HQ, R331KR, N334S, N346Y, Q377R, A400AV, V421A, V432I, M434LM, R465K, V471A, S487A, L512I, S552T, V553A, G558A, H568Q, I571F, G575S, T580C, A581V, I585IV, Y586F, N590A"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_002": {
+      "sequence_sha256": "5305c3827fc3edd523e239fa23a6156de5019fced630acc8d68fbb9998881cd4",
+      "regions": {
+        "NS3": {
+          "genotype": "4",
+          "subtype": "4d",
+          "service_subtype": "4d",
+          "reference_accession": "DQ418786",
+          "nucleotide_similarity": 0.9355,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "V33I, A47S, T95A, N110H, L116V, T122S, A125G, S133A"
+        },
+        "NS5A": {
+          "genotype": "4",
+          "subtype": "4d",
+          "service_subtype": "4d",
+          "reference_accession": "DQ418786",
+          "nucleotide_similarity": 0.9528,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "L5F, V34I, T58P, I101T, D105N, V108F, D126E, V130I, L168M, D171E, T174S, S176T"
+        },
+        "NS5B": {
+          "genotype": "4",
+          "subtype": "4d",
+          "service_subtype": "4d",
+          "reference_accession": "DQ418786",
+          "nucleotide_similarity": 0.9538,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "N24T, M36L, T47A, H63Y, D66E, T130N, K151R, N206S, T213V, K270R, F285Y, D327G, R380K, V450A, K517R, K531R, H566R, I585L"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_003": {
+      "sequence_sha256": "d2a1c16ed9b40bd68fd2502bd1106bde30b33a115dd3e96b2ab8a759a16af424",
+      "regions": {
+        "NS3": {
+          "genotype": "1",
+          "subtype": null,
+          "service_subtype": "1*2",
+          "reference_accession": "AJ851228",
+          "nucleotide_similarity": 0.9098,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "I18V, V33I, T39A, S40T, V51T, A61AT, S63P, P67A, T91A, V167I"
+        },
+        "NS5A": {
+          "genotype": "1",
+          "subtype": null,
+          "service_subtype": "1*2",
+          "reference_accession": "AJ851228",
+          "nucleotide_similarity": 0.9201,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "I8V, V31M, R44K, R56K, A79T, H93Y, V108T, R123Q, H180N, H181Q"
+        },
+        "NS5B": {
+          "genotype": "1",
+          "subtype": null,
+          "service_subtype": "1*2",
+          "reference_accession": "AJ851228",
+          "nucleotide_similarity": 0.924,
+          "codons_covered": [
+            2,
+            592
+          ],
+          "substitutions_relative_to_reference": "Q57L, D62T, E87D, K98R, V131T, N213S, Q309R, A376V, A377T, G378N, I405V, I409L, L434I, A506S, R517K, T520I, R566H"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "31M",
+            "93Y"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "31M",
+            "93Y"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "31M",
+            "93Y"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "93Y"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "31M"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "174S"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "93Y"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_004": {
+      "sequence_sha256": "4c42a4a2991920ef5bc6b6b0072db2f46bba4c64be7842b8835fac60bc065efd",
+      "regions": {
+        "NS3": {
+          "genotype": "2",
+          "subtype": "2k",
+          "service_subtype": "2k",
+          "reference_accession": "AB031663",
+          "nucleotide_similarity": 0.9006,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "I33V, I51V, S67P, P86S, A150V, A163V, I172V, I179T"
+        },
+        "NS5A": {
+          "genotype": "2",
+          "subtype": "2k",
+          "service_subtype": "2k",
+          "reference_accession": "AB031663",
+          "nucleotide_similarity": 0.8966,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "A12V, K30R, R41K, H43Y, A46V, T48A, V62A, V63I, H69L, A99V, T103A, K107R, K112R, A119V, V130IV, N135D, N137D, S174T"
+        },
+        "NS5B": {
+          "genotype": "2",
+          "subtype": "2k",
+          "service_subtype": "2k",
+          "reference_accession": "AB031663",
+          "nucleotide_similarity": 0.9426,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "N81R, K114R, D117N, K124KM, P135T, I147V, T150A, K211R, M267T, M381R, S389T, A488T"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_005": {
+      "sequence_sha256": "66d885582c1aa77a9c3e2975f5ef79e7059482177d95dcb3e6cb49e25762cef9",
+      "regions": {
+        "NS3": {
+          "genotype": "3",
+          "subtype": "3h",
+          "service_subtype": "3h",
+          "reference_accession": "JF735121",
+          "nucleotide_similarity": 0.8987,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "I13IL, S133A, A147AT, V150IV, V153IL, I158V"
+        },
+        "NS5A": {
+          "genotype": "3",
+          "subtype": "3h",
+          "service_subtype": "3h",
+          "reference_accession": "JF735121",
+          "nucleotide_similarity": 0.8873,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "E3DE, L6S, I8V, W9LRW, M28IM, K41KR, M53MV, V61AV, S64T, V75IT, Y93H, C98CS, T103AT, I121V, T146A, A147AP, M169L, M179L, T181ST, I183V, A213T"
+        },
+        "NS5B": {
+          "genotype": "3",
+          "subtype": "3h",
+          "service_subtype": "3h",
+          "reference_accession": "JF735121",
+          "nucleotide_similarity": 0.9105,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "L47HLQ, R90K, K100KR, H120R, Q180R, T184AT, A198S, D206K, V235I, T246A, K250R, R300T, L308IL, S327H, V329I, A335NS, L374H, M425L, S473T, V512IV, R517K, A534V, S540P, A555AV, V564M, Q566R, L571Y, G575C, I585L"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "93H"
+          ],
+          "fold": "not available",
+          "evidence": "CR"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "93H"
+          ],
+          "fold": "not available",
+          "evidence": "CR"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "93H"
+          ],
+          "fold": "not available",
+          "evidence": "CR"
+        },
+        "Ombitasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "28I",
+            "93H"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "93H"
+          ],
+          "fold": "not available",
+          "evidence": "CR"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_006": {
+      "sequence_sha256": "50259885ce40a2d8f7ed70b2de7f6caac536c805a90b7623f77ffd1b6f1df007",
+      "regions": {
+        "NS3": {
+          "genotype": "4",
+          "subtype": "4c",
+          "service_subtype": "4c",
+          "reference_accession": "FJ462436",
+          "nucleotide_similarity": 0.8969,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "L14F, P88AP, K92R, L127I, V151A"
+        },
+        "NS5A": {
+          "genotype": "4",
+          "subtype": "4c",
+          "service_subtype": "4c",
+          "reference_accession": "FJ462436",
+          "nucleotide_similarity": 0.8776,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "H6W, I34V, R44K, T56IT, I101IV, D126DE, I156V, I158L, A164AT, E171D, V177IV, A213T"
+        },
+        "NS5B": {
+          "genotype": "4",
+          "subtype": "4c",
+          "service_subtype": "4c",
+          "reference_accession": "FJ462436",
+          "nucleotide_similarity": 0.9178,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "S19T, T47AT, N62ADNT, N65D, E66V, R98K, D107E, V116I, T131N, P156PS, A178V, Q181K, S206T, A210S, T213N, G307GS, R309KR, V353A, H362L, A376S, R517K, R519K, I523V, S549GS, T552ST, R570HR, I585V"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "30R"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_007": {
+      "sequence_sha256": "986de1abf404df9ff170084fd27fb9793ae22bc0941d5a995c83ae17c71c7fb1",
+      "regions": {
+        "NS3": {
+          "genotype": "2",
+          "subtype": "2c",
+          "service_subtype": "2c",
+          "reference_accession": "D50409",
+          "nucleotide_similarity": 0.8821,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "A7AT, I33V, S67PS, R92KR, S134T, V172IV, S174A, V177IV"
+        },
+        "NS5A": {
+          "genotype": "2",
+          "subtype": "2c",
+          "service_subtype": "2c",
+          "reference_accession": "D50409",
+          "nucleotide_similarity": 0.8638,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "I17AT, R30K, I34L, I37IV, N62DGNS, I74L, T83I, K107KR, E117D, D125DG, C146S, A213AT"
+        },
+        "NS5B": {
+          "genotype": "2",
+          "subtype": "2c",
+          "service_subtype": "2c",
+          "reference_accession": "D50409",
+          "nucleotide_similarity": 0.897,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "R43KR, Q47L, H63Y, E65D, T76S, K81R, I85IV, R113KR, D117N, S132ST, T150I, P156A, Q189G, K300R, N304DN, V329AV, P376LP, R377QR, L392FL, R401KR, V419I, V421A, M434MV, T438IT, D442N, S476T, S517R, R531K, G575GS"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_008": {
+      "sequence_sha256": "face6a1de6b30189fbedb1651e8a3616a5c8a39a8719b4da6fe316e457c768b3",
+      "regions": {
+        "NS3": {
+          "genotype": "4",
+          "subtype": "4m",
+          "service_subtype": "4m",
+          "reference_accession": "FJ462433",
+          "nucleotide_similarity": 0.9061,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "F14L, K24R, V33I, V71I, V114I, N174S"
+        },
+        "NS5A": {
+          "genotype": "4",
+          "subtype": "4m",
+          "service_subtype": "4m",
+          "reference_accession": "FJ462433",
+          "nucleotide_similarity": 0.9163,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "V8I, M31L, R41K, H54N, K56Q, R78K, F108V, S137A, T176A, T181S, A197T, L199V, M209I"
+        },
+        "NS5B": {
+          "genotype": "4",
+          "subtype": "4m",
+          "service_subtype": "4m",
+          "reference_accession": "FJ462433",
+          "nucleotide_similarity": 0.942,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "M57L, E128G, T131I, S135P, R151K, D177N, K181T, K231R, R304K, A353V, I390T, F425L, S549T"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "30S",
+            "31L"
+          ],
+          "fold": "150",
+          "evidence": "CR"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "reduced susceptibility",
+          "scored_mutations": [
+            "30S"
+          ],
+          "fold": "not available",
+          "evidence": "CR"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "resistant",
+          "scored_mutations": [
+            "30S",
+            "31L"
+          ],
+          "fold": "150",
+          "evidence": "CR"
+        },
+        "Ombitasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "31L"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_009": {
+      "sequence_sha256": "a9fe9373a2753466d40f5302f537379fcba329f70db5269c043d992a4936fd00",
+      "regions": {
+        "NS3": {
+          "genotype": "6",
+          "subtype": "6e",
+          "service_subtype": "6e",
+          "reference_accession": "DQ314805",
+          "nucleotide_similarity": 0.8564,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "V71IV, L82M, I114IV, V150AV"
+        },
+        "NS5A": {
+          "genotype": "6",
+          "subtype": "6e",
+          "service_subtype": "6e",
+          "reference_accession": "DQ314805",
+          "nucleotide_similarity": 0.859,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "A21T, A25ST, V34I, F37L, A46T, A62R, K68R, K73R, V75A, N105D, I121V, V124I, V130IV, A135T, R166G, V183A, Q187K, V196T, S204T"
+        },
+        "NS5B": {
+          "genotype": "6",
+          "subtype": "6e",
+          "service_subtype": "6e",
+          "reference_accession": "DQ314805",
+          "nucleotide_similarity": 0.8975,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "S24N, T46A, V59L, I71M, N77S, I116V, A149V, V184I, K198G, H203R, S222R, T235A, R237H, K251T, T254S, S255A, C262R, R309K, V327L, A333NS, R355H, L425M, V442A, L491K, S543G, S544N, R566Q, S580T, *592*W"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_010": {
+      "sequence_sha256": "2279e7adc1c17144123ff3ddde5e576982bc48d69669d2d1793f8f8e0d1d3950",
+      "regions": {
+        "NS3": {
+          "genotype": "4",
+          "subtype": "4r",
+          "service_subtype": "4r",
+          "reference_accession": "FJ462439",
+          "nucleotide_similarity": 0.9116,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "L14F, G15A, R26K, T95A, H110Q, S128CST, V134T, A181S"
+        },
+        "NS5A": {
+          "genotype": "4",
+          "subtype": "4r",
+          "service_subtype": "4r",
+          "reference_accession": "FJ462439",
+          "nucleotide_similarity": 0.8989,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "V8I, V15I, I28M, N62T, L108F, Y127F, N157T, Y208H"
+        },
+        "NS5B": {
+          "genotype": "4",
+          "subtype": "4r",
+          "service_subtype": "4r",
+          "reference_accession": "FJ462439",
+          "nucleotide_similarity": 0.942,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "N19A, K65H, S76A, R98K, V131T, F162Y, A185V, S207A, V454I, R517K, R519K, H571HY"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "30R"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "28M"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    },
+    "G2P_RARE_011": {
+      "sequence_sha256": "65f2c31a45a5c90de763c22b8c5fffed47c9e5b3ace0010db3ce511a15d13499",
+      "regions": {
+        "NS3": {
+          "genotype": "4",
+          "subtype": "4k",
+          "service_subtype": "4k",
+          "reference_accession": "EU392173",
+          "nucleotide_similarity": 0.8987,
+          "codons_covered": [
+            1,
+            181
+          ],
+          "substitutions_relative_to_reference": "G15S, C30Q, I71V, E95A, R98T, I107V"
+        },
+        "NS5A": {
+          "genotype": "4",
+          "subtype": "4k",
+          "service_subtype": "4k",
+          "reference_accession": "EU392173",
+          "nucleotide_similarity": 0.9193,
+          "codons_covered": [
+            1,
+            213
+          ],
+          "substitutions_relative_to_reference": "D10E, I34V, F43Y, R44K, V52I, D117E, S127Y, K157KN, Q212A"
+        },
+        "NS5B": {
+          "genotype": "4",
+          "subtype": "4k",
+          "service_subtype": "4k",
+          "reference_accession": "EU392173",
+          "nucleotide_similarity": 0.9324,
+          "codons_covered": [
+            1,
+            592
+          ],
+          "substitutions_relative_to_reference": "V11I, A47AT, V60L, D62N, H63HY, S77G, T85V, K98R, T131A, K173R, Y176H, Q177NS, V178A, E248D, K309R, S312T, T324A, T377A, S488C, K519R, T544D"
+        }
+      },
+      "drugs": {
+        "Asunaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Boceprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Daclatasvir": {
+          "prediction": "substitution on scored position",
+          "scored_mutations": [
+            "30R"
+          ],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Dasabuvir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Elbasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Glecaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Grazoprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ledipasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Ombitasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Pibrentasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Paritaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Simeprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Sofosbuvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Telaprevir": {
+          "prediction": "not licensed for subtype",
+          "scored_mutations": [],
+          "fold": "not available",
+          "evidence": "-"
+        },
+        "Velpatasvir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        },
+        "Voxilaprevir": {
+          "prediction": "susceptible",
+          "scored_mutations": [],
+          "fold": "-",
+          "evidence": "-"
+        }
+      }
+    }
+  }
+}

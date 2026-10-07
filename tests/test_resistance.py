@@ -17,6 +17,18 @@ SPEC.loader.exec_module(RESISTANCE)
 
 
 class ResistanceUnitTests(unittest.TestCase):
+    def test_drug_without_subtype_rules_is_not_omitted_or_extrapolated(self):
+        catalogue = [{
+            "region": "NS3", "rule_definition": "156T",
+            "drug_licensed_for_genotype": "1,2,3,4,5,6",
+        }]
+        sites = {("NS3", 156): {"assessed": True, "amino_acids": ["T"]}}
+        self.assertEqual(RESISTANCE.outcome([], sites, True, catalogue), ("susceptible", None))
+        self.assertEqual(RESISTANCE.outcome([], sites, False, catalogue), ("not licensed", None))
+        self.assertEqual(RESISTANCE.outcome([], {}, True, catalogue), ("not assessed", None))
+        sites[("NS3", 156)]["assessed"] = False
+        self.assertEqual(RESISTANCE.outcome([], sites, True, catalogue), ("not assessed", None))
+
     def test_geno2pheno_reference_preserves_scored_residues(self):
         reference = ROOT / "refgenomes/resistance/AF011751.1.fasta"
         records = RESISTANCE.fasta(reference)
@@ -69,6 +81,38 @@ class ResistanceUnitTests(unittest.TestCase):
 
 
 class OnlineParityCases(unittest.TestCase):
+    def test_rare_cases_report_all_drugs_and_match_resistance_predictions(self):
+        fixture_dir = ROOT / "assets/test_data/resistance/rare_cases"
+        cases = json.loads((fixture_dir / "expected.json").read_text())["cases"]
+        # Susceptible* presentation has a separate, unresolved subtype baseline.
+        normalise = {
+            "not licensed for subtype": "not licensed",
+            "substitution on scored position": "susceptible",
+            "susceptible with scored substitutions": "susceptible",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            for case, expected in cases.items():
+                region = expected["regions"]["NS5A"]
+                subtype = region["subtype"] or region["genotype"]
+                subprocess.run([
+                    sys.executable, str(ROOT / "scripts/annotate_vcf_resistance.py"),
+                    "--fasta", str(fixture_dir / f"{case}.fasta"),
+                    "--gff", str(fixture_dir / f"{case}.gff3"),
+                    "--subtype", subtype,
+                    "--rules", str(ROOT / "assets/hcv_geno2pheno_rules.csv"),
+                    "--sample-name", case, "--output-dir", temporary,
+                ], check=True, capture_output=True, text=True)
+                payload = json.loads((Path(temporary) / f"{case}_resistance.json").read_text())
+                actual = {row["drug"]: row for row in payload["drug_outcomes"]}
+                self.assertEqual(len(payload["drug_outcomes"]), 16, case)
+                self.assertEqual(set(actual), set(expected["drugs"]), case)
+                for drug, target in expected["drugs"].items():
+                    self.assertEqual(
+                        normalise.get(actual[drug]["outcome"], actual[drug]["outcome"]),
+                        normalise.get(target["prediction"], target["prediction"]),
+                        (case, drug),
+                    )
+
     def test_anonymized_consensuses_recover_online_mutations(self):
         fixture_dir = ROOT / "assets/test_data/resistance/cases"
         expected = json.loads((fixture_dir / "expected.json").read_text())
@@ -98,6 +142,17 @@ class OnlineParityCases(unittest.TestCase):
                 )
                 payload = json.loads((output / f"{case}_resistance.json").read_text())
                 self.assertEqual(payload["h77_reference"], "AF011751.1")
+                catalogue = RESISTANCE.rules(ROOT / "assets/hcv_geno2pheno_rules.csv")
+                self.assertEqual(
+                    {row["drug"] for row in payload["drug_outcomes"]},
+                    {row["drug"] for row in catalogue},
+                )
+                for row in payload["drug_outcomes"]:
+                    self.assertEqual(row["licensed"], any(
+                        r["drug"] == row["drug"] and RESISTANCE.licensed(
+                            expectation["subtype"], r["drug_licensed_for_genotype"]
+                        ) for r in catalogue
+                    ))
                 observed = {
                     f"{site['gene']}:{site['h77_position']}{aa}"
                     for site in payload["sites"]
