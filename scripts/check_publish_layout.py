@@ -4,6 +4,7 @@
 import argparse
 import json
 from pathlib import Path
+from consensus_metadata import load as load_consensus
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,6 +33,13 @@ def main() -> None:
 
     data = json.loads(qc_path.read_text(encoding="utf-8"))
     outputs = data.get("outputs") or {}
+    if outputs.get("analytical_majority_fasta"):
+        for fasta_key, metadata_key in (("main_fasta", "main_consensus_metadata"),
+                                        ("iupac_fasta", "iupac_consensus_metadata"),
+                                        ("analytical_majority_fasta", "analytical_majority_consensus_metadata")):
+            require(bool(outputs.get(metadata_key)), f"Missing consensus provenance output: {metadata_key}")
+            load_consensus(sample_dir / outputs[fasta_key], sample_dir / outputs[metadata_key])
+        require((sample_dir / (outputs["analytical_majority_fasta"]+".fai")).is_file(), "Missing analytical majority FASTA index")
     require("lid_2limsrs" not in outputs, "QC outputs still includes lid_2limsrs")
     require(outputs.get("display_rug_kde_plot") == f"{sample_id}_display_rug_kde_plot.png", "Unexpected display plot path")
 

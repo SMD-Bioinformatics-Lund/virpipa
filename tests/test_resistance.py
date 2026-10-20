@@ -52,12 +52,13 @@ class ResistanceUnitTests(unittest.TestCase):
         self.assertEqual(RESISTANCE.aas("MAY"), {"H", "N"})
 
     def test_alignment_maps_positions_across_an_insertion_and_deletion(self):
-        mapping = RESISTANCE.position_map("ABCDE", "ABXCDE")
-        self.assertEqual([mapping[index] for index in range(1, 6)], [1, 2, 4, 5, 6])
-        mapping = RESISTANCE.position_map("ABCDE", "ABDE")
-        self.assertIsNone(mapping[3])
+        reference = "ACGTGCTAGTCACTGATCGTACGATCAGTGC"
+        mapping = RESISTANCE.align(reference, reference[:15]+"AAA"+reference[15:])["mapping"]
+        self.assertEqual(mapping[24], 27)
+        mapping = RESISTANCE.align(reference, reference[:15]+reference[18:])["mapping"]
+        self.assertNotIn(16, mapping)
 
-    def test_compound_rule_is_partial_until_all_parts_match(self):
+    def test_compound_rule_is_disproved_until_all_parts_match(self):
         rule = {
             "drug": "Drug",
             "region": "NS5A",
@@ -72,7 +73,7 @@ class ResistanceUnitTests(unittest.TestCase):
             ("NS5A", 93): {"assessed": True, "amino_acids": ["Y"], "h77_aa": "Y"},
         }
         self.assertEqual(
-            RESISTANCE.evaluate([rule], sites, "1a")[0]["match_state"], "partial"
+            RESISTANCE.evaluate([rule], sites, "1a")[0]["match_state"], "none"
         )
         sites[("NS5A", 93)]["amino_acids"] = ["H"]
         self.assertEqual(
@@ -95,7 +96,7 @@ class OnlineParityCases(unittest.TestCase):
                 region = expected["regions"]["NS5A"]
                 subtype = region["subtype"] or region["genotype"]
                 subprocess.run([
-                    sys.executable, str(ROOT / "scripts/annotate_vcf_resistance.py"),
+                    sys.executable, str(ROOT / "scripts/annotate_vcf_resistance.py"), "--allow-legacy-consensus",
                     "--fasta", str(fixture_dir / f"{case}.fasta"),
                     "--gff", str(fixture_dir / f"{case}.gff3"),
                     "--subtype", subtype,
@@ -123,6 +124,7 @@ class OnlineParityCases(unittest.TestCase):
                     [
                         sys.executable,
                         str(ROOT / "scripts/annotate_vcf_resistance.py"),
+                        "--allow-legacy-consensus",
                         "--fasta",
                         str(fixture_dir / f"{case}.fasta"),
                         "--gff",
@@ -173,6 +175,18 @@ class HistoricalRecallTests(unittest.TestCase):
             sample.mkdir(parents=True)
             fixture = ROOT / "assets/test_data/resistance/cases"
             shutil.copy2(fixture / f"{name}.fasta", sample / f"{name}-0.15-iupac.fasta")
+            sequence = sample / f"{name}-0.15-iupac.fasta"
+            from consensus_metadata import sequence as read_sequence, sequence_checksum
+            identifier, seq = read_sequence(sequence)
+            Path(str(sequence)+".consensus.json").write_text(json.dumps({
+                "schema_version": "1.0", "converter_version": "4.0", "contig": identifier,
+                "length": len(seq), "sequence_sha256": sequence_checksum(seq),
+                "coordinate_source_sha256": "a"*64, "mode": "iupac", "min_af": 0.15,
+                "minimum_usable_depth": 1, "reference_fill": False,
+                "usable_depths": [10]*len(seq), "masking_reasons": {},
+            }))
+            qc = {"sample_id": name, "run_name": "run", "lid": "ANON", "qc": {"mean_depth": 10}, "outputs": {}, "resistance": {"analysis_present": False}}
+            (sample / f"{name}_qc_summary.json").write_text(json.dumps(qc))
             shutil.copy2(fixture / f"{name}.gff3", sample / f"{name}.vadr.pass_mod.gff")
             (sample / f"{name}-0.15-iupac.fasta.blast").write_text(
                 "query acc.ver\tsubject acc.ver\n"
@@ -202,9 +216,14 @@ class HistoricalRecallTests(unittest.TestCase):
             self.assertEqual(payload["h77_reference"], "AF011751.1")
             self.assertIn("\t93\tY\tH\t", previous.read_text())
             self.assertEqual(
-                (backup / name / f"{name}_resistance.tsv").read_text(),
+                (backup / "files" / name / f"{name}_resistance.tsv").read_text(),
                 "previous result\n",
             )
+            recalled = json.loads((sample / f"{name}_qc_summary.json").read_text())
+            self.assertEqual(recalled["lid"], qc["lid"])
+            self.assertEqual(recalled["qc"], qc["qc"])
+            self.assertEqual(recalled["resistance"]["schema_version"], "3.1")
+            self.assertEqual(recalled["resistance"]["by_drug"], payload["drug_outcomes"])
 
 
 if __name__ == "__main__":

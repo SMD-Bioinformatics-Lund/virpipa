@@ -6,14 +6,17 @@ process CREATE_CONSENSUS {
     memory '16 GB'
     time '2h'
     
-    publishDir { "${params.outdir}/${run_name}/${sample_id}" }, mode: 'copy', pattern: "*.fasta", enabled: params.publish_mode == 'debug'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}" }, mode: 'copy', pattern: "*.fasta*", enabled: params.publish_mode == 'debug'
     
     input:
         tuple val(run_name), val(sample_id), path(vcf), path(reference_fasta)
         val min_freq
+        path reference_metadata
     
     output:
         tuple val(run_name), val(sample_id), path("${sample_id}-${min_freq}-iupac.fasta"), path("${sample_id}-${min_freq}-iupac.fasta.fai"), emit: consensus
+        tuple val(run_name), val(sample_id), path("${sample_id}-${min_freq}-iupac.fasta.consensus.json"), emit: metadata
+        tuple val(run_name), val(sample_id), path("${sample_id}-majority.fasta"), path("${sample_id}-majority.fasta.fai"), path("${sample_id}-majority.fasta.consensus.json"), emit: analytical_majority
     
     script:
     def active_profiles = workflow.profile ?: ''
@@ -24,9 +27,11 @@ process CREATE_CONSENSUS {
     def samtools = container_dir ? 
         "${container_runtime} exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
         "samtools"
+    def python = container_dir ? "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" : 'python3'
 
     def ref_copy = reference_fasta.getName()
     def output_fasta = "${sample_id}-${min_freq}-iupac.fasta"
+    def metadata_arg = reference_metadata ? "--reference-metadata ${reference_metadata}" : ''
     
     """
     set -euo pipefail
@@ -37,10 +42,10 @@ process CREATE_CONSENSUS {
 
     zcat ${vcf} > input.vcf
 
-    awk -v MIN_AF=${min_freq} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${ref_copy} > ${output_fasta}
-
-    sed -i "s/>.*/>${sample_id}-${min_freq}-iupac/" ${output_fasta}
+    ${python} ${projectDir}/scripts/consensus_metadata.py --vcf input.vcf --reference ${ref_copy} ${metadata_arg} --output ${output_fasta} --identifier ${sample_id}-${min_freq}-iupac --mode iupac --min-af ${min_freq}
+    ${python} ${projectDir}/scripts/consensus_metadata.py --vcf input.vcf --reference ${ref_copy} ${metadata_arg} --output ${sample_id}-majority.fasta --identifier ${sample_id}-majority --mode analytical_majority
 
     ${samtools} faidx ${output_fasta}
+    ${samtools} faidx ${sample_id}-majority.fasta
     """
 }

@@ -12,7 +12,7 @@ The temporary re-identification key and source copies were lost when WSL restart
 
 For recovery, match sequences by SHA-256 of uppercase bases without whitespace, using `sequence_sha256` in `expected.json`; do not infer identifiers from fixture order. The supplied CSV identifiers have a `(No identifier given) - ` prefix before the FASTA identifier. Store any reconstructed key outside the repository, not in `/tmp`.
 
-The replacement local VADR run completed on 2026-10-07 using the existing pipeline wrapper, processing one genome at a time. The `.gff3` fixtures retain its three resistance-gene annotations without correcting the input sequences or boundaries. They are reproducible caller inputs, not a declaration that each whole genome is biologically intact. The candidate reference panel is not active in the production workflow.
+The replacement local VADR run completed on 2026-10-07 using the existing pipeline wrapper, processing one genome at a time. The `.gff3` fixtures retain its three resistance-gene annotations without correcting the input sequences or boundaries. They are reproducible caller inputs, not a declaration that each whole genome is biologically intact. The resistance caller now uses verified exact-subtype panel bridges for alignment; BLAST subtype assignment is unchanged.
 
 The user reports mixed signals in `G2P_RARE_001` (2i), `G2P_RARE_005` (3h), `G2P_RARE_007` (2c), `G2P_RARE_009` (6e), and `G2P_RARE_010` (4r). These remain valid comparisons of the submitted IUPAC sequences, not ground truth for strain-specific haplotypes or linked compound mutations. The other cases have not been independently certified single-strain.
 

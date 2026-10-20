@@ -9,6 +9,7 @@ import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from consensus_metadata import load as load_consensus
 
 
 AF_KEYS = ["0.05", "0.1", "0.15", "0.2", "0.3", "0.4"]
@@ -315,6 +316,13 @@ def read_resistance(resistance_path: Path, resistance_by_drug_path: Path, resist
         result["warnings"] = evidence.get("warnings", [])
         result["sites"] = evidence.get("sites", [])
         result["codon_evidence_parameters"] = evidence.get("codon_evidence_parameters", {})
+        result["schema_version"] = evidence.get("schema_version")
+        result["integrity_findings"] = evidence.get("integrity_findings", [])
+        result["gene_alignments"] = evidence.get("gene_alignments", {})
+        result["coordinate_reference"] = evidence.get("coordinate_reference", {})
+        result["consensus_provenance_verified"] = evidence.get("consensus_provenance_verified", False)
+        result["reference_panel_sha256"] = evidence.get("reference_panel_sha256")
+        result["limitations"] = evidence.get("limitations", [])
     return result
 
 
@@ -358,9 +366,13 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
 
     path_names = {
         "main_fasta": f"{sample_id}.fasta",
+        "main_consensus_metadata": f"{sample_id}.fasta.consensus.json",
+        "analytical_majority_fasta": f"{sample_id}-majority.fasta",
+        "analytical_majority_consensus_metadata": f"{sample_id}-majority.fasta.consensus.json",
         "main_cram": f"{sample_id}.cram",
         "main_blast": f"{sample_id}.fasta.blast",
         "iupac_fasta": f"{sample_id}-0.15-iupac.fasta",
+        "iupac_consensus_metadata": f"{sample_id}-0.15-iupac.fasta.consensus.json",
         "iupac_blast": f"{sample_id}-0.15-iupac.fasta.blast",
         "iupac_cram": f"{sample_id}-0.15-iupac.cram",
         "iupac_report": f"{sample_id}-0.15-iupac.report.tsv",
@@ -420,6 +432,14 @@ def main() -> None:
     sample_info = read_sample_info(Path(args.sample_info) if args.sample_info else None, sample_id)
 
     summary = {
+        "consensus": {
+            key: {field: value for field, value in load_consensus(results_dir / name).items()
+                  if field not in {"usable_depths", "masking_reasons"}}
+            for key, name in (("scaffold", f"{sample_id}.fasta"),
+                              ("iupac", f"{sample_id}-0.15-iupac.fasta"),
+                              ("analytical_majority", f"{sample_id}-majority.fasta"))
+            if (results_dir / (name+".consensus.json")).exists()
+        },
         "schema_version": 4,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "pipeline_name": "virpipa",

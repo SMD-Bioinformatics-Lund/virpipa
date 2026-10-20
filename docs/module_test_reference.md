@@ -16,6 +16,7 @@ SENTIEON_LICENSE=localhost:8990 nextflow run test_module.nf -profile local_conta
 SENTIEON_LICENSE=localhost:8990 nextflow run test_module.nf -profile local_containers --module mapping_noopt
 SENTIEON_LICENSE=localhost:8990 nextflow run test_module.nf -profile local_containers --module polish
 nextflow run test_module.nf -profile local --module consensus
+nextflow run test_module.nf -profile local_containers --module consensus_contract --publish_mode debug
 nextflow run test_module.nf -profile local_containers --module variantcall
 nextflow run test_module.nf -profile local_containers --module filter_vcf
 nextflow run test_module.nf -profile local_containers --module cram
@@ -31,12 +32,12 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 
 - `hostile`: verified identical.
 - `subsample`: verified identical.
-- `bam2fasta`: FASTA sequence is identical case-insensitively and intentionally uppercase; VCF/stats differ only in embedded header path/date metadata.
+- `bam2fasta`: consensus generation intentionally differs from the legacy converter: majority mode selects the most abundant nucleotide rather than REF+ALT ambiguity; uncovered mapping-scaffold bases remain reference. VCF/stats can still differ only in embedded metadata.
 - `bestref`: verified identical selected FASTA for the fixture.
 - `mapping`: SAM payload verified; stats differ only in embedded command-line/path metadata.
 - `mapping_noopt`: SAM payload verified; stats differ only in embedded command-line/path metadata.
 - `polish`: final FASTAs and BAM SAM payloads verified; `samtools stats` differ only in embedded command-line/path metadata.
-- `consensus`: sequence is identical case-insensitively and intentionally uppercase.
+- `consensus`: publishes masked analytical IUPAC and majority FASTAs, indexes and matching JSON sidecars. All qualifying alleles are retained at any nonzero usable depth; zero coverage and uninterpretable evidence are masked without changing coordinate length. Headers contain only identifiers.
 - `variantcall`: VCF body verified; header differs only in embedded reference path metadata.
 - `filter_vcf`: filtered VCF bodies verified; stats differ only in embedded filename/path metadata.
 - `cram`: SAM payload verified; CRAM/header/index differ only in embedded reference path metadata.
@@ -44,7 +45,7 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 - `subtype`: verified identical.
 - `report`: verified identical.
 - `vadr`: verified identical.
-- `resistance`: the standard module fixture has subtype 3a and NS5A Y93, with no fully matched resistance rules. The anonymized consensus tests separately cover positive calls including NS5A 93H.
+- `resistance`: debug publication must contain all six resistance files, 16 drug outcomes and codon evidence. The sparse standard fixture is not a complete negative control: insufficient coverage/mapping can yield not assessed. Anonymized cases separately cover positive calls including NS5A 93H.
 - `finalize_results`: flat Virtitta publish layout is fixture-backed; validate with `scripts/check_publish_layout.py`.
 
 ## Fixture inventory
@@ -92,7 +93,7 @@ Repo-local fixtures live under `assets/test_data/`:
 - `bam2fasta` must emit the replacement `SAMPLE001.fasta` with the sample-name header for downstream steps.
 - The `0.15-iupac` report branch must key on `sample_id`, not `run_name`.
 - `FILTER_VCF.out.stats` emits a list; downstream code must pick the `m0.15` member where required.
-- The resistance branch uses the `m0.15` filtered VCF and derives subtype from the first data hit in the `0.15-iupac` BLAST output.
+- The resistance branch uses the analytical 15% IUPAC FASTA, not the filtered VCF, and derives subtype from the first data hit in its BLAST output.
 
 ### VADR
 
@@ -100,6 +101,8 @@ Repo-local fixtures live under `assets/test_data/`:
 - Local VADR tests should use the replacement `SAMPLE001.fasta`, not `SAMPLE001-0.15-iupac.fasta`.
 
 ## Suggested verification approach
+
+`consensus_contract` is a connected scaffold → analytical consensus → resistance fixture run, with the same sample ID in two different runs. It verifies `(run_name, sample_id)` sidecar joins and clean headers, publishes both analytical FASTAs and six resistance artifacts per run, and deliberately omits CRAM evidence to test sidecar-based baseline depth qualifications. It does not run assembly, polishing or VADR.
 
 For a changed module:
 

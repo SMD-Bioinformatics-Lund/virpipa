@@ -13,7 +13,7 @@ process FINALIZE_RESULTS {
             path(bestref_fasta), path(bestref_vcf), path(bestref_vcf_index), path(bestref_vcf_stats), path(bestref_cram), path(bestref_crai), path(bestref_report), path(bestref_nucfreq),
             path(coverage_tsv), path(coverage_1x_bed), path(vadr_gff), path(vadr_bed), path(pilon_iupac_blast),
             path(resistance_tsv), path(resistance_bed), path(resistance_gff), path(resistance_drug_tsv), path(resistance_json), path(resistance_sites_gff),
-            path(filtered_vcfs), path(filtered_indices), path(filtered_stats)
+            path(filtered_vcfs), path(filtered_indices), path(filtered_stats), path(consensus_artifacts)
 
     output:
         path "results", emit: results_dir
@@ -34,11 +34,13 @@ process FINALIZE_RESULTS {
     def python = container_dir ?
         "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" :
         "python3"
+    def consensus_copy = consensus_artifacts ? "cp ${consensus_artifacts.join(' ')} results/" : ''
 
     """
     set -euo pipefail
 
     mkdir -p results
+    ${consensus_copy}
 
     cp ${main_fasta} results/${sample_id}.fasta
     cp ${main_fai} results/${sample_id}.fasta.fai

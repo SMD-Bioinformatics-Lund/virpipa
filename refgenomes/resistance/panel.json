@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "status": "candidate panel; not yet used for pipeline subtype selection",
+  "status": "verified resistance alignment bridges; not used for pipeline subtype selection",
   "numbering_reference": "AF011751.1",
-  "reference_policy": "one reporting genome per assigned subtype; AJ851228.1 is an observed genotype-1 reference for the unassigned-subtype case",
+  "reference_policy": "observed reporting genomes for rare subtypes, plus exact-subtype repository genomes verified against the installed alignment; no related-subtype extrapolation",
   "retrieved_on": "2026-10-06",
   "sequence_source": "NCBI GenBank, accession.version pinned",
   "coordinate_source": {
@@ -47,7 +47,7 @@
     {
       "accession": "D50409.1",
       "genotype": "2",
-      "subtype": "2c_D50409",
+      "subtype": "2c",
       "genome_fasta": "genomes/D50409.1.fasta",
       "sequence_sha256": "39011f187b67dc9b65fee198f01c22d82cdd99836dc39d4b07e1bbc277e14305",
       "length": 9513,
@@ -75,7 +75,7 @@
     {
       "accession": "DQ155561.1",
       "genotype": "2",
-      "subtype": "2i_DQ155561",
+      "subtype": "2i",
       "genome_fasta": "genomes/DQ155561.1.fasta",
       "sequence_sha256": "da5d310ce94f1467f48a537dd71cea577598e84e66b642cecfaf5e046244a223",
       "length": 9370,
@@ -103,7 +103,7 @@
     {
       "accession": "AB031663.1",
       "genotype": "2",
-      "subtype": "2k_AB031663",
+      "subtype": "2k",
       "genome_fasta": "genomes/AB031663.1.fasta",
       "sequence_sha256": "fb590469e83e47683b1057933d27a1ba92f48f839409f7636b007615115bd079",
       "length": 9488,
@@ -131,7 +131,7 @@
     {
       "accession": "JF735121.1",
       "genotype": "3",
-      "subtype": "3h_JF735121",
+      "subtype": "3h",
       "genome_fasta": "genomes/JF735121.1.fasta",
       "sequence_sha256": "0f87be5bf71361489290f37246d7d60b98cbc23815520bfe171bce9a31fdd3c6",
       "length": 9579,
@@ -159,7 +159,7 @@
     {
       "accession": "FJ462436.1",
       "genotype": "4",
-      "subtype": "4c_FJ462436",
+      "subtype": "4c",
       "genome_fasta": "genomes/FJ462436.1.fasta",
       "sequence_sha256": "ec041ca7619c0c222c046a5350d8021035f36e38a930979c81d275aa3b4f677e",
       "length": 9468,
@@ -187,7 +187,7 @@
     {
       "accession": "DQ418786.1",
       "genotype": "4",
-      "subtype": "4d_DQ418786",
+      "subtype": "4d",
       "genome_fasta": "genomes/DQ418786.1.fasta",
       "sequence_sha256": "8f83387387a9cc7c19b49095eb8a2fdb176805f164feadc170968f20a82999b2",
       "length": 9273,
@@ -215,7 +215,7 @@
     {
       "accession": "EU392173.1",
       "genotype": "4",
-      "subtype": "4k_EU392173",
+      "subtype": "4k",
       "genome_fasta": "genomes/EU392173.1.fasta",
       "sequence_sha256": "80c3b4d3ed44663e9cab723f4388c5bde740a807e34e92cbd5e8b7c9e85e5159",
       "length": 9312,
@@ -243,7 +243,7 @@
     {
       "accession": "FJ462433.1",
       "genotype": "4",
-      "subtype": "4m_FJ462433",
+      "subtype": "4m",
       "genome_fasta": "genomes/FJ462433.1.fasta",
       "sequence_sha256": "b1ef600a1c05ece0700cf58281582bb4ba94d70a32e3119542cc18e40da68952",
       "length": 9425,
@@ -271,7 +271,7 @@
     {
       "accession": "FJ462439.1",
       "genotype": "4",
-      "subtype": "4r_FJ462439",
+      "subtype": "4r",
       "genome_fasta": "genomes/FJ462439.1.fasta",
       "sequence_sha256": "b6c37dfe66a315ebb38b8b2e0f0f044cb47f0642b532bc6f30fb60b873f7aaf7",
       "length": 9440,
@@ -299,7 +299,7 @@
     {
       "accession": "DQ314805.1",
       "genotype": "6",
-      "subtype": "6e_DQ314805",
+      "subtype": "6e",
       "genome_fasta": "genomes/DQ314805.1.fasta",
       "sequence_sha256": "239309bf9d815387ed5884057fbf9be5da0d8a3d926ab5cacb6c0bf9b56e2daf",
       "length": 9468,
@@ -327,7 +327,7 @@
     {
       "accession": "AJ851228.1",
       "genotype": "1",
-      "subtype": "1_AJ851228",
+      "subtype": null,
       "genome_fasta": "genomes/AJ851228.1.fasta",
       "sequence_sha256": "d421ca2789458215a510a40437cbe36a7bb062a9fa680d4d6894be4270a4c4dd",
       "length": 9481,
@@ -347,6 +347,186 @@
         "NS5B": {
           "start": 7575,
           "end": 9347,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "D90208",
+      "genotype": "1",
+      "subtype": "1b",
+      "genome_fasta": "genomes/D90208.fasta",
+      "length": 9413,
+      "sequence_sha256": "3d80157bb1042418cc299c39d13bab8d79f573f58a0644a2e883c77e07829cc6",
+      "sequence_source": "repository reference refgenomes/1b-D90208.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3408,
+          "end": 5300,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6246,
+          "end": 7586,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7587,
+          "end": 9359,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "D00944",
+      "genotype": "2",
+      "subtype": "2a",
+      "genome_fasta": "genomes/D00944.fasta",
+      "length": 9589,
+      "sequence_sha256": "381a94206f1de7669a365bfa718d628b192368f0a09007afc5304286b4d60da3",
+      "sequence_source": "repository reference refgenomes/2a-D00944.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3431,
+          "end": 5323,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6269,
+          "end": 7666,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7667,
+          "end": 9439,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "D10988",
+      "genotype": "2",
+      "subtype": "2b",
+      "genome_fasta": "genomes/D10988.fasta",
+      "length": 9511,
+      "sequence_sha256": "931e7b602b5962da548e56e684dcc59c10fe993b905304a1c80eac96c40b8033",
+      "sequence_source": "repository reference refgenomes/2b-D10988.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3432,
+          "end": 5324,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6270,
+          "end": 7667,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7668,
+          "end": 9440,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "D17763",
+      "genotype": "3",
+      "subtype": "3a",
+      "genome_fasta": "genomes/D17763.fasta",
+      "length": 9456,
+      "sequence_sha256": "d143778c2959e78e82c9b6fe304dce16499b8b0740c1bff384c6220a6839fac4",
+      "sequence_source": "repository reference refgenomes/3a-D17763.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3436,
+          "end": 5328,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6274,
+          "end": 7629,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7630,
+          "end": 9402,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "Y13184",
+      "genotype": "5",
+      "subtype": "5a",
+      "genome_fasta": "genomes/Y13184.fasta",
+      "length": 9343,
+      "sequence_sha256": "2db903e11c57fd41e7e9eeef99f7589b72dcd25a5b6430781ca07214ad9b6b02",
+      "sequence_source": "repository reference refgenomes/5a-Y13184.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3361,
+          "end": 5253,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6199,
+          "end": 7548,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7549,
+          "end": 9321,
+          "strand": "+",
+          "complete": true
+        }
+      }
+    },
+    {
+      "accession": "Y12083",
+      "genotype": "6",
+      "subtype": "6a",
+      "genome_fasta": "genomes/Y12083.fasta",
+      "length": 9340,
+      "sequence_sha256": "1506a322c5652210925f9978c47047220846e7f32cbbbd2a3aeef9d6655fbf6d",
+      "sequence_source": "repository reference refgenomes/6a-Y12083.fa",
+      "purpose": "verified alignment bridge; geno2pheno reporting-reference equivalence not established",
+      "regions": {
+        "NS3": {
+          "start": 3374,
+          "end": 5266,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5A": {
+          "start": 6212,
+          "end": 7564,
+          "strand": "+",
+          "complete": true
+        },
+        "NS5B": {
+          "start": 7565,
+          "end": 9337,
           "strand": "+",
           "complete": true
         }

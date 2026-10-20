@@ -12,3 +12,4 @@ test_output_*/
 scripts/__pycache__/
 tests/__pycache__/
 .codex
+codex-session*

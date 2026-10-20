@@ -1,6 +1,8 @@
 process BAM2FASTA {
     tag { "${sample_id}:${ref_name}" }
     label 'process_medium'
+    // The replacement FASTA may share its basename with the staged reference.
+    stageInMode 'copy'
     
     cpus 8
     memory '16 GB'
@@ -15,6 +17,8 @@ process BAM2FASTA {
     output:
         tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.fasta"), path("${sample_id}-${ref_name}.fasta.fai"), emit: fasta
         tuple val(run_name), val(sample_id), path("${sample_id}.fasta"), path("${sample_id}.fasta.fai"), emit: replacement_fasta
+        tuple val(run_name), val(sample_id), path("${sample_id}.fasta.consensus.json"), emit: replacement_metadata
+        tuple val(run_name), val(sample_id), path("${sample_id}-${ref_name}.fasta.consensus.json"), emit: fasta_metadata
         path "${sample_id}-${ref_name}.vcf.gz", emit: vcf
         path "${sample_id}-${ref_name}.vcf.gz.csi", emit: vcf_index
         path "${sample_id}-${ref_name}.vcf.gz.stats", emit: stats
@@ -36,6 +40,7 @@ process BAM2FASTA {
     def samtools = container_dir ? 
         "${container_runtime} exec -B ${bind_paths} ${container_dir}/samtools_1.21.sif samtools" :
         "samtools"
+    def python = container_dir ? "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" : 'python3'
     
     def ref_copy = ref_fasta.getName()
     def bcf_name = "${sample_id}-${ref_name}.bcf"
@@ -43,6 +48,7 @@ process BAM2FASTA {
     def fasta_name = "${sample_id}-${ref_name}.fasta"
     def stats_name = "${sample_id}-${ref_name}.vcf.gz.stats"
     def replacement_fasta = "${sample_id}.fasta"
+    def consensus_mode = ambiguity_threshold.toString().toBigDecimal() == 1 ? 'scaffold' : 'iupac'
 
     """
     set -euo pipefail
@@ -58,13 +64,12 @@ process BAM2FASTA {
 
     zcat ${vcf_name} > input.vcf
 
-    awk -v MIN_AF=${ambiguity_threshold} -v MIN_DP=7 -f ${projectDir}/scripts/vcf_to_iupac.awk input.vcf ${ref_copy} > ${fasta_name}
-
-    sed -i "s/>.*/>${sample_id}-${ref_name}/" ${fasta_name}
+    ${python} ${projectDir}/scripts/consensus_metadata.py --vcf input.vcf --reference ${ref_copy} --output ${fasta_name} --identifier ${sample_id}-${ref_name} --mode ${consensus_mode} --min-af ${ambiguity_threshold}
     ${samtools} faidx ${fasta_name}
 
     cp ${fasta_name} ${replacement_fasta}
-    sed -i "s/>.*/>${sample_id}/" ${replacement_fasta}
+    sed -i "s/^>[^ ]*/>${sample_id}/" ${replacement_fasta}
+    ${python} -c 'import json; p=json.load(open("${fasta_name}.consensus.json")); p["contig"]="${sample_id}"; json.dump(p, open("${replacement_fasta}.consensus.json", "w"), indent=2)'
     ${samtools} faidx ${replacement_fasta}
     """
 }

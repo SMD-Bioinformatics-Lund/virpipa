@@ -7,8 +7,9 @@ include { HCVPIPE } from './workflows/hcvpipe'
 workflow {
     main:
     HCVPIPE()
+}
 
-    onComplete:
+workflow.onComplete {
     if (params.completion_log_dir?.toString()?.trim()) {
         def runName = params.run_name?.toString()?.trim()
         def source = (params.csv ?: params.input)?.toString()

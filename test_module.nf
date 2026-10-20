@@ -106,6 +106,7 @@ Usage:
   nextflow run test_module.nf -profile local_containers --module mapping_noopt --outdir test_output_mapping_noopt
   nextflow run test_module.nf -profile local_containers --module polish --outdir test_output_polish
   nextflow run test_module.nf -profile local --module consensus --outdir test_output_consensus
+  nextflow run test_module.nf -profile local_containers --module consensus_contract --publish_mode debug
   nextflow run test_module.nf -profile local_containers --module filter_vcf --outdir test_output_filter_vcf
   nextflow run test_module.nf -profile local_containers --module variantcall --outdir test_output_variantcall
   nextflow run test_module.nf -profile local_containers --module cram --outdir test_output_cram
@@ -219,6 +220,29 @@ Notes:
                 )
             )
         )
+    } else if (params.module == 'consensus_contract') {
+        // Two runs deliberately share one sample ID: provenance joins must use both.
+        BAM2FASTA(channel.of('contract_a', 'contract_b').map { run_name ->
+            tuple(run_name, 'SAMPLE001',
+                file("${projectDir}/assets/test_data/bam2fasta/SAMPLE001-pilon.r11b2L25.bwa.umi.filter.sort.bam"),
+                file("${projectDir}/assets/test_data/bam2fasta/SAMPLE001-pilon.r11b2L25.bwa.umi.filter.sort.bam.bai"),
+                file("${projectDir}/assets/test_data/bam2fasta/SAMPLE001.fasta"), '1.0-iupac')
+        }, '1.0')
+        ch_contract_source = BAM2FASTA.out.replacement_fasta
+            .map { run_name, sample_id, fasta, fai -> [[run_name, sample_id], fasta] }
+            .join(BAM2FASTA.out.replacement_metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
+            .join(BAM2FASTA.out.vcf_with_meta.map { run_name, sample_id, vcf -> [[run_name, sample_id], vcf] })
+        CREATE_CONSENSUS(ch_contract_source.map { key, fasta, metadata, vcf -> tuple(key[0], key[1], vcf, fasta) }, '0.15',
+            ch_contract_source.map { key, fasta, metadata, vcf -> metadata })
+        ch_contract_resistance = CREATE_CONSENSUS.out.consensus
+            .map { run_name, sample_id, fasta, fai -> [[run_name, sample_id], fasta] }
+            .join(CREATE_CONSENSUS.out.metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
+            .join(ch_contract_source.map { key, fasta, metadata, vcf -> [key, fasta, metadata] })
+        ANNOTATE_RESISTANCE(ch_contract_resistance.map { key, fasta, metadata, scaffold, scaffold_metadata ->
+            tuple(key[0], key[1], file("${projectDir}/assets/test_data/vadr/SAMPLE001.vadr.pass_mod.gff"),
+                fasta, [], [], scaffold, metadata, scaffold_metadata)
+        }, channel.value('3a'), channel.value(file("${projectDir}/assets/hcv_geno2pheno_rules.csv")),
+            channel.value(file("${projectDir}/refgenomes/resistance/AF011751.1.fasta")), channel.value(file("${projectDir}/refgenomes/resistance")))
     } else if (params.module == 'consensus') {
         CREATE_CONSENSUS(
             channel.of(
@@ -229,7 +253,8 @@ Notes:
                     file("${projectDir}/assets/test_data/consensus/SAMPLE001.fasta")
                 )
             ),
-            '0.15'
+            '0.15',
+            []
         )
     } else if (params.module == 'filter_vcf') {
         FILTER_VCF(
@@ -327,12 +352,16 @@ Notes:
                     file("${projectDir}/assets/test_data/vadr/SAMPLE001.vadr.pass_mod.gff"),
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta"),
                     file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram"),
-                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai")
+                    file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai"),
+                    [],
+                    [],
+                    []
                 )
             ),
             channel.value('3a'),
             channel.value(file(params.resistance_rules ?: "${projectDir}/assets/hcv_geno2pheno_rules.csv")),
-            channel.value(file("${projectDir}/refgenomes/resistance/AF011751.1.fasta"))
+            channel.value(file("${projectDir}/refgenomes/resistance/AF011751.1.fasta")),
+            channel.value(file("${projectDir}/refgenomes/resistance"))
         )
     } else if (params.module == 'qc_summary') {
         BUILD_QC_SUMMARY(
@@ -400,7 +429,8 @@ Notes:
                     file("${projectDir}/assets/test_data/qc_summary/results/SAMPLE001_resistance_sites.gff3"),
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz"),
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.csi"),
-                    files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.stats")
+                    files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.stats"),
+                    []
                 )
             )
         )
@@ -420,6 +450,6 @@ Notes:
                 }
         )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, consensus_contract, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"
     }
 }

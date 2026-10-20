@@ -15,10 +15,13 @@ sample root and also publishes intermediate subdirectories such as `bam/`, `vcf/
 Current final sample outputs include:
 
 - `SAMPLE001.fasta` and `SAMPLE001.fasta.fai`
+- `SAMPLE001.fasta.consensus.json` (reference-filled mapping scaffold provenance)
+- `SAMPLE001-majority.fasta`, `.fasta.fai` and `.fasta.consensus.json` (masked analytical majority)
 - `SAMPLE001.cram` and `SAMPLE001.cram.crai`
 - `SAMPLE001.fasta.blast`
 - `SAMPLE001-0.15-iupac.fasta`
 - `SAMPLE001-0.15-iupac.fasta.fai`
+- `SAMPLE001-0.15-iupac.fasta.consensus.json`
 - `SAMPLE001-0.15-iupac.cram` and `SAMPLE001-0.15-iupac.cram.crai`
 - `SAMPLE001-0.15-iupac.report.tsv`
 - `SAMPLE001-0.15-iupac.fastanucfreq.tsv`
@@ -43,6 +46,11 @@ Current final sample outputs include:
 - `SAMPLE001_display_rug_kde_plot.png`
 - `SAMPLE001_qc_summary.json`
 - `hostile.json` when host filtering is enabled
+
+Resistance JSON uses schema `3.1`; its outcome, low-depth qualification, site assessment, provenance, integrity and
+gene-alignment data are carried through the per-sample QC JSON for Virtitta. The workflow's
+resistance tracks target the main FASTA contig for a combined IGV view. Analytical IUPAC
+FASTA headers contain identifiers only. Converter-4 provenance is in accompanying consensus JSON, bound to uppercase sequence checksums and shared coordinate origins. Analytical IUPAC and majority outputs mask zero coverage, retain observations at depth 1–6, and preserve coordinate length; `main_fasta` remains the reference-filled CRAM/IGV scaffold. The new `analytical_majority_fasta` output is preferred for exports and majority distance calculations. QC JSON contains compact `consensus` summaries and `main_consensus_metadata`, `iupac_consensus_metadata` and `analytical_majority_consensus_metadata` output paths. See `docs/resistance_pipeline.md` for assessment and recall safeguards.
 
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
