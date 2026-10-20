@@ -29,6 +29,7 @@ Use the `skrotis` environment and repo-local containers for VirPipa. Run Virtitt
 suite in its own environment. Follow [the module reference](module_test_reference.md).
 
 ```bash
+nextflow lint main.nf test_module.nf
 python -m unittest discover -s tests -v
 NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module consensus_contract --publish_mode debug --outdir test_output_resistance_completion_contract
 NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module resistance --publish_mode debug --outdir test_output_resistance_completion_calls
@@ -36,6 +37,11 @@ NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module 
 NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module finalize_results --virtitta_import_dir test_output_resistance_completion_publish/import_markers --outdir test_output_resistance_completion_publish
 python scripts/check_publish_layout.py --sample-dir test_output_resistance_completion_publish/fixture_run/SAMPLE001 --sample-id SAMPLE001 --mode routine
 ```
+
+Run lint without `-format`, using the production Nextflow version before a Hopper
+full-run submission. Module fixtures do not compile `main.nf`; they cannot replace
+this gate. Completion-handler regression tests require Nextflow on PATH and run
+only an isolated stub, including one intentional local task failure.
 
 The QC/final-publication checks route import markers into their local test output
 directories; these fixtures must not publish into `/fs1/results/cron/virtitta`.

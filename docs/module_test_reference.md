@@ -4,6 +4,15 @@ This file collects the detailed local test matrix, fixture inventory, and parity
 
 ## Canonical local test commands
 
+Before module tests, check the actual pipeline entry point with `nextflow lint main.nf test_module.nf`.
+Lint does not execute workflows or write completion markers; do not add `-format`.
+With Nextflow on PATH, `python -m unittest discover -s tests -p test_entrypoint.py -v`
+also runs isolated success/failure/disabled completion-handler tests using an
+analysis stub: success submits no tasks; failure runs one trivial local shell task.
+These tests copy the real entry point, not a rewritten handler, and never run analysis.
+Without Nextflow, that integration-test class explicitly skips; the lint gate is
+still required before a Hopper run. Use production's Nextflow version for the Hopper gate.
+
 Add `--publish_mode debug` to module tests when you need their intermediate files published under `--outdir`.
 The resistance completion sequence and representative-data review gates are in
 [the resistance validation checklist](resistance_validation.md).

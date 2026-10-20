@@ -564,7 +564,7 @@ workflow HCVPIPE {
         .map { input, subtype -> [[input[0], input[1]], input, subtype] }
         .join(CREATE_CONSENSUS.out.metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
         .join(BAM2FASTA_PILON.out.replacement_metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
-    ANNOTATE_RESISTANCE(ch_resistance_provenance.map { key, input, subtype, metadata, scaffold_metadata -> tuple(*input, metadata, scaffold_metadata) }, ch_resistance_provenance.map { key, input, subtype, metadata, scaffold_metadata -> subtype }, rules_json, h77_fasta, file("${project_root}/refgenomes/resistance"))
+    ANNOTATE_RESISTANCE(ch_resistance_provenance.map { key, input, subtype, metadata, scaffold_metadata -> tuple(input.toList() + [metadata, scaffold_metadata]) }, ch_resistance_provenance.map { key, input, subtype, metadata, scaffold_metadata -> subtype }, rules_json, h77_fasta, file("${project_root}/refgenomes/resistance"))
 
     // Step 12: Assemble the flat published sample archive in one place.
     ch_final_results_input = ch_sample_lids
@@ -652,7 +652,7 @@ workflow HCVPIPE {
         .map { key, majority, iupac_metadata, scaffold_metadata, bestref_metadata -> [key, majority + [iupac_metadata, scaffold_metadata, bestref_metadata]] }
     ch_final_with_consensus = ch_final_results_input.map { input -> [[input[0], input[1]], input] }
         .join(ch_consensus_artifacts)
-        .map { key, input, artifacts -> tuple(*input, artifacts) }
+        .map { key, input, artifacts -> tuple(input.toList() + [artifacts]) }
     FINALIZE_RESULTS(ch_final_with_consensus)
 
     def sample_info_json_path = resolved_sample_info_json ? resolved_sample_info_json.toString() : ''
