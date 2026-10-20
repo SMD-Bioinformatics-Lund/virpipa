@@ -185,7 +185,7 @@ class HistoricalRecallTests(unittest.TestCase):
                 "minimum_usable_depth": 1, "reference_fill": False,
                 "usable_depths": [10]*len(seq), "masking_reasons": {},
             }))
-            qc = {"sample_id": name, "run_name": "run", "lid": "ANON", "qc": {"mean_depth": 10}, "outputs": {}, "resistance": {"analysis_present": False}}
+            qc = {"sample_id": name, "run_name": "run", "lid": "ANON", "pipeline_version": "0.3.0", "qc": {"mean_depth": 10}, "outputs": {}, "resistance": {"analysis_present": False}}
             (sample / f"{name}_qc_summary.json").write_text(json.dumps(qc))
             shutil.copy2(fixture / f"{name}.gff3", sample / f"{name}.vadr.pass_mod.gff")
             (sample / f"{name}-0.15-iupac.fasta.blast").write_text(
@@ -222,6 +222,7 @@ class HistoricalRecallTests(unittest.TestCase):
             recalled = json.loads((sample / f"{name}_qc_summary.json").read_text())
             self.assertEqual(recalled["lid"], qc["lid"])
             self.assertEqual(recalled["qc"], qc["qc"])
+            self.assertEqual(recalled["pipeline_version"], qc["pipeline_version"])
             self.assertEqual(recalled["resistance"]["schema_version"], "3.1")
             self.assertEqual(recalled["resistance"]["by_drug"], payload["drug_outcomes"])
 

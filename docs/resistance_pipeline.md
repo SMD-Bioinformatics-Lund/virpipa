@@ -18,6 +18,25 @@ Codon evidence cannot cross an insertion/deletion or skip. CRAM contig identity,
 
 Rules support `and`, same-position `or` alternatives, explicit deletions, and `168any` (a non-reference amino-acid substitution, not wild-type D168). Unsupported syntax fails closed. Each component is matched, disproved or unknown. A disproved component rules out a compound rule even if another component is unknown. A full match determines the drug result; otherwise any unresolved potentially defining rule prevents a susceptible result. The special partial-compound coverage warning applies **only** to the sole applicable rule for a licensed antiviral when some required mutations are observed, none are disproved, and missing coverage prevents evaluation of the remaining components. Coding-integrity and linkage limitations are separate, not partial-rule resistance calls.
 
+## Alignment parameter status
+
+The affine scores above are **candidate engineering parameters**, not geno2pheno
+settings or biologically calibrated HCV values. They are unchanged in this update.
+Keeping them fixed isolates this cleanup from changes in coordinate-alignment behaviour;
+it does not validate the gap penalties, unknown-base handling or anchoring policy.
+These scores affect coordinate projection, not antiviral resistance scores directly.
+Regression tests establish implementation behaviour, not biological accuracy.
+Calibration and parameter-sensitivity analysis remain future work after representative
+data review. The NS5A linking alignment has had 114 universally gapped columns removed;
+ungapped reference sequences and every H77-to-reference coordinate map are unchanged.
+
+Pipeline `0.3.0` identifies the analytical-consensus contract change. Start a fresh
+run after updating VirPipa; resuming a run across code versions is not a supported
+validation strategy. There are no new external-tool version checks or cross-version
+resume checks. See [the validation checklist](resistance_validation.md) for the next
+local and Hopper checks, and [the deferred BLAST plan](plans/blast_subtyping.md) for
+typing work deliberately excluded from this update.
+
 ## Outputs
 
 - `*_resistance.tsv`: resistance-associated substitutions supporting fully matched rules.

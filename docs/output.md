@@ -55,6 +55,11 @@ FASTA headers contain identifiers only. Converter-4 provenance is in accompanyin
 The per-sample `*_qc_summary.json` is the machine-readable downstream contract for analysis tools.
 It includes stable identifiers such as `sample_run_id`, pipeline metadata, extracted QC metrics, and
 relative paths to key result files needed for tables, detail views, and IGV launchers.
+`pipeline_version` records the producing Nextflow manifest version (`0.3.0` for the
+three-FASTA analytical-consensus contract). It is additive to QC schema 4. Standalone
+QC generation without `--pipeline-version` records null rather than inferring a version.
+Resistance-only recall preserves the original producing pipeline version; caller,
+consensus, rule and reference provenance describe the resistance evidence separately.
 In `typing`, `main_blast_genotype` is the subtype/genotype call from the top BLAST hit.
 `best_mapping_subtype` is the subtype prefix of `report_reference`, the mapping-selected reference;
 these can differ from the BLAST call.

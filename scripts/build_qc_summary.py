@@ -23,6 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sample-id", required=True, help="Sample identifier")
     parser.add_argument("--lid", default="", help="Optional LID/sample_name")
     parser.add_argument("--sample-info", default="", help="Optional clarity_sample_info.json path")
+    parser.add_argument("--pipeline-version", default=None, help="Producing pipeline manifest version")
     parser.add_argument("--output", required=True, help="Output JSON path")
     return parser.parse_args()
 
@@ -443,6 +444,7 @@ def main() -> None:
         "schema_version": 4,
         "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "pipeline_name": "virpipa",
+        "pipeline_version": args.pipeline_version,
         "virus": "HCV",
         "run_name": args.run_name,
         "sample_id": sample_id,

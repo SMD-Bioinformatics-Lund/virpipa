@@ -19,3 +19,8 @@ Six common-subtype repository genomes have also been verified exactly against th
 `alignments/NS3.fasta`, `NS5A.fasta`, and `NS5B.fasta` preserve the installed HCV-GLUE alignment columns, representing verified padding as gaps. The H77 member uses AF011751.1's coding sequence in the same coordinate columns. Gene boundaries are projected through that alignment and checked against each GenBank polyprotein CDS reading frame. The manifest pins genome sequence checksums, gene coordinates, completeness, and the source database checksum. DQ155561.1 has an incomplete NS5B end, which is explicitly marked.
 
 These files supply reference sequences and coordinate links; they do not define a rare-to-common subtype translation table or a susceptible* scoring baseline. Broadening bridge coverage and validating per-region classification remain future work.
+
+NS5A has been compacted by removing 114 columns gapped in all 18 references,
+reducing its width from 1,551 to 1,437 columns. Thus it no longer retains every
+source alignment column, but all ungapped sequences and H77-to-reference coordinate
+maps are unchanged. NS3 and NS5B have not been compacted.

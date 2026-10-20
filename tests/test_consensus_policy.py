@@ -106,6 +106,7 @@ class ConsensusPolicyTests(unittest.TestCase):
             output = root/"ANON_qc_summary.json"
             subprocess.run([sys.executable, str(ROOT/"scripts/build_qc_summary.py"), "--results-dir", str(root), "--sample-id", "ANON", "--run-name", "R", "--output", str(output)], check=True, capture_output=True)
             qc = json.loads(output.read_text())
+            self.assertIsNone(qc["pipeline_version"])
             self.assertEqual(set(qc["consensus"]), {"scaffold", "iupac", "analytical_majority"})
             self.assertEqual(qc["outputs"]["analytical_majority_fasta"], "ANON-majority.fasta")
             for key in ("main_consensus_metadata", "iupac_consensus_metadata", "analytical_majority_consensus_metadata"):
@@ -113,3 +114,13 @@ class ConsensusPolicyTests(unittest.TestCase):
             self.assertNotIn("usable_depths", qc["consensus"]["iupac"])
             self.assertEqual(sequence(scaffold)[1], "ACGT")
             self.assertEqual(sequence(root/"ANON-majority.fasta")[1], "GNNN")
+
+    def test_qc_json_records_explicit_pipeline_version(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            output = root/"ANON_qc_summary.json"
+            subprocess.run([sys.executable, str(ROOT/"scripts/build_qc_summary.py"),
+                            "--results-dir", str(root), "--sample-id", "ANON",
+                            "--run-name", "R", "--pipeline-version", "0.3.0",
+                            "--output", str(output)], check=True, capture_output=True)
+            self.assertEqual(json.loads(output.read_text())["pipeline_version"], "0.3.0")

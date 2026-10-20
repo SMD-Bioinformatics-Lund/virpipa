@@ -35,6 +35,7 @@ process BUILD_QC_SUMMARY {
         --results-dir ${results_dir} \\
         --run-name '${run_name}' \\
         --sample-id '${sample_id}' \\
+        --pipeline-version '${workflow.manifest.version}' \\
         --lid '${lid}' \\
         ${sampleInfoArg} \\
         --output ${sample_id}_qc_summary.json

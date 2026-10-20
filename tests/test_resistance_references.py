@@ -10,6 +10,24 @@ import annotate_vcf_resistance as resistance
 
 
 class ResistanceReferenceTests(unittest.TestCase):
+    def test_ns5a_cleanup_preserves_all_h77_coordinate_maps(self):
+        records = resistance.fasta(ROOT / "refgenomes/resistance/alignments/NS5A.fasta")
+        self.assertFalse(any(all(base == "-" for base in column)
+                             for column in zip(*records.values())))
+        mappings = {}
+        for accession, sequence in records.items():
+            h77_position = reference_position = -1
+            pairs = []
+            for h77_base, base in zip(records["AF011751.1"], sequence):
+                h77_position += h77_base != "-"
+                reference_position += base != "-"
+                if h77_base != "-" and base != "-":
+                    pairs.append((h77_position, reference_position))
+            mappings[accession] = pairs
+        # Frozen before removal of the 114 all-gap columns in the original panel.
+        self.assertEqual(hashlib.sha256(json.dumps(mappings, sort_keys=True).encode()).hexdigest(),
+                         "6588cf554a8a5b404a2d98541904364574eda6fe8b788d1b034a921051230caa")
+
     def test_panel_sequences_and_gene_coordinates_match_linking_alignments(self):
         directory = ROOT / "refgenomes/resistance"
         panel = json.loads((directory / "panel.json").read_text())

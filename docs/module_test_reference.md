@@ -5,6 +5,8 @@ This file collects the detailed local test matrix, fixture inventory, and parity
 ## Canonical local test commands
 
 Add `--publish_mode debug` to module tests when you need their intermediate files published under `--outdir`.
+The resistance completion sequence and representative-data review gates are in
+[the resistance validation checklist](resistance_validation.md).
 
 ```bash
 nextflow run test_module.nf -profile local,tiny --module subsample --subsample_reads 25

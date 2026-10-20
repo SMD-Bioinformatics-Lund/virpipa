@@ -1,0 +1,102 @@
+# Resistance validation handoff
+
+This is the next-stage checklist for the `0.3.0` analytical-consensus contract.
+Passing regression tests is not biological or clinical validation. BLAST improvements
+are deferred in [their own plan](plans/blast_subtyping.md).
+
+## Local gates
+
+### Local verification recorded 2026-10-20
+
+- VirPipa: 60 regression tests passed; Virtitta: 163 passed, including actual tree
+  TSV/GrapeTree JSON outcome checks and pipeline-version import compatibility.
+- Container-backed `consensus_contract`, `resistance`, `qc_summary` and `finalize_results`
+  checks passed; the final published layout passed `check_publish_layout.py`.
+- Both connected runs had three valid consensus sidecars with a shared coordinate
+  origin and six resistance artifacts. The standalone resistance fixture had all
+  16 drug outcomes and codon counting parameters. Sample and aggregate QC JSON
+  recorded pipeline version `0.3.0`.
+- NS5A retained all record identifiers, ungapped sequences and H77 coordinate maps;
+  NS3 and NS5B were byte-identical. Python compilation and diff hygiene passed.
+- These are fixture/regression checks, not a fresh full analysis from reads. The final
+  publication fixture includes legacy artifacts; the connected consensus fixture
+  separately checks the new contract. No Hopper run, new online comparison,
+  production deployment or collection-wide reprocessing has been performed.
+
+### Commands
+
+Use the `skrotis` environment and repo-local containers for VirPipa. Run Virtitta's
+suite in its own environment. Follow [the module reference](module_test_reference.md).
+
+```bash
+python -m unittest discover -s tests -v
+NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module consensus_contract --publish_mode debug --outdir test_output_resistance_completion_contract
+NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module resistance --publish_mode debug --outdir test_output_resistance_completion_calls
+NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module qc_summary --virtitta_import_dir test_output_resistance_completion_qc/import_markers --outdir test_output_resistance_completion_qc
+NXF_OFFLINE=true nextflow run test_module.nf -profile local_containers --module finalize_results --virtitta_import_dir test_output_resistance_completion_publish/import_markers --outdir test_output_resistance_completion_publish
+python scripts/check_publish_layout.py --sample-dir test_output_resistance_completion_publish/fixture_run/SAMPLE001 --sample-id SAMPLE001 --mode routine
+```
+
+The QC/final-publication checks route import markers into their local test output
+directories; these fixtures must not publish into `/fs1/results/cron/virtitta`.
+Do not pass an empty CLI argument for this check: Nextflow 25.10.4 treats the bare
+option as boolean true rather than disabling it. The marker's normal deployment
+path is deliberately unchanged by this resistance update.
+
+Check actual published outputs, not only work directories or successful task counts:
+
+- Connected fixture: the same sample ID in two different runs retains separate
+  sidecars and outputs; all three FASTA roles retain their intended semantics.
+- Resistance: six artifacts, all 16 drug rows, coordinates, warnings and codon evidence.
+  The sparse standard fixture is not a fully covered negative control.
+- QC/final publication: `pipeline_version` is `0.3.0`, sidecars and relative output
+  paths resolve, and run aggregates retain sample versions. Standalone QC generation
+  without an explicit version records null.
+- NS5A: all-gap columns are absent; reference sequences, every H77 coordinate map,
+  calls and assessment states are unchanged. Alignment-file hashes necessarily differ.
+- Virtitta: incomplete assessment is not displayed as absence of resistance in tree
+  metadata or GrapeTree; scored substitutions alone are not positive resistance calls.
+
+## Representative Hopper run: operator actions
+
+1. Review and commit the tested changes, then publish the exact tested ref to the
+   Hopper bare repository. Follow [deployment guidance](deployment.md); no deployment
+   or remote writes are performed by local tests.
+2. Use the existing site wrappers, not ad hoc Nextflow commands. `runme_test.sh`
+   pulls updates, but the currently checked-in `runme.sh` does not: explicitly verify
+   that its working checkout has the tested commit before launching it.
+3. For the real-data run, prepare a small approved samplesheet and a new output
+   location in an operator-controlled copy of the wrapper. The checked-in `runme.sh`
+   hard-codes its samplesheet and uses the default output directory; do not assume it
+   accepts input/output arguments. Retain its site module/environment setup.
+4. Start fresh without `resume`. Regenerate consensus and dependent outputs from reads;
+   old analytical FASTAs are not approved for resistance-only recall. Do not manufacture
+   sidecars to make them eligible. Leave existing archives untouched.
+5. Cover well-supported positive/negative examples, rare subtypes, low coverage and
+   mixed populations. Use the nine supplied online cases and available rare cases
+   for comparison. Original identifiers and re-identification keys stay outside Git.
+
+## Review and acceptance
+
+Compare each sample's 15% analytical sequence with the actual sequence submitted to
+geno2pheno. If sequences differ, distinguish input differences from caller differences.
+Record the online report date, available service version, per-region subtype/reference,
+drug outcomes, supporting substitutions and positions. Do not imply full susceptible*
+or scored-substitution parity from the existing resistant-call regression tests.
+
+Inspect low-depth qualifications, missing sites, frameshifts/stops and indel evidence.
+Mixed-population samples are challenge cases, not phased strain-level truth. Check
+that uncertainty remains uncertainty rather than becoming a resistant or susceptible
+call. Inspect the combined desktop/webIGV tracks against the scaffold and confirm
+codon/amino-acid tooltips and genomic coordinates.
+
+Import completed outputs into a disposable Virtitta database first. Verify sample
+details, tree/GrapeTree metadata, FASTA export roles and review-preserving re-import.
+Store an anonymized comparison table with discrepancies classified as input, typing,
+coordinate mapping, rule interpretation or presentation; keep private mappings outside
+Git. No clinical-accuracy claim follows from a small concordance check.
+
+Proceed to collection-wide reprocessing only after all local gates pass and every
+representative discrepancy is explained or explicitly accepted as a documented
+limitation. An unexplained wrong call, shifted coordinate or false clear summary
+blocks expansion; retain the original archives and investigate first.
