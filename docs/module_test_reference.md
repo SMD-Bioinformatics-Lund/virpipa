@@ -57,7 +57,7 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 - `report`: verified identical.
 - `vadr`: verified identical.
 - `resistance`: debug publication must contain all six resistance files, 16 drug outcomes and codon evidence. The sparse standard fixture is not a complete negative control: insufficient coverage/mapping can yield not assessed. Anonymized cases separately cover positive calls including NS5A 93H.
-- `finalize_results`: flat Virtitta publish layout is fixture-backed; validate with `scripts/check_publish_layout.py`.
+- `finalize_results`: flat Virtitta publish layout is fixture-backed; validate with `scripts/check_publish_layout.py`. A tiny synthetic versioned scaffold/IUPAC/CRAM fixture is generated at runtime for review-bundle preparation; unrelated historical outputs remain publication fixtures, not biological controls.
 
 ## Fixture inventory
 

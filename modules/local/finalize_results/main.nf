@@ -114,6 +114,8 @@ process FINALIZE_RESULTS {
     ${python} ${scripts_dir}/kderug.py ${sample_id}.mixin "\${plot_title}" "${sample_id}_display_rug_kde_plot.png"
     mv ${sample_id}_display_rug_kde_plot.png results/
 
+    ${python} ${scripts_dir}/prepare_igv_review.py --results-dir results --sample-id '${sample_id}'
+
     mkdir -p "${published_results_dir}"
     cp -R results/. "${published_results_dir}/"
     """

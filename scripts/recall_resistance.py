@@ -185,6 +185,14 @@ def stage_sample(directory, item, args, staged):
     qc["resistance"] = read_resistance(generated[0], generated[3], generated[4])
     for key, path in zip(OUTPUT_KEYS, generated):
         qc.setdefault("outputs", {})[key] = path.name
+    if qc.get("igv_review") or qc["outputs"].get("igv_review_manifest"):
+        from prepare_igv_review import prepare
+        manifest, review_outputs = prepare(directory, sample, output_dir=staged,
+                                          overrides=dict(zip(OUTPUT_KEYS, generated)))
+        qc["igv_review"] = manifest
+        qc["outputs"].update(review_outputs)
+        generated.extend(staged / name for name in review_outputs.values()
+                         if (staged / name).is_file())
     qc["resistance_recalled_at_utc"] = datetime.now(timezone.utc).isoformat()
     dump(staged / qc_path.name, qc)
     return generated, qc_path, qc

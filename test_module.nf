@@ -55,6 +55,23 @@ include { AGGREGATE_QC_SUMMARY } from './modules/local/qc_summary_aggregate/main
 include { WRITE_VIRTITTA_IMPORT_MARKER } from './modules/local/virtitta_import_marker/main'
 include { FINALIZE_RESULTS } from './modules/local/finalize_results/main'
 
+process PREPARE_PUBLISH_FIXTURE {
+    publishDir { "${params.outdir}/fixture_run/SAMPLE001/fasta" }, mode: 'copy', enabled: params.publish_mode == 'debug'
+
+    output:
+        path 'review_fixture', emit: directory
+
+    script:
+    def active_profiles = workflow.profile ?: ''
+    def container_dir = params.container_dir ?: (active_profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (active_profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def container_runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; elif command -v singularity >/dev/null 2>&1; then echo singularity; else echo apptainer; fi)'
+    def bind_paths = active_profiles.contains('local') ? '/mnt,/home,/tmp' : params.bind_paths
+    def python = container_dir ? "${container_runtime} exec -B ${bind_paths} ${container_dir}/python_hcvpipe.sif python" : 'python3'
+    """
+    ${python} ${projectDir}/tests/make_publish_fixture.py ${projectDir} review_fixture
+    """
+}
+
 workflow {
     if (!(params.publish_mode in ['routine', 'debug'])) {
         error "Invalid --publish_mode '${params.publish_mode}'. Expected 'routine' or 'debug'."
@@ -389,9 +406,10 @@ Notes:
                 }
         )
     } else if (params.module == 'finalize_results') {
+        PREPARE_PUBLISH_FIXTURE()
         FINALIZE_RESULTS(
-            channel.of(
-                tuple(
+            PREPARE_PUBLISH_FIXTURE.out.directory.map { fixture_dir ->
+                def input = tuple(
                     'fixture_run',
                     'SAMPLE001',
                     'LID001',
@@ -432,7 +450,15 @@ Notes:
                     files("${projectDir}/assets/test_data/filter_vcf/SAMPLE001-pilon-m*.vcf.gz.stats"),
                     []
                 )
-            )
+                def values = input.toList()
+                [4, 5, 7, 8, 9, 10, 12, 13, 25, 26, 27, 30, 31, 34].each { index ->
+                    values[index] = fixture_dir.resolve(input[index].getName())
+                }
+                values[35] = files("${fixture_dir}/SAMPLE001-pilon-m*.vcf.gz")
+                values[36] = files("${fixture_dir}/SAMPLE001-pilon-m*.vcf.gz.csi")
+                values[38] = (files("${fixture_dir}/*.consensus.json") + files("${fixture_dir}/SAMPLE001-majority.fasta*")).unique()
+                tuple(values)
+            }
         )
 
         BUILD_QC_SUMMARY(FINALIZE_RESULTS.out.results_dir_with_meta, channel.value(file("${projectDir}/assets/test_data/qc_summary/clarity_sample_info.json").toString()))

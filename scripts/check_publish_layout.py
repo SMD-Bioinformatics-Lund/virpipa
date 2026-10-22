@@ -33,6 +33,17 @@ def main() -> None:
 
     data = json.loads(qc_path.read_text(encoding="utf-8"))
     outputs = data.get("outputs") or {}
+    if outputs.get("igv_review_manifest"):
+        from prepare_igv_review import checksum
+        review = json.loads((sample_dir / outputs["igv_review_manifest"]).read_text())
+        require(review == data.get("igv_review"), "QC IGV review metadata differs from manifest")
+        require(review.get("schema_version") == "1.0", "Unsupported IGV review manifest")
+        for key, path in review["outputs"].items():
+            require(outputs.get(key) == path, f"Review output mismatch: {key}")
+            require((sample_dir / path).is_file(), f"Missing review output: {key}")
+        for track in review["tracks"]:
+            require(checksum(sample_dir / track["source"]) == track["source_sha256"], "Stale review source")
+            require(checksum(sample_dir / track["display"]) == track["display_sha256"], "Stale review display copy")
     if outputs.get("analytical_majority_fasta"):
         for fasta_key, metadata_key in (("main_fasta", "main_consensus_metadata"),
                                         ("iupac_fasta", "iupac_consensus_metadata"),

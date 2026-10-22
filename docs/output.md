@@ -1,5 +1,26 @@
 # Output
 
+## Analytical IUPAC IGV review bundle
+
+Finalization adds `<sample>-0.15-iupac.review.*` display copies of resistance,
+VADR and coverage annotations and every filtered VCF, with fresh CSI indexes.
+Original files remain unchanged. The genome/read pair is the existing
+`<sample>-0.15-iupac.fasta` / `.cram`, with their indexes. Only contig identifiers
+and applicable header declarations change; positions, alleles and evidence do not.
+
+`<sample>-0.15-iupac.review.json` records schema version 1.0, source/display
+reference identities and sequence checksums, shared coordinate provenance,
+source/display track checksums and analytical roles. QC JSON embeds this as
+`igv_review`, with additive flat `igv_iupac_*` output paths and
+`igv_review_manifest`. Resistance remains calculated from IUPAC; VADR/coverage
+and VCF tracks are scaffold-derived. VCF REF can differ from the displayed
+IUPAC base: these are display copies, not newly called variants.
+
+Missing or incompatible provenance, reference/read dictionaries, indexes or
+source-track contigs fail preparation. Historical archives are not automatically
+converted. Resistance re-calling regenerates existing review bundles within the
+same backup/restore transaction.
+
 For each sample, the pipeline publishes a flat Virtitta-compatible final archive under:
 
 - `results/<run_name>/<sample_id>/`

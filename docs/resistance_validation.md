@@ -1,5 +1,26 @@
 # Resistance validation handoff
 
+## IUPAC IGV review gate
+
+After publishing the reviewed commits to Hopper and updating the working checkout,
+run the `finalize_results` fixture through the site test wrapper in routine and
+debug modes, using separate output/work directories outside the source tree.
+Validate each archive with `scripts/check_publish_layout.py` and re-import one
+fresh real-sample run into the test Virtitta instance before processing more strains.
+
+In both desktop IGV and webIGV verify:
+
+- Genome and reads are the `-0.15-iupac` pair, with no missing-contig/index errors.
+- All-site, resistance and gene annotations load; mutation links land on the right codon.
+- Resistance popups retain amino acids, codons, depth and compound-rule details.
+- All six displayed VCF thresholds remain available and labelled scaffold-derived.
+  REF can differ from the IUPAC genome; these are not newly called variants.
+- An older archive remains an explicitly labelled scaffold view.
+
+Then run additional strains, including positive resistance, mixtures, low coverage
+and coding-integrity findings. Compare drug outcomes to the online reports using
+the exact submitted IUPAC FASTA. Keep any fixtures anonymous and keys outside git.
+
 This is the next-stage checklist for the `0.3.0` analytical-consensus contract.
 Passing regression tests is not biological or clinical validation. BLAST improvements
 are deferred in [their own plan](plans/blast_subtyping.md).

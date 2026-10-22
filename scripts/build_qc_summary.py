@@ -412,6 +412,13 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
     }
     outputs["selected_vadr_gff"] = selected_vadr_gff
     outputs["vadr_gff"] = selected_vadr_gff
+    review = results_dir / f"{sample_id}-0.15-iupac.review.json"
+    if review.exists():
+        manifest = json.loads(review.read_text())
+        if manifest.get("schema_version") != "1.0" or manifest.get("sample_id") != sample_id:
+            raise ValueError("Invalid IGV review manifest")
+        outputs.update(manifest["outputs"])
+        outputs["igv_review_manifest"] = review.name
     return outputs
 
 
@@ -471,6 +478,9 @@ def main() -> None:
         "outputs": build_output_paths(results_dir, sample_id, args.lid or None),
     }
 
+    review_path = results_dir / f"{sample_id}-0.15-iupac.review.json"
+    if review_path.exists():
+        summary["igv_review"] = json.loads(review_path.read_text())
     output_path = Path(args.output)
     output_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 

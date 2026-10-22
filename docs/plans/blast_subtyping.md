@@ -36,6 +36,10 @@ subtype-specific resistance rules in Virtitta or infer strain linkage from IUPAC
 
 ## Virtitta presentation
 
+- Future extension: classify subtype 1a into clades I/II using a validated method
+  and reference set, with method/reference provenance and an explicit unassigned
+  result when unsupported. Present this below subtype, not as a resistance class;
+  do not infer clades from a single BLAST accession or change resistance rules.
 - Keep the main summary compact: closest subtype, identity and sequence support.
 - In sample details, show up to five strongest subtype groups, represented by their
   best reference; expand each to up to three available reference hits.
