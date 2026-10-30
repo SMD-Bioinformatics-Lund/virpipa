@@ -10,6 +10,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from consensus_metadata import load as load_consensus
+from rank_blast import validate as validate_typing
 
 
 AF_KEYS = ["0.05", "0.1", "0.15", "0.2", "0.3", "0.4"]
@@ -366,6 +367,7 @@ def build_output_paths(results_dir: Path, sample_id: str, lid: str | None) -> di
     )
 
     path_names = {
+        "typing_json": f"{sample_id}_typing.json",
         "main_fasta": f"{sample_id}.fasta",
         "main_consensus_metadata": f"{sample_id}.fasta.consensus.json",
         "analytical_majority_fasta": f"{sample_id}-majority.fasta",
@@ -428,6 +430,8 @@ def main() -> None:
     sample_id = args.sample_id
 
     blast_info = read_first_blast_hit(results_dir / f"{sample_id}.fasta.blast")
+    typing_path = results_dir / f"{sample_id}_typing.json"
+    typing_evidence = validate_typing(json.loads(typing_path.read_text()), results_dir / f"{sample_id}-0.15-iupac.fasta") if typing_path.exists() else None
     report = read_report(results_dir / f"{sample_id}-0.15-iupac.report.tsv")
     coverage_thresholds = read_coverage_tsv(results_dir / f"{sample_id}-coverage.tsv")
     af_counts = read_af_counts(results_dir, sample_id)
@@ -459,6 +463,7 @@ def main() -> None:
         "lid": args.lid or None,
         "typing": {
             **blast_info,
+            **({"evidence": typing_evidence} if typing_evidence is not None else {}),
             "best_mapping_subtype": report.get("subtype"),
             "report_reference": report.get("reference"),
         },

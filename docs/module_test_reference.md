@@ -53,7 +53,12 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 - `filter_vcf`: filtered VCF bodies verified; stats differ only in embedded filename/path metadata.
 - `cram`: SAM payload verified; CRAM/header/index differ only in embedded reference path metadata.
 - `coverage`: aggregate TSV verified identical; the additional BED records merged depth >=1 intervals.
-- `subtype`: verified identical.
+- `subtype`: now requests all database subjects, appends exact identical-base counts,
+  and runs `RANK_SUBTYPE`. Verify the selected call and metrics; raw 12-column byte
+  parity with the historical search is no longer the acceptance criterion.
+- `resistance_typing`: connected BLAST → ranking → resistance fixture. This uses the
+  existing legacy comparison FASTA/CRAM; its consensus is explicitly unverified and
+  is not a release biological-validation sample.
 - `report`: verified identical.
 - `vadr`: verified identical.
 - `resistance`: debug publication must contain all six resistance files, 16 drug outcomes and codon evidence. The sparse standard fixture is not a complete negative control: insufficient coverage/mapping can yield not assessed. Anonymized cases separately cover positive calls including NS5A 93H.
@@ -104,7 +109,8 @@ Repo-local fixtures live under `assets/test_data/`:
 - `bam2fasta` must emit the replacement `SAMPLE001.fasta` with the sample-name header for downstream steps.
 - The `0.15-iupac` report branch must key on `sample_id`, not `run_name`.
 - `FILTER_VCF.out.stats` emits a list; downstream code must pick the `m0.15` member where required.
-- The resistance branch uses the analytical 15% IUPAC FASTA, not the filtered VCF, and derives subtype from the first data hit in its BLAST output.
+- The resistance branch uses the analytical 15% IUPAC FASTA, not the filtered VCF,
+  and receives the ranked IUPAC typing result, including explicit uncertainty.
 
 ### VADR
 

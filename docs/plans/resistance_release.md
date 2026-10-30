@@ -11,13 +11,13 @@ assembly, polishing, mapping, resistance rules, H77 AF011751.1 or affine alignme
 
 - Ranking helper, synthetic tests and installed-database audit: implemented. Suggest
   committing this isolated checkpoint before wiring it into the workflow.
-- Pending: retrieve all database subjects with explicit search limits and exact
+- Implemented: retrieve all database subjects with explicit search limits and exact
   identical-base counts; publish versioned typing evidence and database/input checksums.
-- Pending: feed one authoritative assignment to resistance and QC; use the same
+- Implemented: feed one authoritative assignment to resistance and QC; use the same
   ranking in re-call. Keep samples with ambiguous/unassigned typing, with explicit
   not-assessed drug results rather than arbitrary subtype selection. Genotype-only
   assignments may evaluate only explicitly genotype-applicable rules.
-- Pending: add QC evidence without changing historical field meanings. Virtitta must
+- Implemented QC evidence without changing historical field meanings. Pending: Virtitta must
   prefer the new assignment, including explicit null assignments, over legacy fields;
   preserve old-archive import behaviour and app-owned review state.
 - Pending: compact subtype/support summary and expandable alternatives (up to five

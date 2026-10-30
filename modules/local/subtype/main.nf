@@ -25,10 +25,11 @@ process SUBTYPE_BLAST {
     def blast_db_path = blast_db.toString()
     def blast_db_prefix = blast_db_path.endsWith('hcvgluerefs') ? blast_db_path : "${blast_db_path}/hcvgluerefs"
     def blast_db_dir = blast_db_prefix.replaceFirst(/\/hcvgluerefs$/, '')
-    def blast_header = 'query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\t\t\tt\ts. end\tevalue\tbit score\n'
+    def blast_header = 'query acc.ver\tsubject acc.ver\t%% identity\talignment length\tmismatches\tgap opens\tq. start\tq. end\ts. star\t\t\tt\ts. end\tevalue\tbit score\tnident\n'
     
     if (container_dir) {
         def blast = "${container_runtime} exec -B ${bind_paths} ${container_dir}/blast_2.16.0.sif blastn"
+        def blastdbcmd = "${container_runtime} exec -B ${bind_paths} ${container_dir}/blast_2.16.0.sif blastdbcmd"
         
         """
         set -euo pipefail
@@ -38,14 +39,41 @@ process SUBTYPE_BLAST {
         cp -r ${blast_db_dir}/* blast_db/
 
         printf '${blast_header}' > ${fasta_name}.blast
-        ${blast} -query ${fasta} -db blast_db/hcvgluerefs -outfmt 6 >> ${fasta_name}.blast
+        target_count=\$(${blastdbcmd} -db blast_db/hcvgluerefs -entry all -outfmt '%i' | wc -l)
+        ${blast} -query ${fasta} -db blast_db/hcvgluerefs -max_target_seqs "\$target_count" -outfmt '6 std nident' >> ${fasta_name}.blast
         """
     } else {
         """
         set -euo pipefail
 
         printf '${blast_header}' > ${fasta_name}.blast
-        blastn -query ${fasta} -db ${blast_db_prefix} -outfmt 6 >> ${fasta_name}.blast
+        target_count=\$(blastdbcmd -db ${blast_db_prefix} -entry all -outfmt '%i' | wc -l)
+        blastn -query ${fasta} -db ${blast_db_prefix} -max_target_seqs "\$target_count" -outfmt '6 std nident' >> ${fasta_name}.blast
         """
     }
+}
+
+process RANK_SUBTYPE {
+    tag { sample_id }
+    label 'process_low'
+    cpus 1
+    memory '2 GB'
+    publishDir { "${params.outdir}/${run_name}/${sample_id}" }, mode: 'copy', enabled: params.publish_mode == 'debug'
+    input:
+        tuple val(run_name), val(sample_id), path(blast), path(fasta)
+        val blast_db
+    output:
+        tuple val(run_name), val(sample_id), path("${sample_id}_typing.json"), emit: typing
+    script:
+    def profiles = workflow.profile ?: ''
+    def containers = params.container_dir ?: (profiles.contains('local_containers') ? "${projectDir}/assets/containers" : (profiles.contains('hpc') ? '/fs1/resources/containers' : ''))
+    def binds = params.bind_paths != '/fs1,/fs2,/local' ? params.bind_paths : (profiles.contains('local') ? '/mnt,/home,/tmp' : '/fs1,/fs2,/local,/mnt/beegfs')
+    def runtime = params.container_runtime ?: '$(if command -v apptainer >/dev/null 2>&1; then echo apptainer; else echo singularity; fi)'
+    def python = containers ? "${runtime} exec -B ${binds} ${containers}/python_hcvpipe.sif python" : 'python3'
+    def scripts = params.scripts_dir != 'scripts' ? params.scripts_dir : "${projectDir}/scripts"
+    def prefix = blast_db.toString().endsWith('hcvgluerefs') ? blast_db : "${blast_db}/hcvgluerefs"
+    """
+    set -euo pipefail
+    ${python} ${scripts}/rank_blast.py --blast ${blast} --fasta ${fasta} --database-prefix ${prefix} --output ${sample_id}_typing.json
+    """
 }

@@ -43,7 +43,12 @@ process ANNOTATE_RESISTANCE {
     def cram_arg = cram ? "--cram ${cram}" : ''
     def metadata_arg = consensus_metadata ? "--consensus-metadata ${consensus_metadata}" : '--allow-legacy-consensus'
     def track_metadata_arg = track_metadata ? "--track-reference-metadata ${track_metadata}" : ''
+    def typing_json = subtype instanceof Map ? groovy.json.JsonOutput.toJson(subtype).replace("'", "'\"'\"'") : ''
+    def typing_prepare = typing_json ? "printf '%s' '${typing_json}' > typing.json" : ''
+    def typing_arg = typing_json ? '--typing-json typing.json' : "--subtype '${subtype}'"
     """
-    ${python} ${scripts_dir}/annotate_vcf_resistance.py --gff ${gff} --fasta ${fasta} ${cram_arg} --subtype ${subtype} --sample-name ${sample_id} --rules ${rules_json} --h77-fasta ${h77_fasta} --reference-panel ${reference_panel}/panel.json ${track_arg} ${metadata_arg} ${track_metadata_arg} --output-dir .
+    set -euo pipefail
+    ${typing_prepare}
+    ${python} ${scripts_dir}/annotate_vcf_resistance.py --gff ${gff} --fasta ${fasta} ${cram_arg} ${typing_arg} --sample-name ${sample_id} --rules ${rules_json} --h77-fasta ${h77_fasta} --reference-panel ${reference_panel}/panel.json ${track_arg} ${metadata_arg} ${track_metadata_arg} --output-dir .
     """
 }

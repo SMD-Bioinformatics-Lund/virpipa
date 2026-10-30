@@ -150,7 +150,7 @@ class ReviewTests(unittest.TestCase):
             qc_path = archive / "ANON_qc_summary.json"
             qc_path.write_text(json.dumps({"sample_id": "ANON", "outputs": outputs, "igv_review": manifest}))
             blast = archive / "ANON.blast"
-            blast.write_text("ANON\t1a_HQ850279\n")
+            blast.write_text("ANON\t1a_HQ850279\t100\t4\t0\t0\t1\t4\t1\t4\t0\t8\n")
 
             def annotate(command, **kwargs):
                 for suffix in recall.SUFFIXES:

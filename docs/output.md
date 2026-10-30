@@ -81,9 +81,25 @@ three-FASTA analytical-consensus contract). It is additive to QC schema 4. Stand
 QC generation without `--pipeline-version` records null rather than inferring a version.
 Resistance-only recall preserves the original producing pipeline version; caller,
 consensus, rule and reference provenance describe the resistance evidence separately.
-In `typing`, `main_blast_genotype` is the subtype/genotype call from the top BLAST hit.
+In `typing`, `main_blast_genotype` remains the historical scaffold top-hit field.
 `best_mapping_subtype` is the subtype prefix of `report_reference`, the mapping-selected reference;
 these can differ from the BLAST call.
+
+New runs additionally publish `<sample>_typing.json` (`outputs.typing_json`) and embed
+it as `typing.evidence` in QC schema 4. This is the authoritative analytical 15% IUPAC
+typing result used for resistance. Consumers must prefer it when present, even when
+its subtype is null; legacy fields must not fill in an uncertain new assignment.
+Evidence schema `1.0` records `method`, `status` (`assigned`, `genotype_only`,
+`ambiguous`, `unassigned`), nullable `subtype` and `selected_reference`, ranked `groups`,
+`unrecognized_references`, descriptive `score_margin`, query lengths, sequence checksum
+and role in `input`, and database filenames/checksums in `database`. Each group retains
+its references and selected segments, with summed bit score, weighted identity, aligned
+bases and whole-query/observed-query coverage. See the BLAST plan for metric definitions.
+No-hit and equal-score cross-subtype ties still publish a complete sample; ambiguous or
+unassigned typing produces 16 not-assessed drug outcomes with unknown (`null`) licensing.
+Raw BLAST searches append exact `nident` as column 13; their first 12 columns retain
+standard BLAST meanings. The target limit equals the database entry count, not a top-N
+display limit. Mapping-reference report fields and filenames retain their existing role.
 All QC JSON `outputs` paths are relative to the directory containing the QC JSON. Standard sidecars
 such as `<main_fasta>.fai`, `<main_cram>.crai`, and `<filtered_vcf>.csi` are published on disk but
 not listed as separate JSON keys when their names are inferable. LID-specific duplicate FASTA

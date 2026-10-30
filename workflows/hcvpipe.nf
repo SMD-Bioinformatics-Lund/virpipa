@@ -31,27 +31,6 @@ def coerceIntegerParam(def raw) {
     return 0
 }
 
-def extractSubtypeFromBlast(def blast_file) {
-    def blast_line = blast_file.readLines().find { line ->
-        line && !line.startsWith('query acc.ver')
-    }
-    if (!blast_line) {
-        error "Could not derive subtype from BLAST output: ${blast_file}"
-    }
-
-    def fields = blast_line.split('\t')
-    if (fields.size() < 2 || !fields[1]) {
-        error "Malformed BLAST output while deriving subtype: ${blast_file}"
-    }
-
-    def subtype = fields[1].split('_')[0]
-    if (!subtype) {
-        error "Could not parse subtype from BLAST subject '${fields[1]}' in ${blast_file}"
-    }
-
-    return subtype
-}
-
 include { SUBSAMPLE_READS } from '../modules/local/subsample/main'
 include { SUBSAMPLE_READS as SUBSAMPLE_READS_REFSEL } from '../modules/local/subsample/main'
 include { REMOVE_HOSTILE } from '../modules/local/hostile/main'
@@ -80,6 +59,7 @@ include { FINALIZE_RESULTS } from '../modules/local/finalize_results/main'
 
 include { BAM2FASTA as BAM2FASTA_BESTREF } from '../modules/local/bam2fasta/main'
 include { BAM2FASTA as BAM2FASTA_PILON } from '../modules/local/bam2fasta/main'
+include { RANK_SUBTYPE } from '../modules/local/subtype/main'
 include { SUBTYPE_BLAST as SUBTYPE_BLAST_MAIN } from '../modules/local/subtype/main'
 include { SUBTYPE_BLAST as SUBTYPE_BLAST_IUPAC } from '../modules/local/subtype/main'
 include { SUBTYPE_BLAST as SUBTYPE_BLAST_PILON_IUPAC } from '../modules/local/subtype/main'
@@ -544,8 +524,13 @@ workflow HCVPIPE {
         [sample_id, [run_name, cram, crai]]
     }
 
-    ch_subtype_for_resistance = ch_iupac_blast_with_meta.map { run_name, sample_id, blast ->
-        [sample_id, [run_name, extractSubtypeFromBlast(blast)]]
+    ch_typing_input = ch_iupac_blast_with_meta
+        .map { run_name, sample_id, blast -> [[run_name, sample_id], blast] }
+        .join(ch_consensus_with_meta.map { run_name, sample_id, fasta, fai -> [[run_name, sample_id], fasta] })
+        .map { key, blast, fasta -> tuple(key[0], key[1], blast, fasta) }
+    RANK_SUBTYPE(ch_typing_input, blast_db_path)
+    ch_subtype_for_resistance = RANK_SUBTYPE.out.typing.map { run_name, sample_id, evidence ->
+        [sample_id, [run_name, new groovy.json.JsonSlurper().parseText(evidence.text)]]
     }
 
     ch_resistance_full = ch_gff_for_resistance
@@ -650,8 +635,11 @@ workflow HCVPIPE {
         .join(BAM2FASTA_PILON.out.replacement_metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
         .join(BAM2FASTA_BESTREF.out.fasta_metadata.map { run_name, sample_id, metadata -> [[run_name, sample_id], metadata] })
         .map { key, majority, iupac_metadata, scaffold_metadata, bestref_metadata -> [key, majority + [iupac_metadata, scaffold_metadata, bestref_metadata]] }
+    ch_archive_artifacts = ch_consensus_artifacts
+        .join(RANK_SUBTYPE.out.typing.map { run_name, sample_id, evidence -> [[run_name, sample_id], evidence] })
+        .map { key, artifacts, evidence -> [key, artifacts + [evidence]] }
     ch_final_with_consensus = ch_final_results_input.map { input -> [[input[0], input[1]], input] }
-        .join(ch_consensus_artifacts)
+        .join(ch_archive_artifacts)
         .map { key, input, artifacts -> tuple(input.toList() + [artifacts]) }
     FINALIZE_RESULTS(ch_final_with_consensus)
 

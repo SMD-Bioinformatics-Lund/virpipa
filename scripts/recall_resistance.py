@@ -12,6 +12,7 @@ from pathlib import Path
 
 from build_qc_summary import read_resistance
 from consensus_metadata import load as load_consensus
+from rank_blast import summarize, validate as validate_typing
 
 SUFFIXES = ("_resistance.tsv", "_resistance.bed", "_resistance.gff",
             "_resistance_by_drug.tsv", "_resistance.json", "_resistance_sites.gff3")
@@ -19,15 +20,15 @@ OUTPUT_KEYS = ("resistance_tsv", "resistance_bed", "resistance_gff",
                "resistance_by_drug_tsv", "resistance_json", "resistance_sites_gff3")
 
 
-def subtype(blast):
-    for line in blast.read_text(encoding="utf-8").splitlines():
-        if not line.strip() or line.startswith("query acc.ver"):
-            continue
-        fields = line.split("\t")
-        if len(fields) >= 2 and fields[1]:
-            return fields[1].split("_", 1)[0]
-        raise ValueError(f"Malformed BLAST hit in {blast}")
-    raise ValueError(f"No subtype hit in {blast}")
+def typing_evidence(blast, sequence, sample):
+    path = blast.parent / f"{sample}_typing.json"
+    ranked = summarize(blast, sequence)
+    if path.exists():
+        archived = validate_typing(json.loads(path.read_text()), sequence)
+        if any(archived.get(key) != value for key, value in ranked.items() if key != "database"):
+            raise ValueError("Archived typing evidence differs from ranked BLAST output")
+        return archived
+    return ranked
 
 
 def inputs(directory, sample=None):
@@ -162,8 +163,11 @@ def apply_transaction(archives, replacements, backup_root):
 def stage_sample(directory, item, args, staged):
     sample, sequence, blast, annotation, cram = item
     staged.mkdir()
+    typing = typing_evidence(blast, sequence, sample)
+    typing_path = staged / f"{sample}_typing.json"
+    dump(typing_path, typing)
     command = [sys.executable, str(Path(__file__).with_name("annotate_vcf_resistance.py")),
-               "--fasta", str(sequence), "--gff", str(annotation), "--subtype", subtype(blast),
+               "--fasta", str(sequence), "--gff", str(annotation), "--typing-json", str(typing_path),
                "--rules", str(args.rules.resolve()), "--h77-fasta", str(args.h77_fasta.resolve()),
                "--sample-name", sample, "--output-dir", str(staged)]
     if cram:
@@ -182,6 +186,8 @@ def stage_sample(directory, item, args, staged):
     qc = json.loads(qc_path.read_text())
     if qc.get("sample_id") != sample:
         raise ValueError(f"QC sample identity mismatch for {sample}")
+    qc.setdefault("typing", {})["evidence"] = typing
+    qc.setdefault("outputs", {})["typing_json"] = typing_path.name
     qc["resistance"] = read_resistance(generated[0], generated[3], generated[4])
     for key, path in zip(OUTPUT_KEYS, generated):
         qc.setdefault("outputs", {})[key] = path.name
@@ -193,6 +199,7 @@ def stage_sample(directory, item, args, staged):
         qc["outputs"].update(review_outputs)
         generated.extend(staged / name for name in review_outputs.values()
                          if (staged / name).is_file())
+    generated.append(typing_path)
     qc["resistance_recalled_at_utc"] = datetime.now(timezone.utc).isoformat()
     dump(staged / qc_path.name, qc)
     return generated, qc_path, qc
@@ -249,7 +256,8 @@ def main():
         directory = child if (child / f"{child.name}_qc_summary.json").exists() else (child / "results" if (child / "results").is_dir() else child)
         try:
             item = inputs(directory, child.name)
-            value = subtype(item[2])
+            typing = typing_evidence(item[2], item[1], item[0])
+            value = typing["subtype"] or typing["status"]
         except ValueError as exc:
             print(f"SKIP\t{child.name}\t{exc}")
             continue

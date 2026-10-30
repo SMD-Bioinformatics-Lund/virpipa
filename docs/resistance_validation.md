@@ -27,6 +27,21 @@ are deferred in [their own plan](plans/blast_subtyping.md).
 
 ## Local gates
 
+### BLAST integration checkpoint, 2026-10-30
+
+- Python regression suite: 87 tests run, 6 skipped (Nextflow was not on the Python
+  test runner's PATH), no failures. New contract tests cover unknown typing, QC
+  evidence, stale re-call assignments and analytical sequence binding.
+- Strict entry-point lint passed separately on locally installed Nextflow 25.10.4:
+  25 files without errors. Production 26.04.3 verification remains a Hopper gate.
+- Container-backed `subtype` and connected `resistance_typing` fixtures completed.
+  The connected fixture selected 3a / D17763, emitted 16 drug outcomes and carried
+  identical typing evidence into resistance, including all six database checksums.
+  This fixture uses the existing explicitly unverified legacy comparison consensus;
+  it does not establish biological concordance or production readiness.
+- Virtitta integration and fresh Hopper validation are still pending at this
+  checkpoint. Keep the old and new archives separate for release comparisons.
+
 ### Local verification recorded 2026-10-20
 
 - VirPipa: 60 regression tests passed; Virtitta: 163 passed, including actual tree

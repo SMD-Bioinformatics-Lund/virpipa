@@ -135,14 +135,38 @@ def summarize(blast, fasta, database_files=()):
     return result
 
 
+def validate(result, fasta):
+    """Bind declared evidence to the exact analytical input before using its call."""
+    digest = hashlib.sha256(read_sequence(fasta).encode()).hexdigest()
+    if (result.get("schema_version") != "1.0" or result.get("method") != METHOD
+            or result.get("input", {}).get("sequence_sha256") != digest
+            or result.get("input", {}).get("role") != "analytical_15pct_iupac"):
+        raise ValueError("Unsupported or mismatched typing evidence")
+    status, subtype = result.get("status"), result.get("subtype")
+    if status in ("assigned", "genotype_only"):
+        if not isinstance(subtype, str) or not re.fullmatch(r"[1-9][0-9]*[a-z]*", subtype):
+            raise ValueError("Invalid assigned subtype")
+        if subtype.isdigit() != (status == "genotype_only"):
+            raise ValueError("Inconsistent typing status")
+    elif status not in ("ambiguous", "unassigned") or subtype is not None:
+        raise ValueError("Invalid uncertain typing result")
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--blast", required=True, type=Path)
     parser.add_argument("--fasta", required=True, type=Path)
     parser.add_argument("--database-file", action="append", default=[], type=Path)
+    parser.add_argument("--database-prefix", type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    args.output.write_text(json.dumps(summarize(args.blast, args.fasta, args.database_file), indent=2) + "\n")
+    files = args.database_file
+    if args.database_prefix:
+        files += sorted(args.database_prefix.parent.glob(args.database_prefix.name + ".*"))
+        if not files:
+            raise ValueError("No database files found")
+    args.output.write_text(json.dumps(summarize(args.blast, args.fasta, files), indent=2) + "\n")
 
 
 if __name__ == "__main__":

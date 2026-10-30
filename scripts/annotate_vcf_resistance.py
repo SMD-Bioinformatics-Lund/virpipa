@@ -10,6 +10,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from resistance_alignment import align, reference_genes
 from consensus_metadata import load as load_consensus
+from rank_blast import validate as validate_typing
 
 try:
     import pysam
@@ -656,10 +657,16 @@ def write(output, sample, subtype, sites, evaluations, all_rules, rules_path, ar
         for drug, drug_catalogue in sorted(catalogue.items()):
             drug_rules = by_drug[drug]
             drug_licensed = any(
-                licensed(subtype, r.get("drug_licensed_for_genotype", ""))
+                licensed(subtype or "", r.get("drug_licensed_for_genotype", ""))
                 for r in drug_catalogue
             )
             state, prediction = outcome(drug_rules, sites, drug_licensed, drug_catalogue)
+            typing_unknown = getattr(args, "typing_evidence", {}).get("status") in ("ambiguous", "unassigned")
+            if typing_unknown:
+                state, prediction, drug_licensed = "not assessed", None, None
+            genotype_uncovered = getattr(args, "typing_evidence", {}).get("status") == "genotype_only" and drug_licensed and not drug_rules
+            if genotype_uncovered:
+                state, prediction = "not assessed", None
             scored = sorted({f"{s['gene']}:{s['h77_aa']}{s['h77_position']}{aa}"
                              for r in (drug_rules or drug_catalogue) for p in parts(r["rule_definition"])
                              if (s := sites.get((r["region"], p["position"]))) and s["assessed"]
@@ -696,6 +703,10 @@ def write(output, sample, subtype, sites, evaluations, all_rules, rules_path, ar
                                 for p in parts(r["rule_definition"])
                                 if sites.get((r["region"], p["position"]), {}).get("low_depth")}) if drug_licensed else []
             record["low_depth_positions"] = [f"{gene}:{pos}" for gene, pos in low_sites]
+            if typing_unknown:
+                record["warnings"].append("Resistance not assessed: ambiguous or unassigned subtype")
+            if genotype_uncovered:
+                record["warnings"].append("Genotype-only assignment: no explicitly applicable genotype-level rules for this drug")
             if low_sites:
                 record["warnings"].append("Low-depth support (1-6 usable observations); curator review required: "+", ".join(f"{gene}:{pos} depths="+"/".join(map(str, sites[(gene,pos)]["nucleotide_depths"])) for gene,pos in low_sites))
             drug_outcomes.append(record)
@@ -704,7 +715,7 @@ def write(output, sample, subtype, sites, evaluations, all_rules, rules_path, ar
                     drug,
                     state,
                     prediction or "",
-                    str(record["licensed"]).lower(),
+                    "" if record["licensed"] is None else str(record["licensed"]).lower(),
                     "; ".join(record["matched_rules"]),
                     "; ".join(record["partial_rules"]),
                     "; ".join(record["warnings"]),
@@ -764,6 +775,7 @@ def write(output, sample, subtype, sites, evaluations, all_rules, rules_path, ar
         "caller_version": "3.1",
         "sample": sample,
         "subtype": subtype,
+        "typing_evidence": getattr(args, "typing_evidence", None),
         "baseline_cutoff": 0.15,
         "baseline_source": "15% IUPAC consensus",
         "rules_sha256": checksum(rules_path),
@@ -813,7 +825,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fasta", "-f", required=True)
     parser.add_argument("--gff", "-g", required=True)
-    parser.add_argument("--subtype", "-s", required=True)
+    typing_group = parser.add_mutually_exclusive_group(required=True)
+    typing_group.add_argument("--subtype", "-s")
+    typing_group.add_argument("--typing-json")
     parser.add_argument("--rules", "-r", required=True)
     parser.add_argument(
         "--h77-fasta",
@@ -835,6 +849,9 @@ def main():
     if len(records) != 1:
         raise ValueError("Resistance calling requires exactly one consensus contig")
     name, sequence = next(iter(records.items()))
+    args.typing_evidence = validate_typing(json.loads(Path(args.typing_json).read_text()), args.fasta) if args.typing_json else {}
+    if args.typing_json:
+        args.subtype = args.typing_evidence["subtype"] or ""
     args.track_chrom = name
     metadata = load_consensus(args.fasta, args.consensus_metadata, required=not args.allow_legacy_consensus)
     if metadata and (metadata["mode"] != "iupac" or metadata["min_af"] != 0.15 or metadata["minimum_usable_depth"] != 1 or metadata["reference_fill"]):
@@ -857,12 +874,18 @@ def main():
     applicable = [
         r for r in all_rules if subtype_match(args.subtype, r["subtype_pattern"])
     ]
-    if not applicable:
+    typing_unknown = args.typing_evidence.get("status") in ("ambiguous", "unassigned")
+    if not applicable and not typing_unknown and args.typing_evidence.get("status") != "genotype_only":
         raise SystemExit(f"No geno2pheno rules apply to subtype {args.subtype}")
     h77 = h77_genes(args.h77_fasta)
     h77_records = fasta(args.h77_fasta)
     if len(h77_records) != 1 or next(iter(h77_records)) != "AF011751.1" or hashlib.sha256(next(iter(h77_records.values())).encode()).hexdigest() != "72fb77d5ba74c2d865e542b48e27f8662d3173752dbf217a6e5f08dc1537aa73":
         raise ValueError("Resistance numbering requires the pinned AF011751.1 sequence")
+    if typing_unknown:
+        args.gene_alignments = {}
+        args.consensus_warnings.append("Resistance not assessed: ambiguous or unassigned subtype")
+        write(Path(args.output_dir), name, None, {}, [], all_rules, args.rules, args)
+        return
     references = reference_genes(args.reference_panel, args.subtype, h77, fasta)
     if args.subtype != "1a" and all(item["accession"] == "AF011751.1" for item in references.values()):
         args.consensus_warnings.append("No verified exact-subtype alignment bridge is available; using H77 directly and leaving uncertain positions unassessed")

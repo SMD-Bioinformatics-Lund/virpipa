@@ -43,6 +43,7 @@ include { VARIANT_CALLING } from './modules/local/variantcall/main'
 include { CREATE_CRAM } from './modules/local/cram/main'
 include { LOG_COVERAGE } from './modules/local/coverage/main'
 include { SUBTYPE_BLAST } from './modules/local/subtype/main'
+include { RANK_SUBTYPE } from './modules/local/subtype/main'
 include { CREATE_REPORT } from './modules/local/report/main'
 include { ANNOTATE_VADR } from './modules/local/annotate_vadr/main'
 include { ANNOTATE_RESISTANCE } from './modules/local/resistance/main'
@@ -323,7 +324,7 @@ Notes:
                 )
             )
         )
-    } else if (params.module == 'subtype') {
+    } else if (params.module in ['subtype', 'resistance_typing']) {
         SUBTYPE_BLAST(
             channel.of(
                 tuple(
@@ -334,6 +335,27 @@ Notes:
             ),
             channel.value(subtype_blast_db)
         )
+        RANK_SUBTYPE(
+            SUBTYPE_BLAST.out.blast_with_meta.map { run_name, sample_id, blast ->
+                tuple(run_name, sample_id, blast, file("${projectDir}/assets/test_data/subtype/SAMPLE001-0.15-iupac.fasta"))
+            },
+            channel.value(subtype_blast_db)
+        )
+        if (params.module == 'resistance_typing') {
+            ANNOTATE_RESISTANCE(
+                RANK_SUBTYPE.out.typing.map { run_name, sample_id, evidence ->
+                    tuple(run_name, sample_id,
+                        file("${projectDir}/assets/test_data/vadr/SAMPLE001.vadr.pass_mod.gff"),
+                        file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.fasta"),
+                        file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram"),
+                        file("${projectDir}/assets/test_data/report/SAMPLE001-0.15-iupac.cram.crai"), [], [], [])
+                },
+                RANK_SUBTYPE.out.typing.map { run_name, sample_id, evidence -> new groovy.json.JsonSlurper().parseText(evidence.text) },
+                channel.value(file("${projectDir}/assets/hcv_geno2pheno_rules.csv")),
+                channel.value(file("${projectDir}/refgenomes/resistance/AF011751.1.fasta")),
+                channel.value(file("${projectDir}/refgenomes/resistance"))
+            )
+        }
     } else if (params.module == 'report') {
         CREATE_REPORT(
             channel.of(
