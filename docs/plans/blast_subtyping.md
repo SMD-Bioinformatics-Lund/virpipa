@@ -1,8 +1,8 @@
-# Deferred BLAST subtyping implementation plan
+# BLAST subtyping implementation and validation
 
-Status: release implementation in progress. The standalone reference-ranking helper
-and its regression tests are implemented; workflow, resistance and Virtitta integration
-remain pending. See [the release checklist](resistance_release.md).
+Status: reference ranking, workflow/resistance/QC integration and Virtitta import/display
+are implemented and locally tested. Fresh Hopper/import release validation remains
+pending. See [the release checklist](resistance_release.md).
 
 ## Goal and boundaries
 
@@ -14,7 +14,8 @@ a diagnostic comparison, not an assumed biologically superior replacement.
 
 BLAST behaviour and presentation changes are now the final implementation work for
 the resistance release. The current scaffold/report versus IUPAC/resistance typing
-inconsistency remains until integration is complete. Do not silently change
+inconsistency is resolved for new archives through the shared analytical assignment;
+the historical scaffold fields retain their original meaning. Do not silently change
 subtype-specific resistance rules in Virtitta or infer strain linkage from IUPAC.
 
 ## Pipeline implementation sequence
@@ -42,11 +43,13 @@ The existing subtype fixture retains 3a / D17763: three selected segments have s
 bit score 13888 and 99.7673% whole-query coverage. This is a fixture check, not a new
 real-sample or biological validation result.
 
-The helper is deliberately not wired into the pipeline at this checkpoint. Database
-provenance is populated only when database files are supplied; integration must supply
-the complete database-file set and retain input/provenance checks.
+The workflow now calls the helper after analytical IUPAC BLAST and supplies the complete
+database-file set. The same result feeds resistance and QC, and is published as typing
+JSON. Sequence checksums bind the declared result to its analytical input. Re-call checks
+archived evidence against the raw search; legacy searches without evidence retain empty
+database provenance and are not assumed to contain every possible alternative.
 
-### Remaining integration
+### Implementation requirements (completed; fresh-run validation pending)
 
 1. Audit reference labels, duplicates, incomplete/padded sequences and unequal subtype
    representation. Database absence of a runner-up is not proof of confidence.

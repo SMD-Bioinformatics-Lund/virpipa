@@ -39,8 +39,12 @@ are deferred in [their own plan](plans/blast_subtyping.md).
   identical typing evidence into resistance, including all six database checksums.
   This fixture uses the existing explicitly unverified legacy comparison consensus;
   it does not establish biological concordance or production readiness.
-- Virtitta integration and fresh Hopper validation are still pending at this
-  checkpoint. Keep the old and new archives separate for release comparisons.
+- Virtitta integration subsequently passed all 187 tests, including seven new contract
+  tests for assigned/uncertain/genotype-only typing, legacy imports, alternative display,
+  invalid declarations and review/override preservation. Its evidence reader also
+  accepted the actual connected-pipeline typing JSON (3a / D17763, six database hashes).
+- Fresh Hopper/import validation remains pending. Local fixture results do not establish
+  biological concordance. Keep old and new archives separate for release comparisons.
 
 ### Local verification recorded 2026-10-20
 
