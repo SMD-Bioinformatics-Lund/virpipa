@@ -42,6 +42,21 @@ Database sequence-volume SHA-256 (`hcvgluerefs.nsq`): `9838ab27f9226aa3e3db57e6f
 
 ## Subtype handling to verify
 
+### Release database recheck (2026-10-30)
+
+Re-exported the installed database using the extraction command above. Its sequence
+volume checksum is unchanged. All 213 entries remain 10,141 bases, with 153,580 Ns
+and 93 header labels. Observed non-N sequence lengths range from 9,054 to 9,825 bases;
+this alone cannot distinguish incomplete sequence from alignment padding. There are
+no exact duplicate full sequences. Representation is unequal: label counts range
+from one to 21 references (21 belong to genotype-only label `6`). The uncertain labels
+`4g?` and `6e?` must remain unrecognized candidates rather than being silently
+normalized into confident subtype assignments. No database sequences were changed.
+
+For ranking, each subtype is represented by its best individual reference; neither
+reference counts nor absent alternatives provide calibrated confidence. The existing
+padding and original-accession caveats above still apply.
+
 [The geno2pheno methods](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155869), sections 2.1.1–2.1.3, document separate subtype assignment for NS3, NS5A, and NS5B, a default reporting reference for each region/subtype, H77 position numbering, and reporting matching rules from the closest common subtype for rare subtypes. An example uses related subtype 4d for a 4k query. That example is not a universal lookup table.
 
 The committed 2026 rules snapshot includes genotype-wide selectors and explicit lists of rarer subtypes. Therefore rare-subtype handling must respect each rule's actual selector: an applicable genotype-wide rule is different from extrapolating a rule restricted to another subtype. The older paper alone does not establish how today's web service combines these cases.

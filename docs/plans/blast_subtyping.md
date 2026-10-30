@@ -1,7 +1,8 @@
 # Deferred BLAST subtyping implementation plan
 
-Status: deferred until resistance calling has been checked on representative data.
-This document records the agreed direction, not an implemented classifier.
+Status: release implementation in progress. The standalone reference-ranking helper
+and its regression tests are implemented; workflow, resistance and Virtitta integration
+remain pending. See [the release checklist](resistance_release.md).
 
 ## Goal and boundaries
 
@@ -11,12 +12,41 @@ as the intended primary input. BLAST treats ambiguous query characters as mismat
 so preserving mixtures in FASTA does not make BLAST mixture-aware. Majority can be
 a diagnostic comparison, not an assumed biologically superior replacement.
 
-Do not implement any BLAST behaviour or presentation changes as part of resistance
-completion. The current scaffold/report versus IUPAC/resistance typing inconsistency
-remains a known limitation until this work is implemented. Do not silently change
+BLAST behaviour and presentation changes are now the final implementation work for
+the resistance release. The current scaffold/report versus IUPAC/resistance typing
+inconsistency remains until integration is complete. Do not silently change
 subtype-specific resistance rules in Virtitta or infer strain linkage from IUPAC.
 
 ## Pipeline implementation sequence
+
+### Ranking checkpoint
+
+`scripts/rank_blast.py` reads standard 12-column BLAST output, optionally with
+`nident` appended as column 13. It selects the maximum summed-bit-score chain per
+reference using strictly non-overlapping query and subject intervals, consistent
+orientation and subject order. This conservative policy discards overlapping segments
+rather than attempting to prorate their scores. It never pools separate references.
+Equal-score chains are selected deterministically; equal-score winning subtype
+groups remain ambiguous. Unknown top-scoring labels prevent a confident assignment.
+Genotype-only labels are retained explicitly. No usable hits yield unassigned typing;
+malformed rows fail rather than becoming a no-hit result.
+
+Identity uses total identical bases divided by total alignment columns, including
+gaps. Legacy 12-column inputs approximate identical counts from rounded BLAST identity;
+new searches will append exact `nident`. Whole-query coverage counts selected query
+intervals once; observed coverage counts non-N characters in those intervals divided
+by all non-N query characters. IUPAC ambiguity characters other than N remain observed.
+All-N queries have null observed coverage. These metrics are not confidence values.
+
+The existing subtype fixture retains 3a / D17763: three selected segments have summed
+bit score 13888 and 99.7673% whole-query coverage. This is a fixture check, not a new
+real-sample or biological validation result.
+
+The helper is deliberately not wired into the pipeline at this checkpoint. Database
+provenance is populated only when database files are supplied; integration must supply
+the complete database-file set and retain input/provenance checks.
+
+### Remaining integration
 
 1. Audit reference labels, duplicates, incomplete/padded sequences and unequal subtype
    representation. Database absence of a runner-up is not proof of confidence.
