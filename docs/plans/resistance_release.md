@@ -25,6 +25,12 @@ assembly, polishing, mapping, resistance rules, H77 AF011751.1 or affine alignme
 
 ## Release gates
 
+- Reproducibility investigation found reordered Hostile output feeding position-based
+  seeded subsampling, different retained read subsets and separate iterative Pilon
+  cycling. Fixed-input Pilon was repeatable in the tested cases. See
+  [the investigation](../scaffold_reproducibility.md); agree and validate a correction
+  or an explicit acceptance decision before collection-wide reprocessing.
+
 - Local ranking, uncertainty, workflow, publication, import and display regressions;
   strict Nextflow validation and container-backed module checks.
 - Fresh representative Hopper batch through the site launcher in isolated dev paths;

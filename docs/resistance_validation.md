@@ -27,6 +27,28 @@ are deferred in [their own plan](plans/blast_subtyping.md).
 
 ## Local gates
 
+### Fresh Hopper/import validation and reproducibility investigation, 2026-11-06
+
+- The fresh 84e4283 Hopper run completed under Nextflow 26.04.3: 236 tasks completed,
+  all exit 0. All six archives passed published-layout, ranked-typing, database/input
+  provenance and CRAM/reference checks. Ranked typing is identical across typing JSON,
+  QC and resistance evidence. All subtypes and drug outcomes match the prior batch.
+- The user imported all six into Virtitta cbf7f0c and confirmed typing, expandable
+  alternatives, preservation of review state/categories/comments and successful IGV
+  opening. This closes the fresh-run/import check, not the reproducibility question.
+- Retained scaffolds differ between runs. The subsequent investigation compared three
+  cases and completed two fixed-input Pilon replay jobs and one repeated Hostile job.
+  Pilon was repeatable for those fixed inputs. Hostile retained identical read pairs
+  in different orders, and seeded subsampling selected different read subsets. The
+  control below the sampling cutoff retained all pairs and its final sequence agreed.
+- Read-support review also found low-depth terminal differences and internal high-depth
+  differences outside the resistance targets. Case A changed VADR fail/pass state;
+  case B shifted target-gene coordinates by two bases. Resistance-site codons, amino
+  acids and assessment states agreed in all three investigated cases. Full private
+  evidence remains outside Git. See [the investigation](scaffold_reproducibility.md).
+- No production sampling/polishing behaviour was changed. Release acceptance remains
+  pending a correction or explicit acceptance of these reproducibility limitations.
+
 ### BLAST integration checkpoint, 2026-10-30
 
 - Python regression suite: 87 tests run, 6 skipped (Nextflow was not on the Python
