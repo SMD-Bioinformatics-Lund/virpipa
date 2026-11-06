@@ -1,8 +1,9 @@
 # Future human-read filtering replacement
 
 The user intends to retire Hostile in favour of Deacon. Migration timing and the
-implementation are not yet decided. Current work remains the bounded Hostile
-ordering experiment; no Deacon installation or pipeline substitution is included.
+implementation are not yet decided. The current pipeline retains Hostile with its
+native ordering flag, validated through two full-sample analyses of one informative
+case. Deacon installation/substitution remains separate future work.
 
 Evaluate the replacement against the reproducibility findings in
 [the scaffold investigation](../scaffold_reproducibility.md):

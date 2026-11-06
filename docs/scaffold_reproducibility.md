@@ -44,7 +44,7 @@ the experiment. Thus output reordering is reproducible without changing the inpu
 reads. The installed Hostile 1.1.0 code defaults `reorder` to false and supports
 passing native Bowtie2 `--reorder` on Linux. The option passed the isolated
 ordering/subsampling experiment below and is now enabled in both Nextflow execution
-paths. Validation of repeated full-sample runs with that code remains pending.
+paths. Repeated fresh full-sample validation subsequently passed for case A below.
 
 Three fixed-input Pilon repetitions were run for each differing case on Hopper,
 using one frozen hybrid genome plus the retained round-one paired/unpaired BAMs
@@ -81,6 +81,32 @@ The checks support the native option as a small interim correction for order-sen
 selection. They do not establish whole-pipeline assembly/polishing reproducibility or
 resolve Pilon cycles. Full-job timings include external sorting, fingerprint comparisons
 and subsampling; they are not measurements of the flag's filtering overhead.
+
+### Repeated full-sample validation, 2026-11-06
+
+Two fresh full analyses of case A used pinned revision aaa2633, a private unchanged
+row from the service CSV (assay still HCV), frozen Clarity metadata and separate
+work/results/log/import-marker directories. Both completed under Nextflow 26.04.3:
+41 tasks each, all exit 0, no cached tasks. A dependent read-only comparison agreed
+on all 38 semantic comparisons:
+
+- Ordered filtered pairs and both seeded subsamples.
+- SPAdes and hybrid FASTAs, every Pilon sequence/change file, and canonical alignment
+  records in every polishing BAM and the final scaffold/IUPAC CRAMs.
+- Scaffold, analytical-majority and 15% IUPAC FASTAs and generating sidecars.
+- Source VCF record payloads, VADR annotations, typing/resistance JSON and semantic QC
+  fields. Transient absolute header paths and generation timestamps are excluded.
+
+Both runs followed 21 → 3 → 2 → 0 → 0 Pilon changes and converged. Published layouts
+and FASTA/CRAM contig, length and reference MD5 checks passed. Source/raw-input hashes
+verified unchanged afterwards. All 16 drug outcomes matched the earlier uncorrected
+run for this case. Source snapshots and operational records are retained privately.
+
+Initial coordinator-only startup failures were corrected in private submission copies
+by explicitly initializing environment modules; no analysis tasks ran in those failed
+attempts and the shared launcher was not modified. Production was not deployed and
+Virtitta was not automatically re-imported. This establishes complete repeatability
+for the tested case/configuration, not universal determinism or a cycle policy.
 
 ### Biological and coordinate effects of the original discrepancy
 
@@ -152,10 +178,9 @@ both replay wrappers passed Bash syntax checks and ShellCheck. The subsequent tw
 native-ordering experiments also passed all filtering, membership and subsampling checks.
 The interim flag is enabled in pipeline code. The container-backed tiny Hostile fixture
 completed successfully, with paired output and compatible QC parsing; strict Nextflow
-lint passed on all 25 files. After committing and publishing this revision to Hopper,
-validate one informative full sample twice in fresh, separate work/results directories.
-Compare actual task outputs rather than the colliding debug FASTQ publication names.
-Cycle detection and
+lint passed on all 25 files. Revision aaa2633 was published to Hopper and two fresh
+full-sample analyses passed the complete comparison above. Actual task work directories
+were compared rather than the colliding debug FASTQ publication names. Cycle detection and
 termination require a separate policy with explicit acceptance criteria. Do not silently sort
 production inputs, alter sampling policy, mask observed alleles or select an arbitrary
 cycle member to force agreement. Explain or correct material sequence differences

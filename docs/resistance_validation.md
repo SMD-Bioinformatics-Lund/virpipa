@@ -54,11 +54,18 @@ are deferred in [their own plan](plans/blast_subtyping.md).
   supports the option, and the pipeline now enables it in both execution paths.
   The tiny Hostile module fixture completed with 100 input pairs and eight retained
   pairs; mate IDs, output filenames and the existing QC parser were verified. Strict
-  Nextflow lint passed on all 25 files using locally installed 25.10.4. The patch must
-  be committed/published before two fresh full-sample Hopper runs on 26.04.3; compare
-  ordered filtering outputs, both sampled inputs, assemblies, every polishing round,
-  final analytical FASTAs, VADR, resistance and QC. Repeated whole-sample
-  validation remains pending. Deacon replacement is
+  Nextflow lint passed on all 25 files using locally installed 25.10.4. The subsequent
+  full-sample gate passed: pinned aaa2633 was run twice on case A under 26.04.3 in
+  independent fresh directories, with 41 completed tasks per run and no failed/cached
+  analysis tasks. All 38 semantic comparisons agreed: ordered filtering, both sampled
+  inputs, assemblies, every Pilon round, canonical BAM/CRAM records, final FASTAs and
+  sidecars, variant payloads, VADR, typing/resistance JSON and semantic QC. Both followed
+  21 → 3 → 2 → 0 → 0 changes. Layout and actual CRAM/reference MD5 checks passed;
+  source and raw inputs remained unchanged. All 16 drug outcomes matched the earlier
+  uncorrected case. Initial coordinator startup failures were recovered before analysis
+  by explicit module initialization in private script copies. Cycle policy remains a
+  separate decision; this is a one-case reproducibility result, not a universal claim.
+  Deacon replacement is
   tracked separately in [the filtering plan](plans/human_read_filtering.md).
 
 ### BLAST integration checkpoint, 2026-10-30
