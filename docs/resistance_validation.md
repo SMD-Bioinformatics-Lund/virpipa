@@ -48,6 +48,12 @@ are deferred in [their own plan](plans/blast_subtyping.md).
   evidence remains outside Git. See [the investigation](scaffold_reproducibility.md).
 - No production sampling/polishing behaviour was changed. Release acceptance remains
   pending a correction or explicit acceptance of these reproducibility limitations.
+- Subsequent native Hostile `--reorder` experiments passed for both differing cases:
+  identical ordered filtered pairs across repetitions, unchanged pair membership versus
+  baseline, and identical seeded 250,000/1,000,000-pair subsets. The diagnostic wrapper
+  supports the option, but the pipeline does not yet enable it. Repeated whole-sample
+  validation after the production correction remains pending. Deacon replacement is
+  tracked separately in [the filtering plan](plans/human_read_filtering.md).
 
 ### BLAST integration checkpoint, 2026-10-30
 

@@ -42,8 +42,8 @@ raw FASTQs retained the same 3,457,629 paired records but produced different ord
 payload and pair-ID hashes. Input-file SHA-256 values verified unchanged before/after
 the experiment. Thus output reordering is reproducible without changing the input
 reads. The installed Hostile 1.1.0 code defaults `reorder` to false and supports
-passing native Bowtie2 `--reorder` on Linux. That candidate correction has not yet
-been tested or applied to the pipeline.
+passing native Bowtie2 `--reorder` on Linux. The option has now passed the isolated
+ordering/subsampling experiment below; it is not yet enabled in the pipeline.
 
 Three fixed-input Pilon repetitions were run for each differing case on Hopper,
 using one frozen hybrid genome plus the retained round-one paired/unpaired BAMs
@@ -63,6 +63,25 @@ Identical counts alone do not establish convergence. No stopping policy is chang
 as part of this investigation.
 
 ## Downstream effects observed
+
+### Native ordering experiment, 2026-11-06
+
+Both cases A and B passed two Hostile repetitions with `--reorder`, baseline pair
+membership comparisons and repeated seeded subsampling using the existing `-s100`.
+Raw source hashes and diagnostic helper/container provenance were verified. Comparisons
+preserve full named paired records, quality scores and duplicate multiplicity.
+
+| Case | Filtered pairs per repetition | Ordered Hostile outputs | Membership versus baseline | 250,000-pair subsamples | 1,000,000-pair subsamples |
+| --- | ---: | --- | --- | --- | --- |
+| A | 3,457,629 | identical | unchanged | identical in order/content | identical in order/content |
+| B | 1,323,459 | identical | unchanged | identical in order/content | identical in order/content |
+
+The checks support the native option as a small interim correction for order-sensitive
+selection. They do not establish whole-pipeline assembly/polishing reproducibility or
+resolve Pilon cycles. Full-job timings include external sorting, fingerprint comparisons
+and subsampling; they are not measurements of the flag's filtering overhead.
+
+### Biological and coordinate effects of the original discrepancy
 
 For the three investigated cases, resistance-site assessment states, codons, amino
 acids, low-depth flags and drug mutation lists agree between runs. All drug outcomes
@@ -115,13 +134,24 @@ checks source-read hashes before/after; it then compares the outputs. Both recor
 current container hashes and wrapper copies. A `COMPLETE` marker is written only
 after the diagnostic finishes successfully. Existing output directories are rejected.
 
+The Hostile wrapper additionally accepts an optional fifth argument `--reorder` to
+test its native deterministic-order mode. Omitting it retains the baseline diagnostic
+command. The ordering experiment separately verifies unchanged retained read-pair
+membership and repeated `seqtk sample -s100` selection at both pipeline cutoffs.
+
+The user plans to replace Hostile with Deacon; this is tracked as
+[future human-read filtering work](plans/human_read_filtering.md). No replacement or
+production ordering-policy change is made by these diagnostics.
+
 ## Remaining decisions
 
 All three replay jobs completed successfully, and the private report/job records are
 retained outside Git. The comparison utility passed six synthetic regression tests;
-both replay wrappers passed Bash syntax checks and ShellCheck. Next, test the native
-Hostile ordering option and propose a separate correction for order-sensitive read
-selection and cycle detection/termination, with explicit acceptance criteria. Do not silently sort
+both replay wrappers passed Bash syntax checks and ShellCheck. The subsequent two
+native-ordering experiments also passed all filtering, membership and subsampling checks.
+Next, review enabling this small interim flag change in the pipeline and validate one
+informative full sample repeatedly with stable ordered inputs. Cycle detection and
+termination require a separate policy with explicit acceptance criteria. Do not silently sort
 production inputs, alter sampling policy, mask observed alleles or select an arbitrary
 cycle member to force agreement. Explain or correct material sequence differences
 before collection-wide reprocessing. Fixing colliding debug publication names is a
