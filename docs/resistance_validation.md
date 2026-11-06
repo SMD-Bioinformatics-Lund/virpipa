@@ -51,8 +51,14 @@ are deferred in [their own plan](plans/blast_subtyping.md).
 - Subsequent native Hostile `--reorder` experiments passed for both differing cases:
   identical ordered filtered pairs across repetitions, unchanged pair membership versus
   baseline, and identical seeded 250,000/1,000,000-pair subsets. The diagnostic wrapper
-  supports the option, but the pipeline does not yet enable it. Repeated whole-sample
-  validation after the production correction remains pending. Deacon replacement is
+  supports the option, and the pipeline now enables it in both execution paths.
+  The tiny Hostile module fixture completed with 100 input pairs and eight retained
+  pairs; mate IDs, output filenames and the existing QC parser were verified. Strict
+  Nextflow lint passed on all 25 files using locally installed 25.10.4. The patch must
+  be committed/published before two fresh full-sample Hopper runs on 26.04.3; compare
+  ordered filtering outputs, both sampled inputs, assemblies, every polishing round,
+  final analytical FASTAs, VADR, resistance and QC. Repeated whole-sample
+  validation remains pending. Deacon replacement is
   tracked separately in [the filtering plan](plans/human_read_filtering.md).
 
 ### BLAST integration checkpoint, 2026-10-30

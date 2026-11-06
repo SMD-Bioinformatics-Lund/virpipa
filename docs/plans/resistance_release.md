@@ -28,8 +28,10 @@ assembly, polishing, mapping, resistance rules, H77 AF011751.1 or affine alignme
 - Reproducibility investigation found reordered Hostile output feeding position-based
   seeded subsampling, different retained read subsets and separate iterative Pilon
   cycling. Fixed-input Pilon was repeatable in the tested cases. See
-  [the investigation](../scaffold_reproducibility.md); agree and validate a correction
-  or an explicit acceptance decision before collection-wide reprocessing.
+  [the investigation](../scaffold_reproducibility.md). The tested native Hostile
+  `--reorder` option is enabled in pipeline code; two fresh full-sample runs after
+  commit/publication must verify the complete chain. Cycle handling/acceptance remains
+  a separate decision before collection-wide reprocessing.
 
 - Local ranking, uncertainty, workflow, publication, import and display regressions;
   strict Nextflow validation and container-backed module checks.

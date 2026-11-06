@@ -41,7 +41,10 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
 
 ## Tested modules and current parity status
 
-- `hostile`: verified identical.
+- `hostile`: retained pair membership, filenames and QC interface are preserved;
+  Nextflow now uses `--reorder` intentionally to stabilize downstream seeded
+  subsampling. Compressed checksums and ordering need not match legacy outputs.
+  Compare paired-record multisets and, between corrected repetitions, ordered payloads.
 - `subsample`: verified identical.
 - `bam2fasta`: consensus generation intentionally differs from the legacy converter: majority mode selects the most abundant nucleotide rather than REF+ALT ambiguity; uncovered mapping-scaffold bases remain reference. VCF/stats can still differ only in embedded metadata.
 - `bestref`: verified identical selected FASTA for the fixture.

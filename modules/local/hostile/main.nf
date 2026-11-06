@@ -34,7 +34,7 @@ process REMOVE_HOSTILE {
 
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        ${hostile} clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
+        ${hostile} clean --offline --reorder --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
         clean_r1=\$(find . -maxdepth 1 -name '*.clean_1.fastq.gz' -print -quit)
         clean_r2=\$(find . -maxdepth 1 -name '*.clean_2.fastq.gz' -print -quit)
@@ -50,7 +50,7 @@ process REMOVE_HOSTILE {
 
         export HOSTILE_CACHE_DIR=${hostile_cache}
         
-        hostile clean --offline --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
+        hostile clean --offline --reorder --fastq1 ${read1} --fastq2 ${read2} --out-dir . > hostile.json
         
         clean_r1=\$(find . -maxdepth 1 -name '*.clean_1.fastq.gz' -print -quit)
         clean_r2=\$(find . -maxdepth 1 -name '*.clean_2.fastq.gz' -print -quit)

@@ -42,8 +42,9 @@ raw FASTQs retained the same 3,457,629 paired records but produced different ord
 payload and pair-ID hashes. Input-file SHA-256 values verified unchanged before/after
 the experiment. Thus output reordering is reproducible without changing the input
 reads. The installed Hostile 1.1.0 code defaults `reorder` to false and supports
-passing native Bowtie2 `--reorder` on Linux. The option has now passed the isolated
-ordering/subsampling experiment below; it is not yet enabled in the pipeline.
+passing native Bowtie2 `--reorder` on Linux. The option passed the isolated
+ordering/subsampling experiment below and is now enabled in both Nextflow execution
+paths. Validation of repeated full-sample runs with that code remains pending.
 
 Three fixed-input Pilon repetitions were run for each differing case on Hopper,
 using one frozen hybrid genome plus the retained round-one paired/unpaired BAMs
@@ -140,8 +141,8 @@ command. The ordering experiment separately verifies unchanged retained read-pai
 membership and repeated `seqtk sample -s100` selection at both pipeline cutoffs.
 
 The user plans to replace Hostile with Deacon; this is tracked as
-[future human-read filtering work](plans/human_read_filtering.md). No replacement or
-production ordering-policy change is made by these diagnostics.
+[future human-read filtering work](plans/human_read_filtering.md). The subsequent
+pipeline change enables only the tested Hostile flag; no replacement is included.
 
 ## Remaining decisions
 
@@ -149,8 +150,12 @@ All three replay jobs completed successfully, and the private report/job records
 retained outside Git. The comparison utility passed six synthetic regression tests;
 both replay wrappers passed Bash syntax checks and ShellCheck. The subsequent two
 native-ordering experiments also passed all filtering, membership and subsampling checks.
-Next, review enabling this small interim flag change in the pipeline and validate one
-informative full sample repeatedly with stable ordered inputs. Cycle detection and
+The interim flag is enabled in pipeline code. The container-backed tiny Hostile fixture
+completed successfully, with paired output and compatible QC parsing; strict Nextflow
+lint passed on all 25 files. After committing and publishing this revision to Hopper,
+validate one informative full sample twice in fresh, separate work/results directories.
+Compare actual task outputs rather than the colliding debug FASTQ publication names.
+Cycle detection and
 termination require a separate policy with explicit acceptance criteria. Do not silently sort
 production inputs, alter sampling policy, mask observed alleles or select an arbitrary
 cycle member to force agreement. Explain or correct material sequence differences
