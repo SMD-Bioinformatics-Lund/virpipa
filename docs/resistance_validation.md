@@ -46,8 +46,8 @@ are deferred in [their own plan](plans/blast_subtyping.md).
   case B shifted target-gene coordinates by two bases. Resistance-site codons, amino
   acids and assessment states agreed in all three investigated cases. Full private
   evidence remains outside Git. See [the investigation](scaffold_reproducibility.md).
-- No production sampling/polishing behaviour was changed. Release acceptance remains
-  pending a correction or explicit acceptance of these reproducibility limitations.
+- At the investigation stage no pipeline sampling/polishing behaviour had been changed;
+  the subsequent ordering correction and acceptance decision are recorded below.
 - Subsequent native Hostile `--reorder` experiments passed for both differing cases:
   identical ordered filtered pairs across repetitions, unchanged pair membership versus
   baseline, and identical seeded 250,000/1,000,000-pair subsets. The diagnostic wrapper
@@ -63,8 +63,10 @@ are deferred in [their own plan](plans/blast_subtyping.md).
   21 → 3 → 2 → 0 → 0 changes. Layout and actual CRAM/reference MD5 checks passed;
   source and raw inputs remained unchanged. All 16 drug outcomes matched the earlier
   uncorrected case. Initial coordinator startup failures were recovered before analysis
-  by explicit module initialization in private script copies. Cycle policy remains a
-  separate decision; this is a one-case reproducibility result, not a universal claim.
+  by explicit module initialization in private script copies. This is a one-case
+  reproducibility result, not a universal claim. The user accepted retaining the current
+  Pilon stopping behaviour for this release; cycle detection/reporting and early cycle
+  termination are deferred because breaking earlier may select a different sequence.
   Deacon replacement is
   tracked separately in [the filtering plan](plans/human_read_filtering.md).
 

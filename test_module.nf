@@ -36,6 +36,7 @@ def resolveTestPath(def raw_path) {
 
 include { REMOVE_HOSTILE } from './modules/local/hostile/main'
 include { SUBSAMPLE_READS } from './modules/local/subsample/main'
+include { SUBSAMPLE_READS as SUBSAMPLE_READS_REFSEL } from './modules/local/subsample/main'
 include { BAM2FASTA } from './modules/local/bam2fasta/main'
 include { CREATE_CONSENSUS } from './modules/local/consensus/main'
 include { FILTER_VCF } from './modules/local/filter_vcf/main'
@@ -97,6 +98,7 @@ VirPipa Module Test Workflow
 Available modules to test locally:
   - hostile    : Remove human reads with hostile
   - subsample  : Subsample FASTQ reads with seqtk
+  - subsample_publish: Publish two subsampling limits for the same sample
   - bam2fasta  : Build consensus FASTA and VCF from a fixture BAM
   - bestref    : Pick the best reference FASTA from fixture mapping stats
   - mapping    : Map SAMPLE001 reads to one reference with sentieon
@@ -117,6 +119,7 @@ Available modules to test locally:
 Usage:
   nextflow run test_module.nf -profile local_containers,tiny --module hostile
   nextflow run test_module.nf -profile local,tiny --module subsample --subsample_reads 100
+  nextflow run test_module.nf -profile local,tiny --module subsample_publish --publish_mode debug
   nextflow run test_module.nf -profile local_containers,tiny --module hostile --outdir test_output_tiny
   nextflow run test_module.nf -profile local --module bam2fasta --outdir test_output_bam2fasta
   nextflow run test_module.nf -profile local --module bestref --outdir test_output_bestref
@@ -175,6 +178,9 @@ Notes:
         REMOVE_HOSTILE(ch_samples, params.hostile_cache_dir ?: '')
     } else if (params.module == 'subsample') {
         SUBSAMPLE_READS(ch_samples, subsample_reads)
+    } else if (params.module == 'subsample_publish') {
+        SUBSAMPLE_READS_REFSEL(ch_samples, 25)
+        SUBSAMPLE_READS(ch_samples, 50)
     } else if (params.module == 'bam2fasta') {
         BAM2FASTA(
             channel.of(
@@ -498,6 +504,6 @@ Notes:
                 }
         )
     } else {
-        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, consensus_contract, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"
+        error "Unsupported module '${params.module}'. Supported modules: hostile, subsample, subsample_publish, bam2fasta, bestref, mapping, mapping_noopt, polish, consensus, consensus_contract, filter_vcf, variantcall, cram, coverage, subtype, report, vadr, resistance, qc_summary, finalize_results"
     }
 }

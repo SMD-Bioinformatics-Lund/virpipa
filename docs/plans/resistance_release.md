@@ -31,8 +31,16 @@ assembly, polishing, mapping, resistance rules, H77 AF011751.1 or affine alignme
   [the investigation](../scaffold_reproducibility.md). The tested native Hostile
   `--reorder` option is enabled in pipeline code; pinned aaa2633 passed two fresh
   full-sample analyses of case A and all 38 semantic comparisons of the complete
-  chain. Cycle handling/acceptance remains
-  a separate decision before collection-wide reprocessing.
+  chain. Accepted release decision: retain the existing Pilon stopping behaviour
+  (equal consecutive change counts or the configured round limit, default ten).
+  Cycle detection/reporting and early cycle termination are deferred; early breaking
+  could select a different final sequence and requires a separate reviewed policy.
+- Debug FASTQ publication collision corrected: subsampling limits now publish into
+  separate `fastq/subsample_<requested_pairs>/` directories. The tiny two-alias fixture
+  reproduced the old overwrite and passed on Nextflow 26.04.3 with both 25- and
+  50-pair sets intact, matching mates and unchanged read payloads. Routine mode
+  published neither set; strict Nextflow lint passed. This changes publication only;
+  the completed full-sample analytical validation remains applicable.
 
 - Local ranking, uncertainty, workflow, publication, import and display regressions;
   strict Nextflow validation and container-backed module checks.

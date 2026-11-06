@@ -33,6 +33,12 @@ Example:
 sample root and also publishes intermediate subdirectories such as `bam/`, `vcf/`, `fastq/`,
 `fasta/`, `spades/`, `mummer/`, and `pilon/`.
 
+Subsampled FASTQs are published under `fastq/subsample_<requested_pairs>/`, keeping
+reference-selection and polishing subsets separate without changing their filenames.
+The directory names record the requested limit, not the actual retained pair count
+when fewer pairs are available. Hostile FASTQs remain directly under `fastq/`.
+Routine mode publishes neither subsampling directory.
+
 Current final sample outputs include:
 
 - `SAMPLE001.fasta` and `SAMPLE001.fasta.fai`

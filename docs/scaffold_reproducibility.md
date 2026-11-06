@@ -8,10 +8,12 @@ stored in a private diagnostic directory outside Git; tests use synthetic reads.
 ## Retained-data findings
 
 Two differing samples (case A and case B) and one unchanged control were inspected
-through their original Nextflow task work directories. Published debug FASTQs alone
-are unsafe for this comparison: reference-selection and polishing subsampling both
-publish the same FASTQ filenames into the shared per-sample `fastq/` directory.
-The retained work directories distinguish their actual outputs.
+through their original Nextflow task work directories. Published debug FASTQs in
+these historical archives are unsafe for this comparison: reference-selection and
+polishing subsampling published the same FASTQ filenames into the shared per-sample
+`fastq/` directory. The retained work directories distinguish their actual outputs.
+New debug publications separate the subsets under `fastq/subsample_<requested_pairs>/`;
+existing archives are not repaired automatically.
 
 In all three cases, old/new Hostile outputs contain identical paired-record multisets
 but differ in order. The comparison retains full headers, sequences, qualities and
@@ -170,7 +172,7 @@ The user plans to replace Hostile with Deacon; this is tracked as
 [future human-read filtering work](plans/human_read_filtering.md). The subsequent
 pipeline change enables only the tested Hostile flag; no replacement is included.
 
-## Remaining decisions
+## Release decision and deferred work
 
 All three replay jobs completed successfully, and the private report/job records are
 retained outside Git. The comparison utility passed six synthetic regression tests;
@@ -180,9 +182,15 @@ The interim flag is enabled in pipeline code. The container-backed tiny Hostile 
 completed successfully, with paired output and compatible QC parsing; strict Nextflow
 lint passed on all 25 files. Revision aaa2633 was published to Hopper and two fresh
 full-sample analyses passed the complete comparison above. Actual task work directories
-were compared rather than the colliding debug FASTQ publication names. Cycle detection and
-termination require a separate policy with explicit acceptance criteria. Do not silently sort
+were compared rather than the colliding debug FASTQ publication names.
+
+The user accepted retaining the existing Pilon loop for this release: stop on equal
+consecutive change counts or the configured round limit (default ten). Do not add
+cycle detection/reporting or early cycle termination now. Early breaking can select
+a different final sequence; any future change requires a separate reviewed policy
+with explicit acceptance criteria. Repeatability of the tested case does not establish
+that an oscillating case has one biologically preferable scaffold. Do not silently sort
 production inputs, alter sampling policy, mask observed alleles or select an arbitrary
 cycle member to force agreement. Explain or correct material sequence differences
-before collection-wide reprocessing. Fixing colliding debug publication names is a
-separate small repair; it does not explain differences in the actual workdir inputs.
+before collection-wide reprocessing. Separating debug publication directories is a
+publication-only repair; it does not explain differences in the actual workdir inputs.

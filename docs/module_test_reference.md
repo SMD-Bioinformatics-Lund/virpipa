@@ -19,6 +19,8 @@ The resistance completion sequence and representative-data review gates are in
 
 ```bash
 nextflow run test_module.nf -profile local,tiny --module subsample --subsample_reads 25
+nextflow run test_module.nf -profile local,tiny --module subsample_publish --publish_mode debug
+nextflow run test_module.nf -profile local,tiny --module subsample_publish --publish_mode routine --outdir /tmp/virpipa_subsample_routine
 nextflow run test_module.nf -profile local_containers,tiny --module hostile
 nextflow run test_module.nf -profile local --module bam2fasta
 nextflow run test_module.nf -profile local_containers --module bam2fasta
@@ -45,7 +47,13 @@ nextflow run test_module.nf -profile local_containers --module finalize_results 
   Nextflow now uses `--reorder` intentionally to stabilize downstream seeded
   subsampling. Compressed checksums and ordering need not match legacy outputs.
   Compare paired-record multisets and, between corrected repetitions, ordered payloads.
-- `subsample`: verified identical.
+- `subsample`: read payloads and emitted filenames are unchanged. Debug publication
+  separates requested limits under `fastq/subsample_<requested_pairs>/`.
+- `subsample_publish`: runs both aliases on the same tiny sample with limits 25 and
+  50. On Nextflow 26.04.3, check both published R1/R2 pairs under
+  `tiny_run/SAMPLE001/fastq/subsample_25/` and `subsample_50/`, including record counts
+  and mate pairing. Repeat with `--publish_mode routine` and a fresh output directory;
+  neither subsampled set should be published. This exercises publication, not assembly.
 - `bam2fasta`: consensus generation intentionally differs from the legacy converter: majority mode selects the most abundant nucleotide rather than REF+ALT ambiguity; uncovered mapping-scaffold bases remain reference. VCF/stats can still differ only in embedded metadata.
 - `bestref`: verified identical selected FASTA for the fixture.
 - `mapping`: SAM payload verified; stats differ only in embedded command-line/path metadata.
