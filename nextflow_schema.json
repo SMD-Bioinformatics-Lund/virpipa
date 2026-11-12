@@ -5,6 +5,11 @@
   "description": "Parameters for the virpipa Nextflow scaffold.",
   "type": "object",
   "properties": {
+    "dev": {
+      "type": "boolean",
+      "default": false,
+      "description": "Use development defaults for results, completion logs and Virtitta handoffs. Explicit directory overrides take precedence."
+    },
     "input": {
       "type": "string",
       "description": "CSV samplesheet path"
@@ -74,7 +79,7 @@
     },
     "virtitta_run_dir": {
       "type": "string",
-      "description": "Root directory for completed HCV runs as seen by the Virtitta importer. Defaults to /access/virpipa/hcv; the run name is appended when writing the import marker."
+      "description": "Root directory for completed HCV runs as seen by the Virtitta importer. Defaults to /access/virpipa/hcv, or the resolved outdir with --dev or a local profile; the run name is appended when writing the import marker."
     }
   },
   "required": ["input"]

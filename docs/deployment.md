@@ -60,6 +60,24 @@ The live `[HCV]` entry in `/fs2/sw/bnf-scripts/pipeline_files.config` should use
 `/fs1/pipelines/virpipa/current`. `HCV-dev` should continue to use the development
 checkout.
 
+After deploying this version to `current`, use this production pipeline value
+without directory overrides:
+
+```ini
+pipeline = /fs1/pipelines/virpipa/current -profile slurm,hpc,apptainer -ansi-log false
+```
+
+Use this pipeline value for `HCV-dev`:
+
+```ini
+pipeline = /fs1/jonas/src/virpipa -profile slurm,hpc,apptainer --dev -ansi-log false
+```
+
+Remove the old explicit `--outdir` and `--completion_log_dir` overrides from
+these entries when adopting the new defaults. Explicit overrides remain
+authoritative even with `--dev`. The assay name alone
+does not activate dev mode. This repository does not modify `bnf-infrastructure`.
+
 Until the launcher canonicalizes the pipeline path, do not deploy while an HCV
 coordinator is queued or running. The symlink works, but a queued coordinator
 uses the release selected when it starts and a switch during an analysis could
