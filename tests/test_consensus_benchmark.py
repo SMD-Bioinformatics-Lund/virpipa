@@ -9,6 +9,7 @@ sys.path.insert(0, str(ROOT/'scripts'))
 from benchmark_consensus import fixtures, codon_counts
 from benchmark_distances import compare_cells, nearest
 from benchmark_campaign import validate, fingerprint
+from benchmark_native_score import qualify_read_sites
 
 
 class BenchmarkTests(unittest.TestCase):
@@ -54,6 +55,17 @@ class BenchmarkTests(unittest.TestCase):
         result = compare_cells(old, new)
         self.assertEqual(result['nearest_neighbour_changes'], {})
         self.assertEqual(result['missing_pairs']['baseline_only'], 1)
+
+    def test_read_score_does_not_invent_codons_or_override_integrity_exclusions(self):
+        site = dict(amino_acids=['A', 'F', 'S', 'V'], assessed=True,
+                    assessment_reason=None, genomic_start=61,
+                    codon_evidence={'codon_counts': {'TTT': 84, 'GCT': 8, 'GCC': 8}})
+        sites = {0: dict(site), 1: dict(site, assessed=False, assessment_reason='ambiguous_mapping'),
+                 2: dict(site, deletion_anchor=True)}
+        qualify_read_sites(sites)
+        self.assertEqual(sites[0]['amino_acids'], ['A', 'F'])
+        self.assertFalse(sites[1]['assessed'])
+        self.assertEqual(sites[2]['assessment_reason'], 'deletion_frequency_not_quantified')
 
 
 class CampaignTests(unittest.TestCase):
