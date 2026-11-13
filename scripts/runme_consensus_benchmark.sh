@@ -30,7 +30,7 @@ export NXF_SYNTAX_PARSER=v2
 mkdir -p "$output/launch"
 cp "$input" "$output/input.csv"
 cp "${BASH_SOURCE[0]}" "$output/replay_wrapper.sh"
-git -C "$source_root" rev-parse HEAD > "$output/source_commit.txt"
+(cd "$source_root" && git rev-parse HEAD) > "$output/source_commit.txt"
 sha256sum "$input" "$output/input.csv" > "$output/samplesheet.sha256"
 nextflow -version > "$output/nextflow.version.txt"
 nextflow config "$source_root" -profile slurm,hpc,apptainer > "$output/profile-defaults.config"
