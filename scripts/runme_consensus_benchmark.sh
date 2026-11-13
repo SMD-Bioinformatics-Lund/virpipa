@@ -13,7 +13,12 @@ if [[ $# -ne 2 ]]; then
 fi
 input=$(readlink -f "$1")
 output=$(realpath -m "$2")
-source_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+source_root=${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+source_commit=$(cat "$source_root/.git/HEAD")
+[[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || {
+    echo 'Submit from a detached, pinned clone of the repository' >&2
+    exit 2
+}
 [[ -f "$input" && ! -e "$output" ]]
 [[ "$output" == /fs1/jonas/virpipa/consensus_benchmark_* ]] || {
     echo 'Benchmark outputs must use a new /fs1/jonas/virpipa/consensus_benchmark_* directory' >&2
@@ -30,7 +35,7 @@ export NXF_SYNTAX_PARSER=v2
 mkdir -p "$output/launch"
 cp "$input" "$output/input.csv"
 cp "${BASH_SOURCE[0]}" "$output/replay_wrapper.sh"
-(cd "$source_root" && git rev-parse HEAD) > "$output/source_commit.txt"
+printf '%s\n' "$source_commit" > "$output/source_commit.txt"
 sha256sum "$input" "$output/input.csv" > "$output/samplesheet.sha256"
 nextflow -version > "$output/nextflow.version.txt"
 nextflow config "$source_root" -profile slurm,hpc,apptainer > "$output/profile-defaults.config"
