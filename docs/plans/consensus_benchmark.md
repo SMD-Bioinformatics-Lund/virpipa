@@ -123,8 +123,8 @@ Do not infer transmission or tree-topology equivalence from these counts.
 The updated findings and gate status are recorded in
 [the results report](consensus_benchmark_results.md). Both 240-analysis workflows,
 the two reported loci, 41 mapper controls across all nine arms, variant-record
-controls and depth-policy sensitivity analysis are complete. Coverage/trimming
-inputs are prepared and local distance comparisons are running.
+controls, depth-policy sensitivity analysis and local distance comparisons are
+complete. The report includes matrix/coverage effects and neighbour-set changes.
 
 Production replacement still requires an explicit minority/depth policy,
 deletion-frequency handling and validated annotations/coordinate mappings for

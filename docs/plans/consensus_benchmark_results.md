@@ -1,8 +1,8 @@
 # Consensus benchmark results
 
 Evaluation on `consensus-benchmark`. The pipeline's production converter,
-resistance caller, output schemas and result archives are unchanged. Local
-cohort distance analysis is still running; this report is not a release decision.
+resistance caller, output schemas and result archives are unchanged. The evaluation
+is complete; this report is not a release decision.
 
 ## Findings established so far
 
@@ -112,7 +112,7 @@ analyses have 76 changed drug outcomes and 296 lost assessments. These must not
 be attributed to replacing AWK or to amino-acid phasing alone. At one complete
 codon, matching production's permissive depth floor more closely, the comparison
 has 20 changed assessed amino-acid sets and seven changed drug outcomes in five
-analyses, with no lost or gained assessments. Most of those analyses have
+analyses, with no lost or gained site assessments. Most of those analyses have
 low-depth evidence; this sensitivity analysis is not a depth recommendation.
 
 One well-covered example is decisive independently of the read-pool change:
@@ -131,9 +131,11 @@ are retained; the qualified local reports are authoritative for reason labels.
 
 ## Distances
 
-Pending completion of local alignments and matrix comparison. The primary
-reference is `baseline_remap`, holding the eligible read pool constant. A separate
-published-baseline matrix captures current operational coverage behavior.
+The completed comparison contains **426 symmetric matrices**, **246,088 pair
+comparisons** across operational, pooled and common-callable analyses, and 294
+standalone difference heatmaps. The primary reference is `baseline_remap`, holding
+the eligible read pool constant. A separate published-baseline matrix captures
+current operational coverage behavior.
 
 Prepared sequences/masks use the selected Virtitta configuration: 50-base 5-prime
 trim and its poly-T handling. Each candidate has coverage in its own reference
@@ -147,6 +149,49 @@ Sixteen native iVar IUPAC/majority pairs have different lengths. Affected
 operational majority comparisons are unsupported by the present Virtitta
 interface, and are flagged rather than forced into one coordinate system. Their
 pooled comparisons use each sequence's actual reference/coverage coordinates.
+The unsupported operational majority groups are 1a, 1b and 3a for both iVar
+thresholds. Consequently, the overview below uses pooled alignments so that all
+candidates share the same 8,776 comparable pairs from resolved subtypes; the two
+uncertain-type analyses are reported separately.
+
+Absolute changes in total distance events, shown as median / 95th percentile /
+maximum, relative to the fixed-pool current-consensus control:
+
+| Candidate | IUPAC event change | Changed IUPAC neighbour sets | Majority event change | Changed majority neighbour sets |
+| --- | ---: | ---: | ---: | ---: |
+| Published coverage control | 0 / 1 / 24 | 0 | 0 / 0 / 25 | 3 |
+| BCFtools haploid | 64 / 230 / 422 | 47 | 1 / 6 / 31 | 4 |
+| iVar 0.85 | 2 / 7 / 30 | 20 | 1 / 5 / 31 | 6 |
+| iVar 0.90 | 14 / 58 / 154 | 58 | 1 / 6 / 31 | 6 |
+| AWK, BAQ disabled | 1 / 5 / 29 | 13 | 1 / 5 / 31 | 4 |
+
+Neighbour-set counts describe changed ties among samples with an available peer,
+not changed cluster assignments at a particular threshold. The iVar rows share
+the same native majority FASTA, but eight analyses have different trimming ends
+derived from their different IUPAC partners, as current Virtitta requires.
+
+The largest BCFtools IUPAC change is 223 to 645 substitutions on exactly the same
+9,377 callable columns: all +422 events arise on shared columns. This is a
+consensus-policy effect, not lost overlap. iVar 0.90 commonly reduces IUPAC
+distances; its largest pooled decrease is 154 events, principally altered
+substitutions on common columns. Neither native result is equivalent to current
+15% IUPAC consensus.
+
+Majority differences are much smaller and overlap matters. One maximum +31
+BCFtools difference consists entirely of 31 substitutions in 40 newly callable
+columns, with zero substitution change on shared columns. A corresponding large
+iVar decrease loses 31 substitutions with 40 lost columns; its small shared-column
+change is offset by an indel event. On common callable bases, the BCFtools majority
+median / 95th percentile / maximum is 0 / 1 / 18, and both iVar variants give
+1 / 4 / 14. The coverage-only control gives exactly zero change on common bases
+in both modes.
+
+Every changed neighbour record has before/after event components and compared-base
+counts in `distance-review.json` (446 records across modes/alignment strategies).
+The largest discrepancies are decomposed in `distance-extremes.json`, with a
+ranked TSV and overview PNG/PDF. These results support a separate majority-genome
+track for cluster comparisons, while retaining explicit missingness/indel rules;
+they do not establish tree-topology equivalence or a clinical cluster cutoff.
 
 ## Artifacts and remaining decision
 
@@ -155,7 +200,9 @@ Private inputs, identities, matrices and figures are under
 `CHECKPOINT.json` identifies current output roots. Key completed artifacts are
 `cohort-scorecard-qualified/`, `depth-sensitivity.json`,
 `mapper-truth-validation.json`, `record-probes-02/` and
-`amino-acid-evidence.png`. Full raw results/work/cache remain on Hopper in the
+`amino-acid-evidence.png`, `cohort-distances-03/`, `distance-review.json`,
+`distance-extremes.json` and `distance-overview.png`/`.pdf`.
+Full raw results/work/cache remain on Hopper in the
 isolated benchmark campaign directories.
 
 The evidence supports separating genome consensus from observed amino-acid
@@ -164,3 +211,10 @@ BCFtools consensus as a drop-in 15% resistance caller. A production implementati
 still needs an explicit depth policy, deletion-frequency handling and validated
 annotation/coordinate behavior for edited genomes. No production switch or
 automatic re-import is part of this evaluation.
+
+Verification: 12 benchmark, 10 consensus-policy, 38 resistance-safety and 14
+Virtitta distance unit checks passed. Nextflow 26.04.3 strict lint reported zero
+errors (three prototype warnings). Sequential, parallel and reused
+alignment runs produced identical probe matrices, pair counts and summaries;
+the reused run required no new MAFFT execution. Matrix symmetry, diagonals,
+nonnegative event components and common-callable denominators were checked.

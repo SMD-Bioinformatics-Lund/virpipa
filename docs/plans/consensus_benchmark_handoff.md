@@ -1,8 +1,10 @@
 # Maintenance / laptop-reboot handoff, 2026-11-13
 
-The evaluation is unfinished. No production converter or resistance behavior has
-been changed. The branch is `consensus-benchmark`; its baseline analysis code is
-pinned separately from the experimental native-tool workflow.
+The evaluation is complete as of the November 16 follow-up below; see
+`consensus_benchmark_results.md`. No production converter or resistance behavior
+has been changed. The branch is `consensus-benchmark`; baseline analysis code is
+pinned separately from the experimental native-tool workflow. Historical recovery
+instructions are retained below.
 
 ## Durable state
 
@@ -106,11 +108,10 @@ unquantified. Projected archived VADR gene boundaries are an evaluation adapter,
 not fresh annotations or a validated replacement resistance caller.
 
 Strict Nextflow syntax, shell syntax and unit checks passed. The local helper
-smoke test reached mapping, where the laptop Sentieon image lacked a working
-license endpoint. The **Hopper** Sentieon image has its own license configuration
-and baseline mapping worked. No native Hopper jobs were submitted before the
-maintenance warning. Run a tiny synthetic helper test there first, then the two
-reported samples, before expanding the native cohort.
+smoke test reached mapping on November 13, where the local license endpoint was
+unavailable. Licensed baseline mapping worked on Hopper. No native Hopper jobs
+were submitted before the maintenance warning. The later November 16 validation
+and local license route are recorded below.
 
 The first November 16 smoke submission (6428711) stopped before Nextflow because
 Hopper's older Bash rejects an empty array expansion with `set -u`. The wrapper
@@ -122,10 +123,10 @@ iVar image verified locally and on Hopper:
 `e6cab8972e28c0aa269f9f178716a5fe43dde70e8f3adb096e726ffc8ebce2f0`.
 Never commit images to Git.
 
-Remaining: execute native pilots/cohort, complete missing truth controls,
-prepare real-cohort trimming/coverage manifests, compare distance matrices,
-review all changed resistance calls and deliver the recommendation. No IQ-TREE
-topology comparison or production deployment is part of this checkpoint.
+At the November 13 checkpoint, native pilots/cohort, additional truth controls,
+real-cohort coverage preparation, distance comparison and final review remained.
+They are completed in the November 16 follow-up below. No IQ-TREE topology
+comparison or production deployment is part of this evaluation.
 
 ## November 16 follow-up
 
@@ -151,8 +152,9 @@ upstream integrity reasons while verifying that the correction leaves all
 amino-acid calls and assessment states unchanged. `depth-sensitivity.json`
 separates one- versus seven-complete-codon gates. Original scorecards remain intact.
 
-The local distance job is running in `cohort-distances-03/`, with two independent
-single-thread MAFFT workers and reuse of verified completed alignments. Earlier
+The local distance job completed in `cohort-distances-03/`, with two independent
+single-thread MAFFT workers and reuse of verified completed alignments. It produced
+426 matrices, 246,088 pair comparisons and 294 difference figures. Earlier
 `cohort-distances/` and `cohort-distances-02/` retain interrupted sequential/partial
 calculations; do not present them as final. The current script source was copied
 into the current output directory. If interrupted, use a new output directory
@@ -160,6 +162,9 @@ and `--reuse-alignments` against the latest complete/partial output root; only
 complete outputs with matching source FASTA bytes/settings/version are reused.
 Keep the prepared manifest/masks and previous aligner.json files.
 
-Remaining: finish distance matrices/plots, inspect changed neighbour sets and
-callable-base differences, complete the results report, and commit the final
-checkpoint. Production remains unchanged. See `consensus_benchmark_results.md`.
+`distance-review.json` records all 446 changed neighbour records with before/after
+counts and denominators; `distance-extremes.json` decomposes representative largest
+changes. `distance-overview.png`/`.pdf` use pooled alignments to keep the cohort
+constant despite incompatible native iVar majority interfaces. The completed
+results and recommendation are in `consensus_benchmark_results.md`. No benchmark
+compute jobs remain running. Production remains unchanged.
