@@ -28,10 +28,13 @@ def qualify_read_sites(sites, minimum=7):
         site['read_amino_acid_counts'] = dict(counts)
         site['sequence_amino_acids'] = site['amino_acids']
         site['sequence_assessed'] = site['assessed']
+        site['sequence_assessment_reason'] = site.get('assessment_reason')
         eligible = (site['assessed'] or site.get('assessment_reason') == 'missing_coverage')
         if site.get('deletion_anchor'):
             site['assessed'] = False
             site['assessment_reason'] = 'deletion_frequency_not_quantified'
+        elif not eligible:
+            continue
         elif depth < minimum:
             site['assessed'] = False
             site['assessment_reason'] = 'insufficient_complete_codons'

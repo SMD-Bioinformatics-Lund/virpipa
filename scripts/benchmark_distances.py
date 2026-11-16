@@ -118,9 +118,13 @@ def main():
             source.write_text(''.join('>'+r['token']+'\n'+templates[r['token']]+'\n' for r in selected))
             destination = directory/f'{method}.aligned.fasta'
             command = [args.mafft, '--auto', '--thread', '1', str(source)]
-            with destination.open('w') as output, (directory/f'{method}.log').open('w') as log:
-                subprocess.run(command, stdout=output, stderr=log, check=True)
-            commands.append(command)
+            if len(selected) == 1:
+                destination.write_text(source.read_text())
+                (directory/f'{method}.log').write_text('Single sequence; alignment is unchanged.\n')
+            else:
+                with destination.open('w') as output, (directory/f'{method}.log').open('w') as log:
+                    subprocess.run(command, stdout=output, stderr=log, check=True)
+                commands.append(command)
             aligned = aligned_records(destination)
             if set(aligned) != {r['token'] for r in selected}:
                 raise ValueError('MAFFT identifiers differ from inputs')
@@ -229,6 +233,7 @@ def main():
             plt.close(fig)
     write_json(args.output/'commands.json', commands)
     write_json(args.output/'provenance.json', dict(manifest_sha256=digest(args.manifest),
+        baseline_method=args.baseline,
         inputs=[{k: r[k] for k in ('sample_run_id', 'method', 'mode', 'subtype')} |
                 {k+'_sha256': digest(r[k]) for k in ('fasta', 'mask')} for r in rows],
         virtitta_commit=subprocess.check_output(['git', '-C', str(args.virtitta_source), 'rev-parse', 'HEAD']).decode().strip(),

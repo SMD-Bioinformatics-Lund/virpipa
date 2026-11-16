@@ -46,10 +46,13 @@ python -m unittest discover -s tests -p test_consensus_benchmark.py -v
 
 The output directory must not exist. The runner creates known molecules, indexed
 BAMs, truth counts, native tool outputs, commands, versions, hashes and a JSON
-scorecard. The 36 current controls cover 14/15/16% boundaries, synonymous
+scorecard. The 41 current controls cover 14/15/16% boundaries, synonymous
 aggregation, an unobserved-codon mixture, multiallelic calls, missing/low depth,
 quality exclusions, agreeing/conflicting templates, partial codons and 1/2/3-base
-indels at 8/15/50/90% support. These BAMs have explicit CIGARs: they test calling
+indels at 8/15/50/90% support, terminal absence, true stops and linked versus
+unlinked mutations with equal marginal frequencies. Mate controls have explicit
+first/second flags, and both callers include anomalous pairs.
+These BAMs have explicit CIGARs: they test calling
 and conversion, not the accuracy of a read mapper. BAQ is explicitly disabled
 for both tool paths in this controlled experiment; production retains its policy.
 The raw-VCF baseline and normalized-VCF diagnostic are separate outputs: otherwise
@@ -111,10 +114,11 @@ Do not infer transmission or tree-topology equivalence from these counts.
 
 ## Remaining gates before a replacement recommendation
 
-- Run all native arms against the same controls. iVar 1.4.4 is installed in the
-  local `skrotis` environment; Hopper provisioning remains a separate step.
-- Add equivalent shifted/padded and overlapping variant records, terminal
-  absence, true stop/frameshift and mutation-linkage controls to the truth panel.
+- Run all native arms through the mapper against the same controls. The iVar
+  1.4.4 image has been verified on both execution environments.
+- Evaluate shifted/padded and conflicting overlapping records with
+  `benchmark_variant_records.py`; an overlap warning is evidence of an
+  inconsistent callset, not permission to silently combine records.
 - Run raw synthetic reads through the real mapper; explicit-CIGAR probes do not
   establish mapper robustness. Check the two reported homopolymer loci directly.
 - Freeze runnable minority-call preprocessing using documented tool operations;
@@ -196,3 +200,46 @@ The verified BioContainers iVar image tag is
 `sha256:1de5c4e08c00c037797137b903f0849b3a4d55d750a6e3a4efeda0fcfe795cb7`.
 Record the actual SIF checksum separately after transfer to Hopper. The user is
 provisioning that image; local iVar testing already uses version 1.4.4.
+
+## Local cohort analysis, 2026-11-16
+
+The fresh baseline and the nine-arm native workflow both completed all 240
+analyses. Analysis, validation and plotting run locally against mounted outputs.
+Only workflow runs or steps needing Hopper resources/licensing belong on the
+cluster. Experiment artifacts remain isolated from production.
+
+`summarize_benchmark_native.py` checks frozen input hashes, scored FASTA hashes,
+CRAM identities/checksums/indexes and consistent container manifests before
+comparing read-codon calls. It separates changed amino acids, lost/gained
+assessments and changed drug outcomes. Its production-to-read comparison also
+changes the read pool/remapping and interpretation policy; it cannot isolate a
+pure policy effect.
+
+`prepare_benchmark_distances.py` uses Virtitta's coverage-BED parser and trimming
+functions with the selected configuration. Each edited candidate has its own
+remapped depth, including inserted-base coordinates. The `baseline` method uses
+published scaffold coverage, matching current Virtitta; `baseline_remap` uses
+the same frozen eligible read pool as the native candidates. Use
+`--baseline baseline_remap` for the primary controlled matrix comparison. The
+separate published-baseline matrix quantifies the additional operational coverage
+difference. BCFtools supplies the same haploid consensus for both modes; it is
+not a 15% minority-IUPAC caller. Length-incompatible iVar/majority pairs are
+reported and remain pooled diagnostics, with independent trimming. Equal length
+follows Virtitta's existing pairing rule and alone does not prove indel
+coordinate equivalence.
+
+The November 11 archive used Hostile without `--reorder` in all 240 task scripts,
+despite the fix having been committed on November 6. The fresh baseline includes
+it. For the analysis with changed drug outcomes, the filtered paired-record
+multiset is identical but reordered; 522,139 of the one million polishing pairs
+are replaced after seeded subsampling. Thus archived-versus-fresh differences
+are confounded by that known upstream ordering change. They must not be
+attributed to candidate consensus tools or described as an identical-input
+repeatability failure.
+
+The two reported indel-window pilots completed all arms with unchanged qualifying
+read amino acids and drug outcomes under the evaluation policy. The remapped
+baseline IUPAC has 137 opposing 9-base-gap records in the first window and 47
+opposing 10-base-gap records in the second; these patterns are absent from the
+BCFtools/iVar reconstructions in those windows. This is a local alignment
+diagnostic, not a universal claim that indels can be removed safely.

@@ -93,6 +93,11 @@ def fixtures(output):
               ('agreeing_mates', [('TCT', 20)], None),
               ('conflicting_mates', [('TCT', 20)], None),
               ('partial_codon', [('TCT', 20)], None),
+              ('terminal_absence', [('TTT', 100)], None),
+              ('stop_16', [('TTT', 84), ('TAG', 16)], None),
+              ('stop_100', [('TAG', 100)], None),
+              ('linked_mutations', [('TTT', 84), ('GTT', 16)], None),
+              ('unlinked_mutations', [('TTT', 84), ('GTT', 16)], None),
               ('no_coverage', [], None)]
     for length in (1, 2, 3):
         for fraction in (8, 15, 50, 90):
@@ -108,12 +113,17 @@ def fixtures(output):
         pysam.faidx(str(fasta))
         bam = dest / 'reads.bam'
         expected = Counter()
+        haplotypes = Counter()
         with pysam.AlignmentFile(str(bam), 'wb', header={
                 'HD': {'SO': 'coordinate'}, 'SQ': [{'SN': 'truth', 'LN': len(ref)}]}) as handle:
             index = 0
             for codon, count in molecules:
                 for _ in range(count):
                     seq = ref[:60]+codon+ref[63:]
+                    if ((name == 'linked_mutations' and codon == 'GTT')
+                            or (name == 'unlinked_mutations' and index < 16)):
+                        seq = seq[:120]+'GAA'+seq[123:]
+                    haplotypes[(seq[60:63], seq[120:123])] += 1
                     cigar = [(0, len(ref))]
                     if indel and index < indel[2]:
                         kind, length, _ = indel
@@ -129,6 +139,10 @@ def fixtures(output):
                     read.reference_id, read.reference_start, read.mapping_quality = 0, 0, 60
                     read.cigartuples = cigar
                     read.query_qualities = pysam.qualitystring_to_array('I'*len(seq))
+                    if name in ('agreeing_mates', 'conflicting_mates'):
+                        read.flag = 65
+                        read.next_reference_id = 0
+                        read.next_reference_start = 0
                     if name == 'poor_quality':
                         qualities = read.query_qualities
                         qualities[61] = 2
@@ -137,9 +151,15 @@ def fixtures(output):
                         read.query_sequence = seq[:62]
                         read.cigartuples = [(0, 62)]
                         read.query_qualities = pysam.qualitystring_to_array('I'*62)
+                    if name == 'terminal_absence':
+                        read.reference_start = 20
+                        read.query_sequence = seq[20:-20]
+                        read.cigartuples = [(0, len(seq)-40)]
+                        read.query_qualities = pysam.qualitystring_to_array('I'*(len(seq)-40))
                     handle.write(read)
                     if name in ('agreeing_mates', 'conflicting_mates'):
                         mate = copy.copy(read)
+                        mate.flag = 129
                         if name == 'conflicting_mates':
                             mate.query_sequence = seq[:60]+'TTT'+seq[63:]
                             mate.query_qualities = pysam.qualitystring_to_array('I'*len(seq))
@@ -157,6 +177,9 @@ def fixtures(output):
                      amino_acids=dict(aa), depth=total, indel=indel,
                      qualifying_amino_acids=sorted(a for a, n in aa.items()
                                                   if n*100 >= 15*total))
+        if name in ('linked_mutations', 'unlinked_mutations'):
+            truth['linked_codon_positions_zero_based'] = [[60, 61, 62], [120, 121, 122]]
+            truth['haplotypes'] = {':'.join(k): v for k, v in haplotypes.items()}
         write_json(dest/'truth.json', truth)
         manifest.append(truth)
     write_json(output/'fixtures.json', manifest)
@@ -169,7 +192,7 @@ def run_case(case, runner, output):
     ref, bam = Path(case['reference']), Path(case['bam'])
     bcf, vcf, normalized = dest/'calls.bcf', dest/'calls.vcf.gz', dest/'normalized.vcf.gz'
     # BAQ is disabled in this controlled probe, consistently for both engines.
-    runner.run('bcftools', ['mpileup', '-B', '-Q', '13', '-d', '1000000',
+    runner.run('bcftools', ['mpileup', '-A', '-B', '-Q', '13', '-d', '1000000',
                            '-a', 'FORMAT/AD,FORMAT/DP', '-f', ref, '-Ob', '-o', bcf, bam])
     runner.run('bcftools', ['call', '-m', '-A', '--ploidy', '1', '-Oz', '-o', vcf, bcf])
     runner.run('bcftools', ['view', vcf], stdout=dest/'calls.vcf')

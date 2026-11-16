@@ -12,6 +12,16 @@ This file holds detailed environment and operations notes that are useful when w
 - Prefer tiny data or fixture-backed module tests locally.
 - Local container images are stored in `assets/containers/`.
 - Hopper `/fs1` is mounted locally at `/mnt/fs1`.
+- Run benchmark analysis, comparisons and plotting locally against the mounted
+  outputs. Reserve remote execution for pipeline runs and steps that need Hopper
+  resources or licensed software; do not use remote execution for routine analysis.
+- Local Sentieon is available at
+  `/mnt/fs1/sw/sentieon/sentieon-genomics-202503/bin/sentieon` with
+  `SENTIEON_LICENSE=localhost:8990`. The same license route was verified with the
+  pinned 202308.03 image using `APPTAINERENV_SENTIEON_LICENSE=localhost:8990`.
+  The license port/tunnel must first be opened for the current session; verify
+  access before mapping and do not assume it survives a reboot or new session.
+  Use local mapping for tiny fixtures; larger mapping projects belong on Hopper.
 
 Helpful local paths:
 

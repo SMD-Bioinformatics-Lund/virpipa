@@ -69,17 +69,20 @@ for name in scaffold_control baseline_iupac baseline_majority bcftools_genotype 
     samtools faidx "$ref"
     bwa index "$ref"
     chunks=()
+    has_reads=false
     if [[ -s native/reads.R1.fastq && -s native/reads.R2.fastq ]]; then
         bwa mem -t "$threads" -R "$rg" "$ref" native/reads.R1.fastq native/reads.R2.fastq |
             samtools sort -o "native/$name.paired.bam"
         chunks+=("native/$name.paired.bam")
+        has_reads=true
     fi
     if [[ -s native/reads.unpaired.fastq ]]; then
         bwa mem -t "$threads" -R "$rg" "$ref" native/reads.unpaired.fastq |
             samtools sort -o "native/$name.unpaired.bam"
         chunks+=("native/$name.unpaired.bam")
+        has_reads=true
     fi
-    if [[ ${#chunks[@]} -eq 0 ]]; then
+    if [[ "$has_reads" == false ]]; then
         samtools dict "$ref" | samtools view -b -o "native/$name.merged.bam" -
     else
         samtools merge -f "native/$name.merged.bam" "${chunks[@]}"
