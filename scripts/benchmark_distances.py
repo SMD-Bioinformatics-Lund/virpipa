@@ -6,6 +6,7 @@ FASTA and JSON boolean mask must already have the SAME documented trimming appli
 Each input is one record; masks are positional evidence, never inferred from letters.
 """
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import csv
 from dataclasses import asdict
 import itertools
@@ -32,6 +33,33 @@ def aligned_records(path):
                 raise ValueError('Missing FASTA header')
             result[identifier] += line.strip()
     return result
+
+
+def run_alignment(source, destination, mafft, previous=None):
+    templates = aligned_records(source)
+    command = [mafft, '--auto', '--thread', '1', str(source)]
+    reused = None
+    if previous and previous.is_file() and previous.with_name(source.name).is_file():
+        if previous.with_name(source.name).read_bytes() == source.read_bytes():
+            candidate = aligned_records(previous)
+            if (set(candidate) == set(templates) and len({len(s) for s in candidate.values()}) == 1
+                    and all(candidate[k].replace('-', '').upper() == v for k, v in templates.items())):
+                destination.write_bytes(previous.read_bytes())
+                reused = str(previous)
+    if reused:
+        command = None
+    elif len(templates) == 1:
+        destination.write_text(source.read_text())
+        command = None
+    else:
+        with destination.open('w') as output, destination.with_suffix('.log').open('w') as log:
+            subprocess.run(command, stdout=output, stderr=log, check=True)
+    aligned = aligned_records(destination)
+    if (set(aligned) != set(templates) or len({len(s) for s in aligned.values()}) != 1
+            or any(aligned[k].replace('-', '').upper() != v for k, v in templates.items())):
+        raise ValueError('MAFFT changed identifiers, lengths or sequence payload')
+    return dict(sequences=[aligned[key] for key in templates], command=command, reused_from=reused,
+                artifact=str(destination))
 
 
 def nearest(cells):
@@ -71,6 +99,9 @@ def main():
     parser.add_argument('--mafft', default='mafft')
     parser.add_argument('--baseline', default='baseline')
     parser.add_argument('--plots', action='store_true', help='Write distance-difference heatmaps (requires matplotlib)')
+    parser.add_argument('--alignment-workers', type=int, default=1)
+    parser.add_argument('--reuse-alignments', type=Path,
+                        help='Completed alignments with matching inputs and aligner.json provenance')
     args = parser.parse_args()
     sys.path.insert(0, str(args.virtitta_source))
     from virtitta.distance import pair_distance, project_mask, project_sequence
@@ -80,6 +111,13 @@ def main():
     if len(set(keys)) != len(keys):
         raise ValueError('Duplicate sample/method/mode')
     args.output.mkdir(parents=True, exist_ok=False)
+    if args.alignment_workers < 1:
+        raise ValueError('Alignment workers must be positive')
+    aligner = dict(mafft_version=subprocess.check_output([args.mafft, '--version'], stderr=subprocess.STDOUT).decode(),
+                   arguments=['--auto', '--thread', '1'])
+    if args.reuse_alignments and json.loads((args.reuse_alignments/'aligner.json').read_text()) != aligner:
+        raise ValueError('Reused alignments have different MAFFT settings/version')
+    write_json(args.output/'aligner.json', aligner)
     groups = {}
     for index, row in enumerate(rows):
         if row['mode'] not in ('iupac', 'majority'):
@@ -94,7 +132,10 @@ def main():
             raise ValueError('Manifest requires unaligned FASTAs')
         row = dict(row, token=f's{index}', sequence=seq, coverage=mask)
         groups.setdefault((row['subtype'] or 'uncertain', row['mode']), []).append(row)
-    commands, comparisons, incompatible = [], [], []
+    commands, comparisons, incompatible, reuse = [], [], [], []
+    executor = ThreadPoolExecutor(max_workers=args.alignment_workers)
+    cache = {}
+    plans = []
     row_lookup = {(r['sample_run_id'], r['method'], r['mode']): r for g in groups.values() for r in g}
     for index, ((subtype, mode), group) in enumerate(sorted(groups.items())):
         directory = args.output/f'group_{index}'
@@ -102,7 +143,7 @@ def main():
         methods = sorted({r['method'] for r in group})
         # Pooled alignment gives all methods a shared gap pattern. Operational
         # alignments are calculated independently, without forcing equal lengths.
-        matrices = {}
+        jobs = []
         for method in ['pooled']+methods:
             selected = group if method == 'pooled' else [r for r in group if r['method'] == method]
             templates = {r['token']: r['sequence'] for r in selected}
@@ -117,17 +158,23 @@ def main():
             source = directory/f'{method}.input.fasta'
             source.write_text(''.join('>'+r['token']+'\n'+templates[r['token']]+'\n' for r in selected))
             destination = directory/f'{method}.aligned.fasta'
-            command = [args.mafft, '--auto', '--thread', '1', str(source)]
-            if len(selected) == 1:
-                destination.write_text(source.read_text())
-                (directory/f'{method}.log').write_text('Single sequence; alignment is unchanged.\n')
-            else:
-                with destination.open('w') as output, (directory/f'{method}.log').open('w') as log:
-                    subprocess.run(command, stdout=output, stderr=log, check=True)
-                commands.append(command)
-            aligned = aligned_records(destination)
-            if set(aligned) != {r['token'] for r in selected}:
-                raise ValueError('MAFFT identifiers differ from inputs')
+            key = tuple(templates.values())
+            if key not in cache:
+                previous = args.reuse_alignments/directory.name/destination.name if args.reuse_alignments else None
+                cache[key] = executor.submit(run_alignment, source, destination, args.mafft, previous)
+            jobs.append((method, selected, templates, destination, cache[key]))
+        plans.append((subtype, mode, group, directory, methods, jobs))
+    for subtype, mode, group, directory, methods, jobs in plans:
+        matrices = {}
+        for method, selected, templates, destination, future in jobs:
+            result = future.result()
+            if result['command'] and result['command'] not in commands:
+                commands.append(result['command'])
+            aligned = dict(zip(templates, result['sequences']))
+            destination.write_text(''.join('>'+key+'\n'+dna+'\n' for key, dna in aligned.items()))
+            if result['reused_from'] or result['artifact'] != str(destination):
+                reuse.append(dict(destination=str(destination), source=result['reused_from'] or result['artifact'],
+                                  aligned_sha256=digest(destination)))
             for r in selected:
                 if aligned[r['token']].replace('-', '').upper() != templates[r['token']]:
                     raise ValueError('MAFFT changed sequence payload')
@@ -182,6 +229,7 @@ def main():
             comparisons.append(dict(subtype=subtype, mode=mode, candidate=candidate,
                                     alignment='common_callable_bases', **compare_cells(common_old, common_new)))
     write_json(args.output/'comparisons.json', comparisons)
+    executor.shutdown(wait=True)
     write_json(args.output/'incompatible.json', incompatible)
     summaries = []
     with (args.output/'pair-differences.tsv').open('w') as stream:
@@ -232,13 +280,14 @@ def main():
             fig.savefig(args.output/f'difference-{index}.png', dpi=150)
             plt.close(fig)
     write_json(args.output/'commands.json', commands)
+    write_json(args.output/'alignment-reuse.json', reuse)
     write_json(args.output/'provenance.json', dict(manifest_sha256=digest(args.manifest),
         baseline_method=args.baseline,
         inputs=[{k: r[k] for k in ('sample_run_id', 'method', 'mode', 'subtype')} |
                 {k+'_sha256': digest(r[k]) for k in ('fasta', 'mask')} for r in rows],
         virtitta_commit=subprocess.check_output(['git', '-C', str(args.virtitta_source), 'rev-parse', 'HEAD']).decode().strip(),
         distance_source_sha256=digest(args.virtitta_source/'virtitta/distance.py'),
-        mafft_version=subprocess.check_output([args.mafft, '--version'], stderr=subprocess.STDOUT).decode()))
+        mafft_version=aligner['mafft_version'], alignment_workers=args.alignment_workers))
 
 
 if __name__ == '__main__':

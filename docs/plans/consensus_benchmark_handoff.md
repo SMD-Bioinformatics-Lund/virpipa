@@ -126,3 +126,40 @@ Remaining: execute native pilots/cohort, complete missing truth controls,
 prepare real-cohort trimming/coverage manifests, compare distance matrices,
 review all changed resistance calls and deliver the recommendation. No IQ-TREE
 topology comparison or production deployment is part of this checkpoint.
+
+## November 16 follow-up
+
+The 240-analysis native campaign completed at source checkpoint `43da431`.
+All 2,160 native reference/alignment identities, frozen input hashes and image
+manifests passed local validation. Local mapper controls at frozen source
+`2681e6c` completed all 41 cases across nine arms: 369/369 known-codon and
+template-retention checks pass. The pinned local/Hopper images match byte for byte.
+
+The user supplied a local Sentieon route. Its license port/tunnel must be opened
+for the current session before local mapping. Tiny fixtures and routine analysis
+run locally; large mapping/full pipeline runs belong on Hopper. No further
+remote analysis is needed for this checkpoint.
+
+The supplied November 11 work directory confirmed absence of `--reorder` in all
+240 archived Hostile scripts. An inspected sample retained the same filtered
+pair multiset but replaced 522,139 of one million polishing pairs after ordering
+changed. Treat old-versus-fresh sequence differences as confounded by this change.
+
+Durable local outputs are under `test_output_consensus_benchmark/session_20261116/`.
+`CHECKPOINT.json` records current paths. `cohort-scorecard-qualified/` preserves
+upstream integrity reasons while verifying that the correction leaves all
+amino-acid calls and assessment states unchanged. `depth-sensitivity.json`
+separates one- versus seven-complete-codon gates. Original scorecards remain intact.
+
+The local distance job is running in `cohort-distances-03/`, with two independent
+single-thread MAFFT workers and reuse of verified completed alignments. Earlier
+`cohort-distances/` and `cohort-distances-02/` retain interrupted sequential/partial
+calculations; do not present them as final. The current script source was copied
+into the current output directory. If interrupted, use a new output directory
+and `--reuse-alignments` against the latest complete/partial output root; only
+complete outputs with matching source FASTA bytes/settings/version are reused.
+Keep the prepared manifest/masks and previous aligner.json files.
+
+Remaining: finish distance matrices/plots, inspect changed neighbour sets and
+callable-base differences, complete the results report, and commit the final
+checkpoint. Production remains unchanged. See `consensus_benchmark_results.md`.

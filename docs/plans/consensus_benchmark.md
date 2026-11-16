@@ -101,6 +101,12 @@ python scripts/benchmark_distances.py --manifest /path/to/prepared.json --output
 ```
 
 Operational majority comparisons reuse the IUPAC gap pattern, as Virtitta does.
+`--alignment-workers 2` runs two independent single-thread MAFFT jobs locally.
+Identical ordered template sequences share an alignment. `--reuse-alignments`
+accepts a previous output root with matching `aligner.json` provenance; source
+FASTA bytes and complete aligned payloads are checked before reuse. Partial or
+different inputs are recalculated. Sequential, parallel and reused probe runs
+produced identical matrices, pair counts and summaries.
 Missing or length-incompatible pairs are reported in `incompatible.json`.
 Pooled alignments include all versions within each subtype/mode. A third
 comparison holds covered, valid nucleotide positions constant across both
@@ -114,24 +120,17 @@ Do not infer transmission or tree-topology equivalence from these counts.
 
 ## Remaining gates before a replacement recommendation
 
-- Run all native arms through the mapper against the same controls. The iVar
-  1.4.4 image has been verified on both execution environments.
-- Evaluate shifted/padded and conflicting overlapping records with
-  `benchmark_variant_records.py`; an overlap warning is evidence of an
-  inconsistent callset, not permission to silently combine records.
-- Run raw synthetic reads through the real mapper; explicit-CIGAR probes do not
-  establish mapper robustness. Check the two reported homopolymer loci directly.
-- Freeze runnable minority-call preprocessing using documented tool operations;
-  neither current native BCFtools arm supplies the full desired policy.
-- Prepare positional coverage masks/trimming for actual candidate sequences;
-  run operational and pooled distance comparisons on the cohort.
-- Complete fresh Hopper runs for viable candidates and a baseline via site
-  wrappers, Nextflow 26.04.3, isolated work/output paths and disabled import markers.
-  Push committed code to the Hopper bare repository before using wrappers.
-- Review every changed RAS/drug outcome, lost assessment, new integrity warning
-  and nearest-neighbour change; explain larger matrix changes with callable bases.
-- Produce full matrix TSV/JSON, difference visualizations and a recommendation.
-  No IQ-TREE topology comparison or clinical-validation claim is included here.
+The updated findings and gate status are recorded in
+[the results report](consensus_benchmark_results.md). Both 240-analysis workflows,
+the two reported loci, 41 mapper controls across all nine arms, variant-record
+controls and depth-policy sensitivity analysis are complete. Coverage/trimming
+inputs are prepared and local distance comparisons are running.
+
+Production replacement still requires an explicit minority/depth policy,
+deletion-frequency handling and validated annotations/coordinate mappings for
+edited genomes. Native BCFtools and iVar consensus settings do not supply the
+full desired amino-acid policy. No IQ-TREE topology comparison, clinical-validation
+claim or production deployment is included in this evaluation.
 
 Do not replace archive provenance with converter-4 metadata for another tool.
 Any future production interface changes require explicit coordinate mappings and

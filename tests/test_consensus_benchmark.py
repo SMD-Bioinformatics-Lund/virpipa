@@ -7,7 +7,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'scripts'))
 from benchmark_consensus import fixtures, codon_counts
-from benchmark_distances import compare_cells, nearest
+from benchmark_distances import compare_cells, nearest, run_alignment
 from benchmark_campaign import validate, fingerprint
 from benchmark_native_score import qualify_read_sites
 from annotate_vcf_resistance import read_codon
@@ -66,6 +66,24 @@ class BenchmarkTests(unittest.TestCase):
         result = compare_cells(old, new)['pairs'][0]
         self.assertEqual(result['delta']['compared_bases'], 10)
         self.assertEqual(result['delta']['substitutions'], 1)
+
+    def test_partial_or_different_alignment_inputs_are_not_reused(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            previous = root/'previous'
+            previous.mkdir()
+            source = root/'one.input.fasta'
+            source.write_text('>a\nACGT\n')
+            (previous/source.name).write_text(source.read_text())
+            cached = previous/'one.aligned.fasta'
+            cached.write_text('>a\nACG\n')
+            result = run_alignment(source, root/'first.fasta', 'unused-single-sequence', cached)
+            self.assertIsNone(result['reused_from'])
+            self.assertEqual(result['sequences'], ['ACGT'])
+            cached.write_text('>a\nACGT\n')
+            (previous/source.name).write_text('>a\nACGA\n')
+            result = run_alignment(source, root/'second.fasta', 'unused-single-sequence', cached)
+            self.assertIsNone(result['reused_from'])
 
     def test_neighbours_use_the_same_available_sample_pairs(self):
         cell = dict(substitutions=1, indel_events=0, total_events=1, compared_bases=100)
