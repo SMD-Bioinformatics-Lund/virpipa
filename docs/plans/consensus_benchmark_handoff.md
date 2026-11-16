@@ -21,9 +21,9 @@ pinned separately from the experimental native-tool workflow.
   The files themselves are saved with the same directory structure. Portable
   manifests, where supplied, are separate from the historical provenance.
 
-## Running Hopper baseline
+## Completed Hopper baseline (checked 2026-11-16)
 
-- Job: **6405694**. It reached host filtering, mapping and assembly successfully.
+- Job: **6405694**, COMPLETED, exit 0, elapsed 01:35:53.
 - Frozen analysis source:
   `/fs1/jonas/virpipa/consensus_benchmark_36bcbda_20261113/source`
 - Output/work/cache root:
@@ -44,7 +44,17 @@ pinned separately from the experimental native-tool workflow.
 Slurm runs independently of the laptop. A laptop reboot may interrupt monitoring
 or local scripts, but does not terminate the submitted baseline. A Hopper service
 window may terminate the job; work/cache files must be preserved for recovery.
-Do not submit more jobs until maintenance scheduling is known.
+The November 16 scheduler check showed no reservations and available normal nodes.
+The laptop's `/tmp` was cleared; the durable checkpoint above survived.
+
+All 240 published identities, layouts, consensus sidecars and FASTA/CRAM reference
+identities passed validation; all 9,400 traced tasks completed successfully.
+`scripts/validate_benchmark_baseline.py` records this comparison. Against the
+November 11 archives, 195 analyses have at least one changed consensus sequence,
+none has a changed subtype and one has changed drug outcomes (two drugs).
+These differences precede the native-tool experiment and require separate
+investigation. Native comparisons must use a fixed fresh baseline/read pool.
+The private validation report is `baseline/validation_20261116.json`.
 
 ## Recovery after the service window
 
@@ -101,6 +111,10 @@ license endpoint. The **Hopper** Sentieon image has its own license configuratio
 and baseline mapping worked. No native Hopper jobs were submitted before the
 maintenance warning. Run a tiny synthetic helper test there first, then the two
 reported samples, before expanding the native cohort.
+
+The first November 16 smoke submission (6428711) stopped before Nextflow because
+Hopper's older Bash rejects an empty array expansion with `set -u`. The wrapper
+now keeps its Nextflow argument array nonempty for both fresh and resumed runs.
 
 iVar image verified locally and on Hopper:
 `assets/containers/ivar_1.4.4.sif` and

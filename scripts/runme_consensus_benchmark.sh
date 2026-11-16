@@ -36,13 +36,13 @@ module load Java/23.0.2 nextflow/26.04.3 apptainer
 export NXF_OFFLINE=true
 export NXF_SYNTAX_PARSER=v2
 
-resume_args=()
+nextflow_args=(-ansi-log false)
 if [[ "$recovery" == resume ]]; then
     [[ -d "$output/launch" && -d "$output/work" ]]
     [[ "$(cat "$output/source_commit.txt")" == "$source_commit" ]]
     cmp "$input" "$output/input.csv"
     [[ ! -e "$output/${mode^^}_COMPLETE" ]] || { echo 'Experiment already completed'; exit 0; }
-    resume_args=(-resume)
+    nextflow_args+=(-resume)
     cp "${BASH_SOURCE[0]}" "$output/resume_wrapper_${SLURM_JOB_ID:-manual}.sh"
     if [[ "$mode" == baseline ]]; then
         apptainer exec -B /fs1,/fs2,/local /fs1/resources/containers/python_hcvpipe.sif \
@@ -89,6 +89,6 @@ nextflow run "$source_root/$entry" -profile slurm,hpc,apptainer \
     --ref_dir "$source_root/refgenomes" --partition normal \
     --completion_log_dir= --virtitta_import_dir= \
     --publish_mode debug --pipeline_info true --pipeline_info_dag false \
-    -work-dir "$output/work" -ansi-log false "${resume_args[@]}"
+    -work-dir "$output/work" "${nextflow_args[@]}"
 sha256sum -c "$output/samplesheet.sha256" > "$output/input_verification.log"
 touch "$output/${mode^^}_COMPLETE"
